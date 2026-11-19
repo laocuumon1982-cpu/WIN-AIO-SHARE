@@ -1,0 +1,74 @@
+﻿WIN AIO BY DUY ANH - v1.9
+=========================
+
+CHỈ 1 FILE EXE
+  - Chép "Win AIO by Duy Anh.exe" vào USB / ổ nào cũng được rồi chạy. Không cần cài.
+  - Tool tự xin quyền Administrator (Windows hiện hộp UAC, bấm Yes).
+  - Thư mục Data kế bên exe CHỈ được tạo khi: tải app, sửa nút (Admin), đổi cài đặt / giao diện, sao lưu Wifi - Driver.
+    Mở tool để xem thông tin, tắt máy, tháo ổ... thì không tạo gì thêm.
+  - Máy chưa có Edge WebView2 (Win 10 cũ / LTSC): tool tự mở giao diện bằng trình duyệt Edge. Đóng tab là tool tự thoát.
+
+WINGET TỰ CẬP NHẬT
+  - Mở tool sẽ so bản winget trên máy với bản mới nhất của Microsoft. Bản cũ / chưa có -> tự cài bản mới, chạy ngầm.
+  - Đèn "winget" bên trái: vàng = đang cập nhật, xanh = đã là bản mới nhất. Bấm nút WINGET lúc đang cập nhật thì tool chờ xong mới cài.
+  - Tắt tính năng này: Cài đặt (Admin) -> bỏ tick "Mở tool tự kiểm tra winget...".
+
+CẬP NHẬT
+  - Nút "⟳ Cập nhật" góc trên phải: kiểm tra bản mới ở github.com/laocuumon1982-cpu/WIN-AIO-SHARE (mục Releases),
+    tải về, tự thay file exe rồi mở lại. Dữ liệu trong Data giữ nguyên.
+  - Mở tool sau 4 giây sẽ tự kiểm tra; có bản mới thì nút chuyển xanh "⟳ Có bản vX.Y".
+
+TEST MÁY (kiểm tra laptop / PC)
+  - Mỗi mục bấm "▶ Bắt đầu test", xong bấm ✓ Đạt hoặc ✗ Lỗi. Trên cùng là PHIẾU KIỂM TRA, bấm "⧉ Copy phiếu" để gửi khách.
+  - Màn hình: bấm chuột / → / Space đổi màu, ← lùi, Esc thoát. Cảm ứng: chạm kín các ô, nhấp đúp / Esc thoát.
+  - Bàn phím: bấm lần lượt các phím; bấm Esc 2 lần liền để thoát. Phím Fn và phím riêng của hãng Windows không báo.
+  - Micro / Webcam: lần đầu Windows hỏi quyền -> bấm Cho phép (Allow). Không mở được thì vào Cài đặt -> Quyền riêng tư.
+  - Pin: độ chai = phần dung lượng đã mất so với lúc mới. Trên 20% là chai vừa, trên 40% nên thay pin.
+
+NGUỒN & Ổ USB (gộp từ Power & USB Eject)
+  - TẮT MÁY NGAY: ép tắt ngay, không hỏi lại (dùng khi khẩn cấp).
+  - Khóa máy (như Win+L), Đổi người dùng (về màn hình đăng nhập).
+  - Hẹn giờ tắt máy (luôn force): "Sau thời gian" N phút, hoặc "Vào lúc" giờ:phút (giờ đã qua -> ngày mai). Hủy hẹn được.
+    Đếm ngược hiện trên tab và ở menu bên trái.
+  - Ổ ĐĨA NGOÀI: tự cập nhật mỗi 6 giây. Ổ trong (SATA/NVMe) ẩn, tick "Hiện ổ trong" để xem.
+      ⏏ Tháo an toàn: giống Safely Remove Hardware của Windows. Windows từ chối thì báo lý do (chương trình đang mở tệp...).
+      ⚡ Ép ngắt ổ: ghi hết dữ liệu + dismount + Offline rồi tháo. Cắm lại hoặc khởi động lại máy là ổ tự Online.
+
+CÀI PHẦN MỀM
+  - Bấm 1 nút: cài ngay. Bấm ô tròn bên trái để chọn nhiều mục, rồi "▶ Cài mục đã chọn".
+  - Nhãn nguồn: WEB (link tải), WINGET, FILE (file trên máy / USB), LỆNH.
+  - Đèn trên nút: vàng = đang cài / chờ, xanh = xong, đỏ = lỗi (xem tab Nhật ký).
+  - Thanh ⬇ TẢI VỀ: % tải thật (MB, tốc độ). Thanh ⚙ CÀI ĐẶT: giải nén zip là % thật; trình cài .exe/.msi/winget
+    không báo tiến độ nên % là ƯỚC TÍNH theo thời gian (tới 95%, cài xong mới 100%). Nút đang chạy cũng hiện %.
+
+MS OFFICE (nút trong nhóm VĂN PHÒNG - PDF)
+  - Chọn phiên bản 2016 / 2019 / 2021 / 2024 / 365, biến thể, 64/32-bit, ngôn ngữ, ứng dụng (thêm Project / Visio) rồi bấm ⚙ CÀI ĐẶT.
+  - Cài bằng Office Deployment Tool chính chủ Microsoft. Không có thư viện offline thì cài Online (cần mạng).
+  - "⬇ Tải thư viện offline": tải bộ cài về Soft\Office kế bên exe (2-4 GB). Có thư viện rồi thì lần sau cài không cần mạng.
+  - "🗑 Gỡ Office cũ": gỡ toàn bộ Office trên máy. "🔗 Ghim Desktop", "🔍 Bản quyền", "🔑 Nhập key Office" (key của bạn).
+
+CHẾ ĐỘ ADMIN (sửa nút)
+  - Bấm "🔒 Admin" -> nhập mật khẩu. MẬT KHẨU MẶC ĐỊNH: admin  (đổi trong tab Cài đặt).
+  - Cạnh mỗi nút hiện nút vàng ✎: sửa tên, biểu tượng, đổi NGUỒN APP, tham số cài, ghi chú, chuyển nhóm, lên / xuống, xóa.
+  - Mỗi nhóm có "＋ Thêm phần mềm"; thanh Admin có "＋ Thêm nhóm" và "Số cột" (2-6).
+  - "Kiểu xếp" trên thanh Admin: Lưới (thẳng hàng, mặc định) hoặc Cột dọc.
+  - Đổi vị trí NHÓM, dưới tên nhóm bấm ◀ ▲ ▼ ▶:
+      Lưới:    đổi chỗ với nhóm bên trái / hàng trên / hàng dưới / bên phải (mỗi nhóm hiện "Hàng · Cột").
+      Cột dọc: ▲ ▼ lên / xuống trong cột, ◀ ▶ sang cột trái / phải.
+  - Đổi vị trí NÚT trong nhóm: bấm ▲▼ nhỏ cạnh nút ✎. Đầu nhóm có ✎ đổi tên, ✕ xóa nhóm.
+
+CÁC KIỂU NGUỒN APP
+  https://...                 link tải .exe / .msi / .zip (link Google Drive /file/d/... cũng được). Link là trang web -> mở trình duyệt.
+  Soft\UniKey.exe             file trong thư mục Soft kế bên exe -> mang theo USB, cài offline.
+  D:\Setup\app.exe            đường dẫn đầy đủ trên máy.
+  winget:Google.Chrome        cài bản mới nhất bằng winget (máy LTSC / Win cũ có thể không có winget).
+                              Lỗi 0x8A150002 = winget quá cũ: tool tự thử lại; vẫn lỗi thì cập nhật App Installer trong Microsoft Store.
+  cmd:lệnh                    chạy lệnh Windows.
+  office:                     mở cửa sổ cài MS Office.
+
+DỮ LIỆU (thư mục Data)
+  winaio.db     danh sách nhóm + nút + nhật ký (SQLite)
+  config.json   cài đặt nhỏ, sửa tay được (thư mục tải, giữ file cài, giao diện, mật khẩu đã mã hóa)
+  Downloads     file cài đặt đã tải       Backup   sao lưu Wifi, Driver, bản xuất danh sách nút
+  Quên mật khẩu Admin: tắt tool, mở config.json, xóa trắng admin_salt và admin_hash -> mật khẩu về "admin".
+  Chép danh sách nút sang máy khác: Cài đặt -> Xuất ra file JSON; bên kia chép file vào Data\apps.json rồi mở tool.

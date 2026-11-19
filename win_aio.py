@@ -1,0 +1,2357 @@
+# -*- coding: utf-8 -*-
+"""Win AIO by Duy Anh - bộ tiện ích cài Win / phần mềm / thiết lập Windows.
+
+Giao diện web trong cửa sổ app (pywebview / Edge WebView2), cùng phong cách PikPak Auto Save.
+  - Mở tool không cần mật khẩu. Mật khẩu Admin (mặc định: admin) mở chế độ chỉnh sửa:
+    sửa tên nút, đổi nguồn (link / file / winget / lệnh), thêm - xóa - xếp nút và nhóm.
+  - Danh sách phần mềm + lịch sử: Data/winaio.db (SQLite). Cài đặt nhỏ: Data/config.json (sửa tay được).
+
+Chạy:  python win_aio.py            -> cửa sổ app (pip install pywebview requests)
+       python win_aio.py --serve    -> mở bằng trình duyệt (để thử)
+"""
+import ctypes
+import datetime as dt
+import hashlib
+import json
+import math
+import os
+import re
+import secrets
+import shlex
+import shutil
+import sqlite3
+import subprocess
+import sys
+import threading
+import time
+import zipfile
+from pathlib import Path
+from urllib.parse import unquote, urlparse, parse_qs
+
+APP_TITLE = "Win AIO by Duy Anh"
+APP_VERSION = "v1.9"
+REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
+EXE_NAME = "Win AIO by Duy Anh.exe"
+IS_WIN = os.name == "nt"
+FAKE = os.environ.get("WINAIO_FAKE") == "1"          # chỉ để thử giao diện trên máy không phải Windows
+
+if getattr(sys, "frozen", False):
+    BASE = Path(sys.executable).resolve().parent         # thư mục chứa file exe (chạy được từ USB)
+else:
+    BASE = Path(__file__).resolve().parent
+RES = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
+DATA = BASE / "Data"
+DB_FILE = DATA / "winaio.db"
+CONFIG_FILE = DATA / "config.json"
+OLD_JSON = DATA / "apps.json"                            # file JSON cũ / bản xuất -> tự nhập 1 lần
+BACKUP_DIR = DATA / "Backup"
+CREATE_NO_WINDOW = 0x08000000 if IS_WIN else 0
+
+DEFAULT_CONFIG = {
+    "download_dir": "Data\\Downloads",
+    "keep_installer": True,
+    "theme": "light",
+    "admin_salt": "",
+    "admin_hash": "",
+    "window": {},
+}
+
+# ---------------------------------------------------------------- danh sách mặc định (sửa được trong tool)
+DEFAULT_GROUPS = [
+    ("VĂN PHÒNG - PDF", [
+        ("🏢", "MS Office", "office:", "", "Cài Office 2016 / 2019 / 2021 / 2024 / 365 chính chủ từ Microsoft (Online hoặc Offline)"),
+        ("📄", "Foxit PDF Reader", "winget:Foxit.FoxitReader", "", ""),
+        ("📄", "Sumatra PDF", "winget:SumatraPDF.SumatraPDF", "", ""),
+        ("📝", "Notepad++", "winget:Notepad++.Notepad++", "", ""),
+        ("📝", "LibreOffice", "winget:TheDocumentFoundation.LibreOffice", "", ""),
+        ("📝", "WPS Office", "winget:Kingsoft.WPSOffice", "", ""),
+    ]),
+    ("BỘ GÕ TIẾNG VIỆT", [
+        ("⌨️", "UniKey", "https://www.unikey.org/assets/release/unikey46RC2-230919-win64.zip", "", "Bản portable, giải nén rồi chạy"),
+        ("⌨️", "EVKey", "https://github.com/lamquangminh/EVKey/releases", "", "Mở trang tải EVKey"),
+    ]),
+    ("NÉN - GIẢI NÉN", [
+        ("📦", "WinRAR", "https://www.rarlab.com/rar/winrar-x64-701.exe", "/S", ""),
+        ("📦", "7-Zip", "winget:7zip.7zip", "", ""),
+    ]),
+    ("ĐA PHƯƠNG TIỆN", [
+        ("🎬", "K-Lite Codec Pack", "winget:CodecGuide.K-LiteCodecPack.Standard", "", ""),
+        ("🎬", "VLC Media Player", "winget:VideoLAN.VLC", "", ""),
+        ("🎞️", "OBS Studio", "winget:OBSProject.OBSStudio", "", ""),
+    ]),
+    ("TRÌNH DUYỆT WEB", [
+        ("🌐", "Google Chrome", "winget:Google.Chrome", "", ""),
+        ("🦊", "Firefox", "https://download.mozilla.org/?product=firefox-latest&os=win64&lang=vi", "", ""),
+        ("🍀", "Cốc Cốc", "winget:CocCoc.CocCoc", "", ""),
+        ("🦁", "Brave", "winget:Brave.Brave", "", ""),
+    ]),
+    ("NHẮN TIN - HỌP", [
+        ("💬", "Zalo PC", "https://res-download-pc-s.chat.zalo.me/ZaloSetup.exe", "", ""),
+        ("✈️", "Telegram", "winget:Telegram.TelegramDesktop", "", ""),
+        ("🎮", "Discord", "https://discord.com/api/download?platform=win", "", ""),
+        ("📹", "Zoom", "https://zoom.us/client/latest/ZoomInstaller.exe", "", ""),
+        ("📞", "Viber", "https://download.viber.com/desktop/windows/ViberSetup.exe", "", ""),
+        ("👥", "Microsoft Teams", "winget:Microsoft.Teams", "", ""),
+    ]),
+    ("HỖ TRỢ TỪ XA", [
+        ("🖥️", "UltraViewer", "https://www.ultraviewer.net/vi/UltraViewer_setup_6.6_vi.exe", "", ""),
+        ("🖥️", "TeamViewer", "https://download.teamviewer.com/download/TeamViewer_Setup.exe", "", ""),
+        ("🖥️", "AnyDesk", "winget:AnyDeskSoftwareGmbH.AnyDesk", "", ""),
+    ]),
+    ("ĐÁM MÂY", [
+        ("☁️", "Google Drive", "https://dl.google.com/drive-file-stream/GoogleDriveSetup.exe", "", ""),
+        ("☁️", "OneDrive", "winget:Microsoft.OneDrive", "", ""),
+    ]),
+    ("THƯ VIỆN HỆ THỐNG", [
+        ("⚙️", "Visual C++ 2015-2022 x64", "https://aka.ms/vs/17/release/vc_redist.x64.exe", "/install /quiet /norestart", ""),
+        ("⚙️", "Visual C++ 2015-2022 x86", "https://aka.ms/vs/17/release/vc_redist.x86.exe", "/install /quiet /norestart", ""),
+        ("⚙️", ".NET Framework 3.5", "cmd:DISM /Online /Enable-Feature /FeatureName:NetFx3 /All /NoRestart", "", "Bật tính năng có sẵn của Windows (cần mạng)"),
+        ("⚙️", ".NET Framework 4.8", "https://download.microsoft.com/download/f/3/a/f3a6af84-da23-40a5-8d1c-49cc10c8e76f/NDP48-x86-x64-AllOS-ENU.exe", "", ""),
+        ("🎮", "DirectX Runtime", "https://download.microsoft.com/download/1/7/1/1718CCC4-6315-4D8E-9543-8E28A4E18C4C/dxwebsetup.exe", "", ""),
+    ]),
+    ("TIỆN ÍCH", [
+        ("🔎", "Everything", "winget:voidtools.Everything", "", "Tìm file siêu nhanh"),
+        ("🧹", "HiBit Uninstaller", "winget:HiBitSoftware.HiBitUninstaller", "", ""),
+        ("📸", "ShareX", "winget:ShareX.ShareX", "", "Chụp màn hình"),
+        ("📊", "TreeSize Free", "winget:JAMSoftware.TreeSize.Free", "", ""),
+        ("🛠️", "Snappy Driver Installer", "winget:GlennDelahoy.SnappyDriverInstallerOrigin", "", ""),
+    ]),
+    ("GIẢ LẬP ANDROID", [
+        ("📱", "BlueStacks 5", "https://www.bluestacks.com/download.html", "", "Mở trang tải"),
+        ("🎮", "LDPlayer", "https://www.ldplayer.net/", "", "Mở trang tải"),
+    ]),
+    ("LẬP TRÌNH", [
+        ("🐍", "Python 3.12", "winget:Python.Python.3.12", "", ""),
+        ("📝", "VS Code", "winget:Microsoft.VisualStudioCode", "", ""),
+        ("🟢", "Node.js LTS", "winget:OpenJS.NodeJS.LTS", "", ""),
+        ("☕", "Java JDK 21", "winget:EclipseAdoptium.Temurin.21.JDK", "", ""),
+        ("🔧", "Git", "winget:Git.Git", "", ""),
+    ]),
+]
+
+# ---------------------------------------------------------------- tiện ích Windows cố định
+# (id, nhóm, nhãn, kiểu, lệnh, cần xác nhận)  kiểu: ps = PowerShell, cmd = cmd /c, open = mở chương trình
+TOOLS = [
+    ("ext", "THIẾT LẬP WINDOWS", "👁 Hiện đuôi file", "ps",
+     "Set-ItemProperty 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced' HideFileExt 0", ""),
+    ("thispc", "THIẾT LẬP WINDOWS", "🖥 This PC ra Desktop", "ps",
+     "$k='HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\HideDesktopIcons\\NewStartPanel'; "
+     "New-Item $k -Force | Out-Null; Set-ItemProperty $k '{20D04FE0-3AEA-1069-A2D8-08002B30309D}' 0", ""),
+    ("faststart", "THIẾT LẬP WINDOWS", "⚡ Tắt Fast Startup", "ps",
+     "Set-ItemProperty 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power' HiberbootEnabled 0", ""),
+    ("hiber", "THIẾT LẬP WINDOWS", "💤 Tắt ngủ đông", "cmd", "powercfg -h off", ""),
+    ("tz", "THIẾT LẬP WINDOWS", "🕒 Múi giờ Việt Nam", "cmd", 'tzutil /s "SE Asia Standard Time" && w32tm /resync', ""),
+    ("restart_explorer", "THIẾT LẬP WINDOWS", "🔄 Khởi động lại Explorer", "cmd", "taskkill /f /im explorer.exe & start explorer.exe", ""),
+    ("ctx_old", "THIẾT LẬP WINDOWS", "🖱 Menu chuột phải kiểu cũ", "ps",
+     "New-Item 'HKCU:\\Software\\Classes\\CLSID\\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\\InprocServer32' -Force | Out-Null; "
+     "Set-Item 'HKCU:\\Software\\Classes\\CLSID\\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\\InprocServer32' -Value ''; "
+     + ("Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 3; "
+        "if(-not (Get-Process explorer -ErrorAction SilentlyContinue)){ Start-Process explorer.exe }") + "; 'Đã chuyển menu chuột phải về kiểu cũ (Windows 10)'", ""),
+    ("ctx_new", "THIẾT LẬP WINDOWS", "🖱 Menu chuột phải Win 11", "ps",
+     "Remove-Item 'HKCU:\\Software\\Classes\\CLSID\\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}' -Recurse -Force -ErrorAction SilentlyContinue; "
+     + ("Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 3; "
+        "if(-not (Get-Process explorer -ErrorAction SilentlyContinue)){ Start-Process explorer.exe }") + "; 'Đã trả menu chuột phải về kiểu Windows 11'", ""),
+
+    ("def_off", "MICROSOFT DEFENDER", "⛔ Tắt Real-time Protection", "ps",
+     "Set-MpPreference -DisableRealtimeMonitoring $true; Start-Sleep -Seconds 2; "
+     "$s=Get-MpComputerStatus; if(-not $s.RealTimeProtectionEnabled){ 'Đã TẮT bảo vệ thời gian thực (Real-time Protection).' } "
+     "elseif($s.IsTamperProtected){ throw 'Không tắt được vì Tamper Protection đang bật. Bấm \"Mở Windows Security\", tắt Tamper Protection rồi bấm lại nút này.' } "
+     "else { throw 'Không tắt được (có thể bị chính sách công ty hoặc phần mềm diệt virus khác quản lý).' }",
+     "Tắt bảo vệ thời gian thực của Microsoft Defender?\nWindows có thể tự bật lại sau một thời gian hoặc sau khi khởi động lại máy."),
+    ("def_on", "MICROSOFT DEFENDER", "✅ Bật Real-time Protection", "ps",
+     "Set-MpPreference -DisableRealtimeMonitoring $false; Start-Sleep -Seconds 2; "
+     "if((Get-MpComputerStatus).RealTimeProtectionEnabled){ 'Đã BẬT lại bảo vệ thời gian thực.' } else { throw 'Chưa bật lại được, hãy bật trong Windows Security.' }", ""),
+    ("def_status", "MICROSOFT DEFENDER", "🔍 Xem trạng thái Defender", "ps",
+     "$s=Get-MpComputerStatus; $b={param($v) if($v){'BẬT'}else{'TẮT'}}; "
+     "\"Real-time Protection : $(& $b $s.RealTimeProtectionEnabled)`nTamper Protection    : $(& $b $s.IsTamperProtected)`n"
+     "Diệt virus (Antivirus): $(& $b $s.AntivirusEnabled)`nPhiên bản dữ liệu    : $($s.AntivirusSignatureVersion) ($($s.AntivirusSignatureLastUpdated))\"", ""),
+    ("def_open", "MICROSOFT DEFENDER", "⚙ Mở Windows Security", "open", "windowsdefender://threatsettings", ""),
+
+    ("upd_off", "WINDOWS UPDATE", "⛔ Tắt Windows Update", "ps",
+     "Stop-Service wuauserv -Force -ErrorAction SilentlyContinue; Set-Service wuauserv -StartupType Disabled; "
+     "$k='HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU'; New-Item $k -Force | Out-Null; "
+     "Set-ItemProperty $k NoAutoUpdate 1", "Tắt Windows Update? (bật lại được bằng nút bên cạnh)"),
+    ("upd_on", "WINDOWS UPDATE", "✅ Bật lại Windows Update", "ps",
+     "Remove-ItemProperty 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU' NoAutoUpdate -ErrorAction SilentlyContinue; "
+     "Set-Service wuauserv -StartupType Manual; Start-Service wuauserv", ""),
+    ("upd_open", "WINDOWS UPDATE", "⚙ Mở Windows Update", "open", "ms-settings:windowsupdate", ""),
+
+    ("clean_temp", "DỌN DẸP", "🗑 Xóa file tạm", "ps",
+     "$n=0; foreach($p in @($env:TEMP,'C:\\Windows\\Temp')){ Get-ChildItem $p -Force -ErrorAction SilentlyContinue | "
+     "ForEach-Object { try { Remove-Item $_.FullName -Recurse -Force -ErrorAction Stop; $n++ } catch {} } }; \"Đã xóa $n mục\"", ""),
+    ("recycle", "DỌN DẸP", "♻ Dọn thùng rác", "ps", "Clear-RecycleBin -Force -ErrorAction SilentlyContinue; 'Đã dọn thùng rác'", "Xóa hết thùng rác?"),
+    ("cleanmgr", "DỌN DẸP", "🧽 Disk Cleanup", "open", "cleanmgr.exe", ""),
+
+    ("spooler", "MÁY IN", "🔁 Khởi động lại Spooler", "cmd", "net stop spooler /y & net start spooler", ""),
+    ("printq", "MÁY IN", "🧾 Xóa hàng đợi in", "cmd",
+     'net stop spooler /y & del /q /f /s "%systemroot%\\System32\\spool\\PRINTERS\\*" & net start spooler', ""),
+    ("printers", "MÁY IN", "🖨 Máy in & thiết bị", "open", "control printers", ""),
+
+    ("bl_status", "BITLOCKER", "🔍 Xem trạng thái", "cmd", "manage-bde -status", ""),
+    ("bl_off", "BITLOCKER", "🔓 Tắt BitLocker ổ C", "cmd", "manage-bde -off C:",
+     "Giải mã BitLocker ổ C? Máy sẽ giải mã ngầm, mất một lúc tùy dung lượng."),
+
+    ("wifi_bak", "SAO LƯU - KHÔI PHỤC", "📡 Sao lưu Wifi", "fn", "wifi_backup", ""),
+    ("wifi_res", "SAO LƯU - KHÔI PHỤC", "📡 Khôi phục Wifi", "fn", "wifi_restore", ""),
+    ("drv_bak", "SAO LƯU - KHÔI PHỤC", "🧩 Sao lưu Driver", "fn", "driver_backup", "Sao lưu toàn bộ driver (mất vài phút)?"),
+    ("drv_res", "SAO LƯU - KHÔI PHỤC", "🧩 Khôi phục Driver", "fn", "driver_restore", ""),
+    ("restore_pt", "SAO LƯU - KHÔI PHỤC", "📌 Tạo điểm khôi phục", "ps",
+     "Enable-ComputerRestore -Drive 'C:\\' -ErrorAction SilentlyContinue; "
+     "Checkpoint-Computer -Description ('Win AIO ' + (Get-Date -Format 'dd-MM-yyyy HH:mm')) -RestorePointType MODIFY_SETTINGS; 'Đã tạo điểm khôi phục'", ""),
+
+    ("lic", "BẢN QUYỀN (KEY CỦA BẠN)", "🔑 Xem trạng thái bản quyền", "cmd", "cscript //nologo %windir%\\System32\\slmgr.vbs /dli", ""),
+    ("ipk", "BẢN QUYỀN (KEY CỦA BẠN)", "🔑 Nhập key Windows", "fn", "win_key", ""),
+    ("act_open", "BẢN QUYỀN (KEY CỦA BẠN)", "⚙ Mở trang Kích hoạt", "open", "ms-settings:activation", ""),
+]
+
+QUICK = [
+    ("💻 Thông tin máy", "ms-settings:about"), ("🧰 Device Manager", "devmgmt.msc"), ("💽 Disk Management", "diskmgmt.msc"),
+    ("🎛 Control Panel", "control"), ("📈 Task Manager", "taskmgr"), ("🧩 Services", "services.msc"),
+    ("🗝 Registry", "regedit"), ("🛡 Group Policy", "gpedit.msc"), ("📟 CMD Admin", "cmd.exe"),
+    ("🔷 PowerShell Admin", "powershell.exe"), ("🌐 Kết nối mạng", "ncpa.cpl"), ("🔊 Âm thanh", "mmsys.cpl"),
+    ("🧪 DxDiag", "dxdiag"), ("⚙ System Properties", "sysdm.cpl"), ("📦 Programs & Features", "appwiz.cpl"),
+    ("🗓 Event Viewer", "eventvwr.msc"),
+]
+
+
+# ================================================================= tiện ích chung
+def now():
+    return dt.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+
+
+def load_json(p, default):
+    try:
+        return json.loads(Path(p).read_text(encoding="utf-8"))
+    except Exception:                       # noqa: BLE001
+        return default
+
+
+def save_json(p, data):
+    p = Path(p)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    tmp = p.with_suffix(p.suffix + ".tmp")
+    tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    os.replace(tmp, p)
+
+
+def hash_pw(pw, salt):
+    return hashlib.sha256((salt + "|" + pw).encode("utf-8")).hexdigest()
+
+
+def is_admin_windows():
+    if not IS_WIN:
+        return False
+    try:
+        return bool(ctypes.windll.shell32.IsUserAnAdmin())
+    except Exception:                       # noqa: BLE001
+        return False
+
+
+def relaunch_as_admin():
+    """Chạy lại tool bằng quyền Administrator (cài phần mềm, sửa hệ thống cần quyền này)."""
+    if getattr(sys, "frozen", False):
+        exe, args = sys.executable, sys.argv[1:]
+    else:
+        exe = sys.executable.replace("python.exe", "pythonw.exe")
+        args = [str(Path(__file__).resolve())] + sys.argv[1:]
+    params = subprocess.list2cmdline(args)
+    r = ctypes.windll.shell32.ShellExecuteW(None, "runas", exe, params, str(BASE), 1)
+    return r > 32
+
+
+def human(n):
+    n = float(n or 0)
+    for u in ("B", "KB", "MB", "GB"):
+        if n < 1024:
+            return f"{n:.0f} {u}" if u == "B" else f"{n:.1f} {u}"
+        n /= 1024
+    return f"{n:.1f} TB"
+
+
+def src_kind(src):
+    s = (src or "").strip()
+    if not s:
+        return "none"
+    if s.lower().startswith("winget:"):
+        return "winget"
+    if s.lower().startswith("cmd:"):
+        return "cmd"
+    if s.lower().startswith("office:"):
+        return "office"
+    if re.match(r"^https?://", s, re.I):
+        return "web"
+    return "file"
+
+
+def run_hidden(cmd, shell=False, timeout=None):
+    """Chạy lệnh không hiện cửa sổ, trả (mã thoát, chữ in ra)."""
+    if FAKE:
+        time.sleep(0.6)
+        return 0, f"(chạy thử) {cmd if isinstance(cmd, str) else ' '.join(cmd)}"
+    p = subprocess.run(cmd, shell=shell, capture_output=True, timeout=timeout, creationflags=CREATE_NO_WINDOW)
+    raw = (p.stdout or b"") + (p.stderr or b"")
+    for enc in ("utf-8", "cp1258", "cp437"):
+        try:
+            out = raw.decode(enc)
+            break
+        except UnicodeDecodeError:
+            continue
+    else:
+        out = raw.decode("utf-8", "replace")
+    return p.returncode, out.strip()
+
+
+def ps(script, timeout=600):
+    full = ("[Console]::OutputEncoding=[Text.Encoding]::UTF8; $ProgressPreference='SilentlyContinue'; "
+            "$ErrorActionPreference='Stop'; " + script)
+    import base64                            # gửi lệnh dạng mã hóa: không lỗi dấu ngoặc kép, ký tự tiếng Việt
+    enc = base64.b64encode(full.encode("utf-16-le")).decode("ascii")
+    code, out = run_hidden(["powershell", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", enc],
+                           timeout=timeout)
+    return code, _clixml(out)
+
+
+def _clixml(out):
+    """-EncodedCommand trả lỗi / tiến độ dạng XML (#< CLIXML): bỏ phần đó, chỉ giữ câu báo lỗi."""
+    if "#< CLIXML" not in (out or ""):
+        return out
+    import html
+    head, _, xml = out.partition("#< CLIXML")
+    msg = "".join(re.findall(r'<S S="Error">(.*?)</S>', xml, re.S))
+    msg = html.unescape(msg.replace("_x000D_", "").replace("_x000A_", "\n")).strip()
+    return (head.strip() + ("\n" + msg if msg else "")).strip()
+
+
+def open_target(t):
+    if FAKE or not IS_WIN:
+        return
+    os.startfile(t)                          # noqa: S606
+
+
+# ================================================================= dữ liệu (SQLite + config.json)
+class Store:
+    """Dữ liệu nằm trong bộ nhớ cho tới khi cần lưu (tải app, sửa nút, đổi cài đặt, sao lưu).
+    Lúc đó mới tạo thư mục Data kế bên file exe -> chỉ chép 1 file exe đi là dùng được."""
+
+    def __init__(self):
+        self.lock = threading.RLock()
+        self.on_disk = DB_FILE.exists() or CONFIG_FILE.exists() or OLD_JSON.exists()
+        self.cfg = dict(DEFAULT_CONFIG)
+        self.cfg.update(load_json(CONFIG_FILE, {}))
+        if not self.cfg.get("admin_hash"):
+            self.cfg["admin_salt"] = secrets.token_hex(8)
+            self.cfg["admin_hash"] = hash_pw("admin", self.cfg["admin_salt"])
+        if self.on_disk:
+            DATA.mkdir(parents=True, exist_ok=True)
+        self.db = sqlite3.connect(str(DB_FILE) if self.on_disk else ":memory:", check_same_thread=False)
+        self.db.row_factory = sqlite3.Row
+        self.db.executescript("""
+            CREATE TABLE IF NOT EXISTS groups(id INTEGER PRIMARY KEY, name TEXT, ord INTEGER, col INTEGER, gpos INTEGER);
+            CREATE TABLE IF NOT EXISTS apps(id INTEGER PRIMARY KEY, group_id INTEGER, icon TEXT, name TEXT,
+                src TEXT, args TEXT, note TEXT, ord INTEGER);
+            CREATE TABLE IF NOT EXISTS history(id INTEGER PRIMARY KEY, ts TEXT, name TEXT, src TEXT,
+                status TEXT, detail TEXT);
+        """)
+        cols_ = [r[1] for r in self.db.execute("PRAGMA table_info(groups)")]
+        if "col" not in cols_:
+            self.db.execute("ALTER TABLE groups ADD COLUMN col INTEGER")     # dữ liệu bản cũ: thêm cột "col"
+        if "gpos" not in cols_:
+            self.db.execute("ALTER TABLE groups ADD COLUMN gpos INTEGER")    # vị trí trong kiểu xếp Lưới
+        self.db.commit()
+        if self.on_disk:
+            self.save_config()
+        if OLD_JSON.exists():
+            self._import_old_json()
+        if not self.db.execute("SELECT COUNT(*) FROM groups").fetchone()[0]:
+            self.load_defaults(persist=False)
+        self._migrate()
+        if self.db.execute("SELECT 1 FROM groups WHERE col IS NULL").fetchone():
+            self.auto_columns()
+            self.commit(persist=False)
+        if self.db.execute("SELECT 1 FROM groups WHERE gpos IS NULL").fetchone():
+            self.grid_from_columns()
+            self.commit(persist=False)
+
+    def layout(self):
+        return "columns" if self.cfg.get("layout") == "columns" else "grid"
+
+    def grid_from_columns(self):
+        """Vị trí Lưới = thứ tự đọc từ trái sang phải, trên xuống dưới của kiểu cột dọc."""
+        with self.lock:
+            ids = [r[0] for r in self.db.execute("SELECT id FROM groups ORDER BY ord, COALESCE(col, 0), id")]
+            for k, x in enumerate(ids):
+                self.db.execute("UPDATE groups SET gpos=? WHERE id=?", (k, x))
+
+    def columns(self):
+        try:
+            return max(2, min(6, int(self.cfg.get("columns", 4))))
+        except (TypeError, ValueError):
+            return 4
+
+    def auto_columns(self, all_groups=False):
+        """Xếp nhóm vào các cột dọc: theo thứ tự cũ, mỗi nhóm vào cột đang ngắn nhất (giống lưới hiện ra trên màn hình)."""
+        n = self.columns()
+        with self.lock:
+            order = "g.ord, COALESCE(g.col, 0), g.id" if all_groups else "COALESCE(g.col, 99), g.ord, g.id"
+            rows = self.db.execute("SELECT g.id, g.col, (SELECT COUNT(*) FROM apps a WHERE a.group_id=g.id) FROM groups g "
+                                   "ORDER BY " + order).fetchall()
+            height = [0.0] * n
+            cnt = [0] * n
+            for gid, col, napps in rows:
+                if all_groups or col is None:
+                    c = min(range(n), key=lambda i: (height[i], i))
+                else:
+                    c = min(int(col), n - 1)
+                self.db.execute("UPDATE groups SET col=?, ord=? WHERE id=?", (c, cnt[c], gid))
+                cnt[c] += 1
+                height[c] += 2.2 + napps          # đầu nhóm + số nút
+
+    def _migrate(self):
+        """Dữ liệu từ bản cũ: thêm nút mới của phiên bản này (chỉ 1 lần, không đụng nút đã sửa)."""
+        done = set(self.cfg.get("migrated") or [])
+        if "office" not in done:
+            if not self.db.execute("SELECT 1 FROM apps WHERE src LIKE 'office:%'").fetchone():
+                g = (self.db.execute("SELECT id FROM groups WHERE name LIKE '%VĂN PHÒNG%' ORDER BY ord LIMIT 1").fetchone()
+                     or self.db.execute("SELECT id FROM groups ORDER BY ord LIMIT 1").fetchone())
+                if g:
+                    self.db.execute("UPDATE apps SET ord=ord+1 WHERE group_id=?", (g[0],))
+                    self.db.execute("INSERT INTO apps(group_id, icon, name, src, args, note, ord) VALUES(?,?,?,?,?,?,0)",
+                                    (g[0], "🏢", "MS Office", "office:", "", "Cài Office 2016 / 2019 / 2021 / 2024 / 365 chính chủ từ Microsoft (Online hoặc Offline)"))
+                    self.commit(persist=False)
+            done.add("office")
+            self.cfg["migrated"] = sorted(done)
+            self.save_config(persist=False)
+
+    def ensure_disk(self):
+        """Tạo thư mục Data + chép dữ liệu đang ở bộ nhớ xuống file (chỉ 1 lần)."""
+        with self.lock:
+            if self.on_disk:
+                return
+            DATA.mkdir(parents=True, exist_ok=True)
+            disk = sqlite3.connect(str(DB_FILE), check_same_thread=False)
+            self.db.commit()
+            self.db.backup(disk)
+            self.db.close()
+            disk.row_factory = sqlite3.Row
+            self.db = disk
+            self.on_disk = True
+            save_json(CONFIG_FILE, self.cfg)
+
+    def commit(self, persist=True):
+        with self.lock:
+            if persist:
+                self.ensure_disk()
+            self.db.commit()
+
+    def save_config(self, persist=True):
+        if persist:
+            self.ensure_disk()
+        if self.on_disk:
+            save_json(CONFIG_FILE, self.cfg)
+
+    # ---- nhập file JSON cũ (bản xuất / dữ liệu cũ), giữ bản sao
+    def _import_old_json(self):
+        data = load_json(OLD_JSON, None)
+        if isinstance(data, dict) and isinstance(data.get("groups"), list):
+            self.import_data(data)
+        BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(OLD_JSON), str(BACKUP_DIR / f"apps_da_nhap_{dt.datetime.now():%Y%m%d_%H%M%S}.json"))
+
+    def load_defaults(self, persist=True):
+        with self.lock:
+            self.db.execute("DELETE FROM apps")
+            self.db.execute("DELETE FROM groups")
+            for gi, (gname, apps) in enumerate(DEFAULT_GROUPS):
+                gid = self.db.execute("INSERT INTO groups(name, ord, gpos) VALUES(?,?,?)", (gname, gi, gi)).lastrowid
+                for ai, (icon, name, src, args, note) in enumerate(apps):
+                    self.db.execute("INSERT INTO apps(group_id, icon, name, src, args, note, ord) VALUES(?,?,?,?,?,?,?)",
+                                    (gid, icon, name, src, args, note, ai))
+            self.auto_columns()
+            self.commit(persist)
+
+    def export_data(self):
+        out = []
+        for g in self.groups():
+            out.append({"name": g["name"], "col": g.get("col"), "pos": g.get("gpos"), "apps": [{k: a[k] for k in ("icon", "name", "src", "args", "note")} for a in g["apps"]]})
+        return {"app": APP_TITLE, "version": APP_VERSION, "exported": now(), "groups": out}
+
+    def import_data(self, data):
+        with self.lock:
+            self.db.execute("DELETE FROM apps")
+            self.db.execute("DELETE FROM groups")
+            for gi, g in enumerate(data.get("groups") or []):
+                col = g.get("col")
+                pos = g.get("pos")
+                gid = self.db.execute("INSERT INTO groups(name, ord, col, gpos) VALUES(?,?,?,?)",
+                                      (str(g.get("name", "NHÓM")), gi, int(col) if isinstance(col, int) else None,
+                                       int(pos) if isinstance(pos, int) else gi)).lastrowid
+                for ai, a in enumerate(g.get("apps") or []):
+                    self.db.execute("INSERT INTO apps(group_id, icon, name, src, args, note, ord) VALUES(?,?,?,?,?,?,?)",
+                                    (gid, a.get("icon", ""), a.get("name", "Nút mới"), a.get("src", ""), a.get("args", ""),
+                                     a.get("note", ""), ai))
+            self.auto_columns()
+            self.commit()
+
+    def groups(self):
+        with self.lock:
+            order = "gpos, id" if self.layout() == "grid" else "col, ord, id"
+            gs = [dict(r) for r in self.db.execute("SELECT * FROM groups ORDER BY " + order)]
+            apps = [dict(r) for r in self.db.execute("SELECT * FROM apps ORDER BY ord, id")]
+        for g in gs:
+            g["apps"] = [dict(a, kind=src_kind(a["src"])) for a in apps if a["group_id"] == g["id"]]
+        return gs
+
+    def app(self, aid):
+        with self.lock:
+            r = self.db.execute("SELECT * FROM apps WHERE id=?", (aid,)).fetchone()
+        return dict(r) if r else None
+
+    def add_history(self, name, src, status, detail=""):
+        with self.lock:
+            self.db.execute("INSERT INTO history(ts, name, src, status, detail) VALUES(?,?,?,?,?)",
+                            (now(), name, src, status, detail[:2000]))
+            self.commit(persist=False)
+
+
+# ================================================================= bộ máy cài đặt
+class Engine:
+    def __init__(self, store):
+        self.st = store
+        self.logs = []                     # (seq, giờ, chữ, loại)
+        self.seq = 0
+        self.queue = []                    # id app đang chờ
+        self.cur = None                    # {"id","name","phase","pct","done","total","speed"}
+        self.batch_n = 0
+        self.batch_i = 0
+        self.stop_flag = threading.Event()
+        self.worker = None
+        self.busy_tool = ""
+        self.results = {}                  # id app -> ok / err / run
+        self.sysinfo = None
+        self.checks = {"admin": is_admin_windows() or FAKE, "net": None, "winget": None}
+        self.lock = threading.RLock()
+        self.winget = {"state": "check", "cur": "", "latest": ""}
+        self.wg_ready = threading.Event()
+        self.wg_ready.set()
+        self.power = Power(self)
+        self.office = OfficeSetup(self)
+        threading.Thread(target=self._bg_checks, daemon=True).start()
+
+    # ---- nhật ký
+    def log(self, text, kind=""):
+        with self.lock:
+            self.seq += 1
+            self.logs.append((self.seq, dt.datetime.now().strftime("%H:%M:%S"), str(text), kind))
+            del self.logs[:-600]
+
+    # ---- kiểm tra nền: mạng, winget, thông tin máy
+    def _bg_checks(self):
+        try:
+            import requests
+            requests.head("https://www.microsoft.com", timeout=6)
+            self.checks["net"] = True
+        except Exception:                   # noqa: BLE001
+            self.checks["net"] = FAKE
+        if FAKE:
+            self.checks["winget"] = True
+        elif IS_WIN:
+            self.checks["winget"] = shutil.which("winget") is not None
+        else:
+            self.checks["winget"] = False
+        threading.Thread(target=self.winget_auto_update, daemon=True).start()
+        self.sysinfo = self._read_sysinfo()
+
+    FAKE_SYSINFO = {
+        "pc": {"name": "DUYANH-PC", "user": "DUYANH-PC\\duyanh", "maker": "Dell Inc.", "model": "OptiPlex 7090", "tag": "7XK2F93", "type": "Desktop"},
+        "os": {"name": "Windows 11 Pro", "ver": "24H2", "build": "26100.2314", "arch": "64-bit", "installed": "12/03/2025",
+               "boot": "19/11/2026 08:02", "license": "Đã kích hoạt", "bitlocker": "Tắt"},
+        "cpu": {"name": "Intel(R) Core(TM) i7-10700 CPU @ 2.90GHz", "cores": 8, "threads": 16, "mhz": 4800, "socket": "LGA1200"},
+        "ram": {"total": 32, "type": "DDR4", "speed": 2933, "slots": 4,
+                "sticks": [{"size": 16, "slot": "DIMM1", "maker": "Samsung"}, {"size": 16, "slot": "DIMM2", "maker": "Samsung"}]},
+        "gpu": [{"name": "NVIDIA GeForce RTX 3060", "vram": 12, "res": "2560×1440", "hz": 144, "driver": "32.0.15.6614"},
+                {"name": "Intel(R) UHD Graphics 630", "vram": 1, "res": "", "hz": 0, "driver": "31.0.101.2125"}],
+        "disks": [{"name": "Samsung SSD 980 PRO 1TB", "bus": "NVMe", "media": "SSD", "size": 1000, "health": "Tốt"},
+                  {"name": "WDC WD20EZBX-00AYRA0", "bus": "SATA", "media": "HDD", "size": 2000, "health": "Tốt"}],
+        "vols": [{"l": "C", "label": "Windows", "fs": "NTFS", "size": 476.3, "free": 120.5},
+                 {"l": "D", "label": "Data", "fs": "NTFS", "size": 931.5, "free": 800.1}],
+        "board": {"maker": "Dell Inc.", "product": "0K6CM1", "bios": "Dell Inc. 1.21.0", "bios_date": "12/03/2024",
+                  "mode": "UEFI", "secure": "Bật", "tpm": "2.0"},
+        "net": [{"name": "Ethernet", "desc": "Intel(R) Ethernet Connection (11) I219-LM", "ip": "192.168.1.25",
+                 "mac": "A4-BB-6D-12-34-56", "speed": "1 Gbps"}],
+    }
+
+    def _read_sysinfo(self):
+        if not IS_WIN or FAKE:
+            return json.loads(json.dumps(self.FAKE_SYSINFO))
+        script = r"""
+$ErrorActionPreference='SilentlyContinue'
+function Q($c,$ns='root\cimv2'){ try { @(Get-CimInstance -Namespace $ns -Query $c -ErrorAction Stop) } catch { @() } }
+function E($v,$m){ if($null -eq $v){ return '' }; $t=[string]$v; if($t -match '^\d+$'){ $r=$m[[int]$t]; if($r){ $r } else { '' } } else { $t } }
+function D($d){ if($d){ try { ([datetime]$d).ToString('dd/MM/yyyy') } catch { '' } } else { '' } }
+$cs=Q 'SELECT Manufacturer, Model, TotalPhysicalMemory FROM Win32_ComputerSystem' | Select-Object -First 1
+$os=Q 'SELECT Caption, BuildNumber, InstallDate, LastBootUpTime, OSArchitecture FROM Win32_OperatingSystem' | Select-Object -First 1
+$bios=Q 'SELECT SerialNumber, SMBIOSBIOSVersion, ReleaseDate, Manufacturer FROM Win32_BIOS' | Select-Object -First 1
+$bb=Q 'SELECT Manufacturer, Product FROM Win32_BaseBoard' | Select-Object -First 1
+$enc=Q 'SELECT ChassisTypes FROM Win32_SystemEnclosure' | Select-Object -First 1
+$ver=Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion'
+$wn=($os.Caption -replace '^Microsoft ','').Trim(); if([int]$ver.CurrentBuild -ge 22000){ $wn=$wn -replace 'Windows 10','Windows 11' }
+$tag=[string]$bios.SerialNumber; if($tag -match '^(to be filled.*|default string|system serial number|none|not applicable|o\.e\.m\.|0+)?$'){ $tag='' }
+$laptop=@(8,9,10,11,12,14,18,21,30,31,32)
+$type='Desktop'; foreach($c in @($enc.ChassisTypes)){ if($laptop -contains [int]$c){ $type='Laptop' } }
+$cpu=Q 'SELECT Name, NumberOfCores, NumberOfLogicalProcessors, MaxClockSpeed, SocketDesignation FROM Win32_Processor' | Select-Object -First 1
+$mem=Q 'SELECT Capacity, Speed, ConfiguredClockSpeed, SMBIOSMemoryType, Manufacturer, DeviceLocator FROM Win32_PhysicalMemory'
+$slots=(Q 'SELECT MemoryDevices FROM Win32_PhysicalMemoryArray' | Measure-Object MemoryDevices -Sum).Sum
+$types=@{26='DDR4';34='DDR5';24='DDR3';30='LPDDR4';35='LPDDR5';29='LPDDR3'}
+$sp=$mem | Select-Object -First 1; $spd= if($sp.ConfiguredClockSpeed){$sp.ConfiguredClockSpeed}else{$sp.Speed}
+$vram=@{}; Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}' | ForEach-Object {
+  $p=Get-ItemProperty $_.PSPath; if($p.DriverDesc -and $p.'HardwareInformation.qwMemorySize'){ $vram[$p.DriverDesc]=[double]$p.'HardwareInformation.qwMemorySize' } }
+$gpu=@(Q 'SELECT Name, AdapterRAM, CurrentHorizontalResolution, CurrentVerticalResolution, CurrentRefreshRate, DriverVersion FROM Win32_VideoController' |
+  Where-Object { $_.Name -notmatch 'Remote Display|Mirror|Basic Display' } | ForEach-Object {
+  $v= if($vram[$_.Name]){$vram[$_.Name]}else{[double]$_.AdapterRAM}
+  [ordered]@{ name=$_.Name; vram=[math]::Round($v/1GB,1); res=$(if($_.CurrentHorizontalResolution){"$($_.CurrentHorizontalResolution)×$($_.CurrentVerticalResolution)"}else{''}); hz=[int]$_.CurrentRefreshRate; driver=[string]$_.DriverVersion } })
+$bus=@{7='USB';11='SATA';17='NVMe';8='RAID';10='SAS';3='ATA';12='SD'}; $mt=@{3='HDD';4='SSD';5='SCM'}
+$hm=@{'0'='Tốt';'1'='Cảnh báo';'2'='Lỗi';'Healthy'='Tốt';'Warning'='Cảnh báo';'Unhealthy'='Lỗi'}
+$disks=@(Q 'SELECT FriendlyName, MediaType, BusType, Size, HealthStatus FROM MSFT_PhysicalDisk' 'root\Microsoft\Windows\Storage' | ForEach-Object {
+  $m=E $_.MediaType $mt; if($m -eq 'Unspecified'){ $m='' }
+  [ordered]@{ name=[string]$_.FriendlyName; bus=(E $_.BusType $bus); media=$m; size=[math]::Round($_.Size/1GB); health=[string]$hm[[string]$_.HealthStatus] } })
+$vols=@(Get-Volume | Where-Object { $_.DriveLetter -and $_.Size -gt 0 -and $_.DriveType -in 'Fixed','Removable' } | Sort-Object DriveLetter | ForEach-Object {
+  [ordered]@{ l=[string]$_.DriveLetter; label=[string]$_.FileSystemLabel; fs=[string]$_.FileSystem; size=[math]::Round($_.Size/1GB,1); free=[math]::Round($_.SizeRemaining/1GB,1) } })
+$bl='Không rõ'; try { $v=Get-BitLockerVolume -MountPoint 'C:' -ErrorAction Stop; $bl= if($v.ProtectionStatus -eq 'On'){'BẬT ('+$v.VolumeStatus+')'}else{'Tắt'} } catch {}
+$lic='Không rõ'; try { $l=Get-CimInstance SoftwareLicensingProduct -Filter "PartialProductKey IS NOT NULL AND ApplicationID='55c92734-d682-4d71-983e-d6ec3f16059f'" | Select-Object -First 1; $lic= if($l.LicenseStatus -eq 1){'Đã kích hoạt'}else{'Chưa kích hoạt'} } catch {}
+$sb='Không hỗ trợ'; try { $sb= if(Confirm-SecureBootUEFI -ErrorAction Stop){'Bật'}else{'Tắt'} } catch {}
+$tpm='Không có'; try { $t=Get-CimInstance -Namespace root\cimv2\Security\MicrosoftTpm -ClassName Win32_Tpm -ErrorAction Stop | Select-Object -First 1; if($t){ $tpm=([string]$t.SpecVersion -split ',')[0].Trim() } } catch {}
+$net=@(Get-NetAdapter -Physical | Where-Object Status -eq 'Up' | ForEach-Object {
+  $ip=(Get-NetIPAddress -InterfaceIndex $_.ifIndex -AddressFamily IPv4 | Where-Object { $_.IPAddress -notlike '169.254*' } | ForEach-Object IPAddress) -join ', '
+  [ordered]@{ name=$_.Name; desc=$_.InterfaceDescription; ip=$ip; mac=$_.MacAddress; speed=[string]$_.LinkSpeed } })
+[ordered]@{
+ pc=[ordered]@{ name=$env:COMPUTERNAME; user="$env:USERDOMAIN\$env:USERNAME"; maker=[string]$cs.Manufacturer; model=[string]$cs.Model; tag=$tag; type=$type }
+ os=[ordered]@{ name=$wn; ver=[string]$ver.DisplayVersion; build="$($ver.CurrentBuild).$($ver.UBR)"; arch=[string]$os.OSArchitecture; installed=(D $os.InstallDate);
+   boot=$(if($os.LastBootUpTime){([datetime]$os.LastBootUpTime).ToString('dd/MM/yyyy HH:mm')}else{''}); license=$lic; bitlocker=$bl }
+ cpu=[ordered]@{ name=(($cpu.Name -replace '\s+',' ').Trim()); cores=[int]$cpu.NumberOfCores; threads=[int]$cpu.NumberOfLogicalProcessors; mhz=[int]$cpu.MaxClockSpeed; socket=[string]$cpu.SocketDesignation }
+ ram=[ordered]@{ total=[math]::Round(($mem | Measure-Object Capacity -Sum).Sum/1GB); type=[string]$types[[int]$sp.SMBIOSMemoryType]; speed=[int]$spd; slots=[int]$slots;
+   sticks=@($mem | ForEach-Object { [ordered]@{ size=[math]::Round($_.Capacity/1GB); slot=[string]$_.DeviceLocator; maker=([string]$_.Manufacturer).Trim() } }) }
+ gpu=$gpu; disks=$disks; vols=$vols
+ board=[ordered]@{ maker=[string]$bb.Manufacturer; product=[string]$bb.Product; bios=("$($bios.Manufacturer) $($bios.SMBIOSBIOSVersion)").Trim(); bios_date=(D $bios.ReleaseDate);
+   mode=$(if($env:firmware_type){$env:firmware_type}else{''}); secure=$sb; tpm=$tpm }
+ net=$net } | ConvertTo-Json -Depth 5 -Compress
+"""
+        code, out = ps(script, timeout=150)
+        try:
+            return json.loads(out[out.index("{"):])
+        except Exception:                   # noqa: BLE001
+            return {"err": out[:300] or f"mã {code}"}
+
+    # ---- đồng hồ CPU / RAM / thời gian chạy (đọc trực tiếp, rất nhẹ)
+    _cpu_prev = None
+
+    def live(self):
+        if FAKE or not IS_WIN:
+            import random
+            return {"cpu": random.randint(8, 35), "ram_used": round(random.uniform(11, 14), 1), "ram_total": 31.8,
+                    "ram_pct": random.randint(35, 45), "uptime": int(time.monotonic()) + 3600 * 5}
+        from ctypes import wintypes
+
+        class MEM(ctypes.Structure):
+            _fields_ = [("len", wintypes.DWORD), ("load", wintypes.DWORD), ("total", ctypes.c_ulonglong), ("avail", ctypes.c_ulonglong),
+                        ("tpf", ctypes.c_ulonglong), ("apf", ctypes.c_ulonglong), ("tv", ctypes.c_ulonglong), ("av", ctypes.c_ulonglong),
+                        ("aev", ctypes.c_ulonglong)]
+        m = MEM()
+        m.len = ctypes.sizeof(MEM)
+        ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(m))
+        idle, kern, user = (wintypes.FILETIME() for _ in range(3))
+        ctypes.windll.kernel32.GetSystemTimes(ctypes.byref(idle), ctypes.byref(kern), ctypes.byref(user))
+        ft = lambda f: (f.dwHighDateTime << 32) | f.dwLowDateTime          # noqa: E731
+        cur = (ft(idle), ft(kern) + ft(user))
+        cpu = 0
+        if self._cpu_prev:
+            di, dt_ = cur[0] - self._cpu_prev[0], cur[1] - self._cpu_prev[1]
+            cpu = max(0, min(100, round(100 * (dt_ - di) / dt_))) if dt_ else 0
+        self._cpu_prev = cur
+        ctypes.windll.kernel32.GetTickCount64.restype = ctypes.c_ulonglong
+        return {"cpu": cpu, "ram_used": round((m.total - m.avail) / 2**30, 1), "ram_total": round(m.total / 2**30, 1),
+                "ram_pct": int(m.load), "uptime": int(ctypes.windll.kernel32.GetTickCount64() // 1000)}
+
+    # ---- winget: kiểm tra bản cũ / mới, tự cài bản mới (im lặng)
+    def _winget_version(self):
+        if FAKE:
+            return "v1.6.10121"
+        exe = shutil.which("winget")
+        if not exe:
+            return ""
+        code, out = run_hidden([exe, "--version"], timeout=60)
+        m = re.search(r"v?\d+(\.\d+)+", out or "")
+        return m.group(0) if code == 0 and m else ""
+
+    @staticmethod
+    def _vtuple(v):
+        return tuple(int(x) for x in re.findall(r"\d+", v or "")[:3]) or (0,)
+
+    def winget_auto_update(self):
+        """Mở tool: so bản winget trên máy với bản mới nhất của Microsoft; cũ / thiếu thì tự cài bản mới (chạy ngầm)."""
+        if not (IS_WIN or FAKE) or self.st.cfg.get("winget_auto", True) is False or "--selftest" in sys.argv:
+            self.winget["state"] = "skip"
+            return
+        self.wg_ready.clear()
+        try:
+            cur = self._winget_version()
+            self.winget["cur"] = cur
+            if FAKE:
+                latest = "v1.12.350"
+            else:
+                import requests
+                r = requests.get("https://api.github.com/repos/microsoft/winget-cli/releases/latest", timeout=15,
+                                 headers={"Accept": "application/vnd.github+json", "User-Agent": "WinAIO"})
+                r.raise_for_status()
+                latest = r.json().get("tag_name", "")
+            self.winget["latest"] = latest
+            if cur and self._vtuple(cur) >= self._vtuple(latest):
+                self.winget["state"] = "ok"
+                return
+            self.winget["state"] = "updating"
+            self.log(f"⟳ winget trên máy {'là bản cũ ' + cur if cur else 'chưa có'} → đang tự cài bản mới {latest} (chạy ngầm)...", "warn")
+            ok, why = self._winget_install_latest()
+            new = self._winget_version()
+            if FAKE:
+                new = latest
+            self.winget["cur"] = new
+            if ok and new:
+                self.checks["winget"] = True
+                self.winget["state"] = "ok"
+                self.log(f"✔ Đã cập nhật winget lên {new}", "ok")
+            else:
+                self.winget["state"] = "err"
+                self.log(f"✖ Chưa cập nhật được winget ({why}). Các nút WINGET vẫn thử chạy bằng bản cũ.", "err")
+        except Exception as e:              # noqa: BLE001
+            self.winget["state"] = "skip"
+            self.log(f"Bỏ qua kiểm tra winget: {e}", "dim")
+        finally:
+            self.wg_ready.set()
+
+    def _winget_install_latest(self):
+        if FAKE:
+            time.sleep(3)
+            return True, ""
+        # Cách 1: mô-đun chính chủ Microsoft.WinGet.Client -> Repair-WinGetPackageManager (tự kèm thư viện phụ thuộc)
+        c1, o1 = ps("Set-ExecutionPolicy Bypass -Scope Process -Force; [Net.ServicePointManager]::SecurityProtocol='Tls12';"
+                    "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -Scope AllUsers | Out-Null;"
+                    "Set-PSRepository PSGallery -InstallationPolicy Trusted;"
+                    "Install-Module Microsoft.WinGet.Client -Force -Scope AllUsers -Repository PSGallery -AllowClobber | Out-Null;"
+                    "Import-Module Microsoft.WinGet.Client -Force; Repair-WinGetPackageManager -AllUsers -Latest -Force; 'OK'",
+                    timeout=900)
+        if c1 == 0 and self._winget_version():
+            return True, ""
+        self.log("Cách 1 không được, thử cài trực tiếp gói App Installer từ GitHub của Microsoft...", "dim")
+        # Cách 2: tải gói .msixbundle + thư viện phụ thuộc từ bản phát hành chính thức trên GitHub
+        script = r"""
+$ProgressPreference='SilentlyContinue'; [Net.ServicePointManager]::SecurityProtocol='Tls12'
+$d=Join-Path $env:TEMP 'winaio_winget'; New-Item -ItemType Directory -Force $d | Out-Null
+$rel=Invoke-RestMethod 'https://api.github.com/repos/microsoft/winget-cli/releases/latest' -Headers @{ 'User-Agent'='WinAIO' }
+$bundle=$rel.assets | Where-Object name -like '*.msixbundle' | Select-Object -First 1
+$deps=$rel.assets | Where-Object name -like '*Dependencies*.zip' | Select-Object -First 1
+$arch= if([Environment]::Is64BitOperatingSystem){'x64'}else{'x86'}
+if($deps){ Invoke-WebRequest $deps.browser_download_url -OutFile "$d\deps.zip"; Expand-Archive "$d\deps.zip" "$d\deps" -Force
+  Get-ChildItem "$d\deps" -Recurse -Include *.appx | Where-Object { $_.FullName -match "\\$arch\\" } | ForEach-Object { try { Add-AppxPackage $_.FullName -ErrorAction Stop } catch {} } }
+else { Invoke-WebRequest "https://aka.ms/Microsoft.VCLibs.$arch.14.00.Desktop.appx" -OutFile "$d\vclibs.appx"; try { Add-AppxPackage "$d\vclibs.appx" } catch {} }
+Invoke-WebRequest $bundle.browser_download_url -OutFile "$d\winget.msixbundle"
+Add-AppxPackage "$d\winget.msixbundle" -ForceApplicationShutdown
+Remove-Item $d -Recurse -Force; 'OK'
+"""
+        c2, o2 = ps(script, timeout=900)
+        if c2 == 0 and self._winget_version():
+            return True, ""
+        return False, (o2 or o1)[-200:]
+
+    # ---- hàng đợi cài
+    def enqueue(self, ids):
+        added = 0
+        with self.lock:
+            for i in ids:
+                i = int(i)
+                if i not in self.queue and not (self.cur and self.cur["id"] == i):
+                    self.queue.append(i)
+                    self.results[i] = "wait"
+                    added += 1
+            if not self.worker or not self.worker.is_alive():
+                self.batch_n, self.batch_i = len(self.queue), 0
+                self.stop_flag.clear()
+                self.worker = threading.Thread(target=self._work, daemon=True)
+                self.worker.start()
+            else:
+                self.batch_n += added
+        return added
+
+    def stop(self):
+        self.stop_flag.set()
+        with self.lock:
+            for i in self.queue:
+                self.results.pop(i, None)
+            self.queue.clear()
+        self.log("Đã yêu cầu dừng. Mục đang chạy sẽ dừng sau khi tải xong phần hiện tại.", "warn")
+
+    def _work(self):
+        while not self.stop_flag.is_set():
+            with self.lock:
+                if not self.queue:
+                    break
+                aid = self.queue.pop(0)
+                self.batch_i += 1
+            a = self.st.app(aid)
+            if not a:
+                continue
+            self.cur = {"id": aid, "name": a["name"], "phase": "Chuẩn bị", "pct": 0, "done": 0, "total": 0, "speed": "",
+                        "dl": None, "inst": None, "est": False, "secs": 0}
+            self.results[aid] = "run"
+            self.log(f"▶ [{self.batch_i}/{self.batch_n}] {a['name']}")
+            try:
+                status, detail = self._install(a)
+            except Exception as e:          # noqa: BLE001
+                status, detail = "err", str(e)
+            if status in ("ok", "web") and self.cur:
+                self.cur.update(inst=100, est=False, phase="Xong")
+                time.sleep(0.6)                      # để thanh % kịp hiện 100%
+            self.results[aid] = "ok" if status in ("ok", "web") else "err"
+            label = {"ok": "Xong", "web": "Đã mở trang web", "err": "Lỗi", "stop": "Đã dừng"}.get(status, status)
+            self.log(f"{'✔' if status in ('ok', 'web') else '✖'} {a['name']}: {label}{(' - ' + detail) if detail else ''}",
+                     "ok" if status in ("ok", "web") else "err")
+            self.st.add_history(a["name"], a["src"], label, detail)
+        self.cur = None
+        self.log("Hàng đợi đã xong." if not self.stop_flag.is_set() else "Đã dừng hàng đợi.")
+
+    def _install(self, a):
+        kind, src = src_kind(a["src"]), a["src"].strip()
+        args = (a.get("args") or "").strip()
+        if kind == "none":
+            return "err", "Nút chưa có nguồn (bật Admin rồi bấm ✎ để thêm link)"
+        if kind == "office":
+            return "err", "Nút MS Office mở cửa sổ cài Office riêng (bấm trực tiếp vào nút)."
+        if kind == "winget":
+            return self._winget(src.split(":", 1)[1].strip(), args)
+        if kind == "cmd":
+            stop = self._est_start(30.0, "Đang chạy lệnh")
+            code, out = run_hidden(src.split(":", 1)[1].strip(), shell=True, timeout=3600)
+            stop.set()
+            self.log(out[-800:] if out else "(không có kết quả)", "dim")
+            return ("ok" if code == 0 else "err"), "" if code == 0 else f"mã thoát {code}"
+        if kind == "file":
+            p = Path(os.path.expandvars(src))
+            if not p.is_absolute():
+                p = BASE / p                 # đường dẫn tương đối theo thư mục tool (dùng được trên USB)
+            if not p.exists() and not FAKE:
+                return "err", f"Không thấy file: {p}"
+            return self._run_file(p, args)
+        # web
+        path = self._download(src)
+        if path == "web":
+            return "web", ""
+        if path is None:
+            return "stop", ""
+        return self._run_file(path, args)
+
+    # ---- % cài đặt: trình cài của hãng không báo tiến độ -> ước tính theo thời gian (tiến dần tới 95%, xong mới 100%)
+    def _est_start(self, tau, phase="Đang cài đặt"):
+        cur = self.cur
+        cur.update(phase=phase, inst=0, est=True, secs=0)
+        stop = threading.Event()
+        t0 = time.time()
+
+        def run():
+            while not stop.wait(0.4):
+                el = time.time() - t0
+                cur.update(inst=min(95, int(95 * (1 - math.exp(-el / tau)))), secs=int(el))
+        threading.Thread(target=run, daemon=True).start()
+        return stop
+
+    @staticmethod
+    def _tau_for(path):
+        try:
+            mb = Path(path).stat().st_size / 1048576
+        except OSError:
+            mb = 30
+        return max(8.0, min(240.0, 6 + mb * 0.35))      # file cài càng nặng thì cài càng lâu
+
+    def _stream(self, cmd, on_line, timeout=3600):
+        """Chạy lệnh ẩn, đọc từng dòng (kể cả dòng cập nhật bằng \r của winget) để lấy %."""
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, creationflags=CREATE_NO_WINDOW)
+        buf, lines, t0 = b"", [], time.time()
+        while True:
+            ch = p.stdout.read1(512) if hasattr(p.stdout, "read1") else p.stdout.read(1)
+            if not ch:
+                break
+            buf += ch
+            parts = re.split(rb"[\r\n]", buf)
+            buf = parts[-1]
+            for raw in parts[:-1]:
+                try:
+                    t = raw.decode("utf-8")
+                except UnicodeDecodeError:
+                    t = raw.decode("cp1258", "replace")
+                if t.strip():
+                    lines.append(t)
+                    on_line(t)
+            if time.time() - t0 > timeout:
+                p.kill()
+                break
+        code = p.wait()
+        return code, "\n".join(lines)
+
+    WINGET_ERR = {
+        0x8A150002: "Lệnh có tham số mà bản winget trên máy này không hiểu (winget cũ). Nên cập nhật App Installer trong Microsoft Store.",
+        0x8A150014: "Không tìm thấy gói này trong kho winget (sai ID hoặc ID đã đổi). Bật Admin, bấm ✎ để sửa ID / đổi sang link tải.",
+    }
+
+    def _winget(self, pkg, args):
+        if not self.wg_ready.is_set():
+            self.wg_ready.wait(900)
+        if not self.checks.get("winget"):
+            return "err", "Máy này chưa có winget (App Installer). Hãy đổi nguồn nút này sang link tải trực tiếp."
+        if not self.wg_ready.is_set():
+            self.cur.update(phase="Chờ cập nhật winget xong", pct=-1)
+            self.wg_ready.wait(900)
+        self.cur.update(phase="winget đang cài", pct=-1)
+        base = ["winget", "install", "--id", pkg, "-e", "--silent", "--accept-package-agreements", "--accept-source-agreements"]
+        extra = shlex.split(args) if args else []
+        # winget bản cũ (Windows mới cài) không có --disable-interactivity -> báo 0x8A150002; chạy lại không có tham số đó
+        cur = self.cur
+        est = {"stop": None}
+        unit = {"KB": 1 / 1024, "MB": 1, "GB": 1024}
+
+        def on_line(t):
+            m = re.search(r"([\d.,]+)\s*(KB|MB|GB)\s*/\s*([\d.,]+)\s*(KB|MB|GB)", t)
+            if m and not est["stop"]:
+                d = float(m.group(1).replace(",", ".")) * unit[m.group(2)]
+                tot = float(m.group(3).replace(",", ".")) * unit[m.group(4)]
+                if tot > 0:
+                    cur.update(phase="winget đang tải", dl=min(100, int(d * 100 / tot)), pct=min(100, int(d * 100 / tot)),
+                               done=int(d * 1048576), total=int(tot * 1048576), speed="")
+                return
+            low = t.lower()
+            if not est["stop"] and ("install" in low or "cài đặt" in low or "hash" in low or "xác minh" in low) \
+                    and not re.search(r"\d+\s*%", t):
+                if cur.get("dl") is not None:
+                    cur["dl"] = 100
+                est["stop"] = self._est_start(45.0, "winget đang cài")
+
+        if FAKE:
+            for i in range(0, 101, 5):
+                on_line(f"  ███  {i * 0.8:.1f} MB / 80.0 MB")
+                time.sleep(0.07)
+            on_line("Starting package install...")
+            time.sleep(2.5)
+            code, out = 0, "Successfully installed"
+        else:
+            for cmd in (base + ["--disable-interactivity"] + extra, base + extra):
+                code, out = self._stream(cmd, on_line)
+                if (code & 0xFFFFFFFF) != 0x8A150002:
+                    break
+                self.log("winget trên máy này là bản cũ, chạy lại lệnh không có --disable-interactivity...", "warn")
+        if est["stop"]:
+            est["stop"].set()
+        keep = [l for l in out.splitlines() if l.strip() and not re.match(r"^[\s\-\\|/█▒]+$", l)
+                and not re.search(r"(KB|MB|GB)\s*/\s*[\d.,]+\s*(KB|MB|GB)|\d+\s*%\s*$", l)]
+        tail = "\n".join(dict.fromkeys(keep))[-600:]           # bỏ các dòng thanh tiến độ, bỏ dòng trùng
+        if tail:
+            self.log(tail, "dim")
+        low = out.lower()
+        if code == 0 or any(x in low for x in ("already installed", "no available upgrade", "đã được cài", "không tìm thấy bản nâng cấp")):
+            return "ok", ""
+        hx = code & 0xFFFFFFFF
+        why = self.WINGET_ERR.get(hx, "")
+        return "err", f"winget mã 0x{hx:08X}" + (f" - {why}" if why else "")
+
+    @staticmethod
+    def _gdrive_direct(url):
+        m = re.search(r"drive\.google\.com/(?:file/d/|open\?id=|uc\?.*?id=)([\w-]{20,})", url)
+        if m:
+            return f"https://drive.usercontent.google.com/download?id={m.group(1)}&export=download&confirm=t"
+        return url
+
+    def dl_path(self):
+        d = Path(os.path.expandvars(self.st.cfg.get("download_dir") or "Data\\Downloads"))
+        return d if d.is_absolute() else BASE / d
+
+    def dl_dir(self):
+        """Thư mục tải - lần tải đầu tiên mới tạo thư mục Data kế bên exe."""
+        self.st.ensure_disk()
+        d = self.dl_path()
+        d.mkdir(parents=True, exist_ok=True)
+        return d
+
+    def _download(self, url):
+        self.cur.update(phase="Đang kết nối", pct=0)
+        if FAKE:
+            self.dl_dir()
+            total = 40 * 1024 * 1024
+            for i in range(41):
+                if self.stop_flag.is_set():
+                    return None
+                time.sleep(0.08)
+                self.cur.update(phase="Đang tải", done=i * 1024 * 1024, total=total, pct=i * 100 // 40, dl=i * 100 // 40, speed="12.5 MB/s")
+            if "bluestacks" in url or url.endswith("/"):
+                self.log(f"Link là trang web, đã mở bằng trình duyệt: {url}")
+                return "web"
+            return Path("setup.exe")
+        import requests
+        url = self._gdrive_direct(url)
+        s = requests.Session()
+        s.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124 Safari/537.36"
+        r = s.get(url, stream=True, timeout=30, allow_redirects=True)
+        ctype = r.headers.get("Content-Type", "")
+        if "text/html" in ctype:
+            html = r.text
+            # Google Drive: trang cảnh báo file lớn -> lấy form tải thật
+            form = re.search(r'<form[^>]+action="([^"]+)"', html)
+            if form and "drive" in r.url:
+                params = dict(re.findall(r'name="([^"]+)"\s+value="([^"]*)"', html))
+                r = s.get(form.group(1).replace("&amp;", "&"), params=params, stream=True, timeout=30)
+                ctype = r.headers.get("Content-Type", "")
+            if "text/html" in ctype:
+                os.startfile(r.url if IS_WIN else url)       # noqa: S606
+                self.log(f"Link là trang web (không phải file), đã mở bằng trình duyệt: {url}")
+                return "web"
+        r.raise_for_status()
+        name = ""
+        cd = r.headers.get("Content-Disposition", "")
+        m = re.search(r"filename\*=UTF-8''([^;]+)", cd) or re.search(r'filename="?([^";]+)"?', cd)
+        if m:
+            name = unquote(m.group(1))
+        if not name:
+            name = unquote(Path(urlparse(r.url).path).name) or "setup.exe"
+        name = re.sub(r'[\\/:*?"<>|]', "_", name)
+        if "." not in name:
+            name += ".exe"
+        out = self.dl_dir() / name
+        total = int(r.headers.get("Content-Length") or 0)
+        if out.exists() and total and out.stat().st_size == total and self.st.cfg.get("keep_installer", True):
+            self.cur.update(dl=100, pct=100, done=total, total=total)
+            self.log(f"Dùng lại file đã tải: {out.name}")
+            return out
+        part = out.with_suffix(out.suffix + ".part")
+        done, t0, last = 0, time.time(), 0
+        self.cur.update(phase="Đang tải", total=total, dl=0 if total else -1)
+        with open(part, "wb") as f:
+            for chunk in r.iter_content(256 * 1024):
+                if self.stop_flag.is_set():
+                    f.close()
+                    part.unlink(missing_ok=True)
+                    return None
+                f.write(chunk)
+                done += len(chunk)
+                if time.time() - last > 0.25:
+                    last = time.time()
+                    sp = done / max(0.1, last - t0)
+                    pc = int(done * 100 / total) if total else -1
+                    self.cur.update(done=done, pct=pc, dl=pc, speed=human(sp) + "/s")
+        os.replace(part, out)
+        self.cur.update(done=done, pct=100, dl=100)
+        self.log(f"Đã tải {out.name} ({human(done)})")
+        return out
+
+    def _run_file(self, p, args):
+        ext = p.suffix.lower()
+        if FAKE:
+            stop = self._est_start(1.5)
+            time.sleep(2.5)
+            stop.set()
+            return "ok", ""
+        a = shlex.split(args, posix=False) if args else []
+        if ext == ".zip":
+            dest = self.dl_dir() / p.stem
+            self.cur.update(phase="Đang giải nén", inst=0, est=False)
+            with zipfile.ZipFile(p) as z:
+                items = z.infolist()
+                for i, it in enumerate(items, 1):             # % giải nén là % thật
+                    z.extract(it, dest)
+                    self.cur["inst"] = int(i * 100 / max(1, len(items)))
+            exes = [x for x in dest.rglob("*.exe")]
+            self.log(f"Đã giải nén vào {dest}")
+            if len(exes) == 1:
+                subprocess.Popen([str(exes[0])] + a, cwd=str(exes[0].parent))
+            else:
+                os.startfile(dest)            # noqa: S606
+            return "ok", ""
+        stop = None
+        if ext == ".msi":
+            stop = self._est_start(self._tau_for(p))
+            code = subprocess.call(["msiexec", "/i", str(p)] + a)
+        elif ext in (".exe", ".bat", ".cmd"):
+            stop = self._est_start(self._tau_for(p))
+            code = subprocess.call([str(p)] + a, cwd=str(p.parent), shell=ext != ".exe")
+        else:
+            os.startfile(str(p))              # noqa: S606
+            return "ok", ""
+        if stop:
+            stop.set()
+        if not self.st.cfg.get("keep_installer", True) and str(p).startswith(str(self.dl_path())):
+            try:
+                p.unlink()
+            except OSError:
+                pass
+        # 3010 = cần khởi động lại, 1641 = đã khởi động lại
+        return ("ok" if code in (0, 3010, 1641) else "err"), ("Cần khởi động lại máy" if code == 3010 else ("" if code == 0 else f"mã thoát {code}"))
+
+    # ---- tiện ích Windows
+    def run_tool(self, tid, extra=None):
+        t = next((x for x in TOOLS if x[0] == tid), None)
+        if not t:
+            return {"ok": False, "out": "Không có chức năng này"}
+        _, _, label, kind, cmd, _ = t
+        self.busy_tool = label
+        self.log(f"▶ {label}")
+        try:
+            if kind == "open":
+                open_target(cmd)
+                code, out = 0, ""
+            elif kind == "ps":
+                code, out = ps(cmd)
+                if code != 0:                       # bỏ phần "At line:1 char:..." của PowerShell, giữ câu báo lỗi
+                    out = re.split(r"\r?\n(?:At line:|\+ |    \+ )", out)[0].strip()
+            elif kind == "cmd":
+                code, out = run_hidden(cmd, shell=True, timeout=1800)
+            else:
+                code, out = getattr(self, "_t_" + cmd)(extra)
+        except Exception as e:              # noqa: BLE001
+            code, out = 1, str(e)
+        finally:
+            self.busy_tool = ""
+        ok = code == 0
+        self.log(f"{'✔' if ok else '✖'} {label}" + (f": {out[-500:]}" if out else ""), "ok" if ok else "err")
+        self.st.add_history(label, "Tiện ích", "Xong" if ok else "Lỗi", out)
+        return {"ok": ok, "out": out}
+
+    def _bak_dir(self, kind):
+        self.st.ensure_disk()
+        d = BACKUP_DIR / f"{kind}_{os.environ.get('COMPUTERNAME', 'PC')}_{dt.datetime.now():%Y%m%d_%H%M}"
+        d.mkdir(parents=True, exist_ok=True)
+        return d
+
+    def _t_wifi_backup(self, _):
+        d = self._bak_dir("Wifi")
+        code, out = run_hidden(["netsh", "wlan", "export", "profile", "key=clear", f"folder={d}"])
+        if code == 0:
+            open_target(str(d))
+        return code, f"Đã lưu vào {d}\n{out}"
+
+    def _t_wifi_restore(self, folder):
+        if not folder:
+            return 1, "Chưa chọn thư mục"
+        files = list(Path(folder).glob("*.xml"))
+        ok = 0
+        for f in files:
+            c, _ = run_hidden(["netsh", "wlan", "add", "profile", f"filename={f}", "user=all"])
+            ok += c == 0
+        return (0 if ok else 1), f"Đã nạp {ok}/{len(files)} mạng Wifi"
+
+    def _t_driver_backup(self, _):
+        d = self._bak_dir("Driver")
+        code, out = run_hidden(["dism", "/online", "/export-driver", f"/destination:{d}"], timeout=3600)
+        if code == 0:
+            open_target(str(d))
+        return code, f"Đã lưu vào {d}\n{out[-400:]}"
+
+    def _t_driver_restore(self, folder):
+        if not folder:
+            return 1, "Chưa chọn thư mục"
+        return run_hidden(["pnputil", "/add-driver", str(Path(folder) / "*.inf"), "/subdirs", "/install"], timeout=3600)
+
+    def _t_win_key(self, key):
+        key = (key or "").strip().upper()
+        if not re.fullmatch(r"[A-Z0-9]{5}(-[A-Z0-9]{5}){4}", key):
+            return 1, "Key không đúng dạng XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
+        slmgr = r"%windir%\System32\slmgr.vbs"
+        c1, o1 = run_hidden(f"cscript //nologo {slmgr} /ipk {key}", shell=True)
+        if c1 != 0:
+            return c1, o1
+        c2, o2 = run_hidden(f"cscript //nologo {slmgr} /ato", shell=True, timeout=180)
+        return c2, o1 + "\n" + o2
+
+
+# ================================================================= MS OFFICE (viết lại từ "Cài đặt Office v4.1")
+# Dùng Office Deployment Tool (ODT) chính chủ của Microsoft: cài Online từ máy chủ Microsoft,
+# hoặc Offline từ thư viện đã tải sẵn trong thư mục Soft\Office kế bên exe.
+ODT_SETUP_URL = "https://officecdn.microsoft.com/pr/wsus/setup.exe"
+ODT_PACK_URL = "https://download.microsoft.com/download/6c1eeb25-cf8b-41d9-8d0d-cc1dbc032140/officedeploymenttool_18925-20138.exe"
+OFFICE_APPS = ["Word", "Excel", "PowerPoint", "Outlook", "Access", "Publisher", "OneNote"]
+OFFICE_EXES = {"Word": "WINWORD.EXE", "Excel": "EXCEL.EXE", "PowerPoint": "POWERPNT.EXE", "Outlook": "OUTLOOK.EXE",
+               "Access": "MSACCESS.EXE", "Publisher": "MSPUB.EXE", "OneNote": "ONENOTE.EXE", "Project": "WINPROJ.EXE",
+               "Visio": "VISIO.EXE"}
+OFFICE_LANGS = [("en-us", "English (US)"), ("vi-vn", "Tiếng Việt"), ("zh-cn", "Chinese"), ("fr-fr", "French"),
+                ("de-de", "German"), ("ko-kr", "Korean"), ("ja-jp", "Japanese"), ("ru-ru", "Russian")]
+OFFICE_EDITIONS = [("ProPlus", "Professional Plus (đầy đủ nhất)"), ("Standard", "Standard (doanh nghiệp)"),
+                   ("HomeBusiness", "Home & Business"), ("HomeStudent", "Home & Student")]
+
+
+def office_product_id(ver, ed):
+    if ver == "365":
+        return "O365HomePremRetail" if ed == "HomeStudent" else "O365ProPlusRetail"
+    return f"{ed}Retail" if ver == "2016" else f"{ed}{ver}Retail"
+
+
+def office_extra_id(kind, ver):            # kind = ProjectPro / VisioPro
+    return f"{kind}Retail" if ver in ("2016", "365") else f"{kind}{ver}Retail"
+
+
+def office_dir():
+    for base in (os.environ.get("ProgramFiles", r"C:\Program Files"), os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)")):
+        d = Path(base) / "Microsoft Office" / "root" / "Office16"
+        if d.exists():
+            return d
+    return None
+
+
+def office_config(o, source=""):
+    """Tạo file cấu hình XML cho ODT từ lựa chọn trên giao diện."""
+    ver, ed, bit, lang = o.get("ver", "2024"), o.get("ed", "ProPlus"), o.get("bit", "64"), o.get("lang", "vi-vn")
+    apps = set(o.get("apps") or [])
+    langs = [lang] + (["en-us"] if o.get("en") and lang != "en-us" else [])
+    lang_xml = "".join(f'      <Language ID="{l}" />\n' for l in langs)
+    src = f' SourcePath="{source}"' if source else ""
+    x = f'<?xml version="1.0" encoding="UTF-8"?>\n<Configuration>\n  <Add OfficeClientEdition="{bit}" Channel="Current"{src}>\n'
+    if apps:
+        x += f'    <Product ID="{office_product_id(ver, ed)}">\n{lang_xml}'
+        for a in OFFICE_APPS:
+            if a not in apps:
+                x += f'      <ExcludeApp ID="{a}" />\n'
+        for a in ("Teams", "Lync", "OneDrive", "Groove", "Bing"):
+            x += f'      <ExcludeApp ID="{a}" />\n'
+        x += "    </Product>\n"
+    if o.get("project"):
+        x += f'    <Product ID="{office_extra_id("ProjectPro", ver)}">\n{lang_xml}    </Product>\n'
+    if o.get("visio"):
+        x += f'    <Product ID="{office_extra_id("VisioPro", ver)}">\n{lang_xml}    </Product>\n'
+    x += '  </Add>\n  <Display Level="Full" AcceptEULA="TRUE" />\n'
+    if apps:
+        x += "  <RemoveMSI />\n"
+    x += '  <Property Name="AUTOACTIVATE" Value="0" />\n</Configuration>\n'
+    return x
+
+
+class OfficeSetup:
+    def __init__(self, eng):
+        self.e = eng
+        self.busy = ""
+
+    def offline_dir(self):
+        return BASE / "Soft" / "Office"
+
+    def has_offline(self):
+        d = self.offline_dir()
+        return (d / "setup.exe").exists() and (d / "Office" / "Data").exists()
+
+    def status(self):
+        d = office_dir()
+        installed = [n for n, exe in OFFICE_EXES.items() if d and (d / exe).exists()]
+        return {"offline": self.has_offline(), "offline_dir": str(self.offline_dir()), "installed": installed,
+                "office_dir": str(d) if d else "", "busy": self.busy}
+
+    def _setup_exe(self):
+        """Lấy setup.exe của ODT: ưu tiên bản trong thư viện offline, không thì tải từ Microsoft."""
+        if self.has_offline():
+            return self.offline_dir() / "setup.exe"
+        d = self.e.dl_dir() / "ODT"
+        d.mkdir(parents=True, exist_ok=True)
+        exe = d / "setup.exe"
+        if exe.exists() and exe.stat().st_size > 1_000_000 and time.time() - exe.stat().st_mtime < 30 * 86400:
+            return exe
+        if FAKE:
+            exe.write_bytes(b"0" * 1_100_000)
+            return exe
+        import requests
+        self.e.log("⬇ Đang tải Office Deployment Tool từ Microsoft...")
+        try:
+            r = requests.get(ODT_SETUP_URL, timeout=60)
+            r.raise_for_status()
+            exe.write_bytes(r.content)
+            return exe
+        except Exception as e:              # noqa: BLE001
+            self.e.log(f"Không tải được setup.exe trực tiếp ({e}), thử gói ODT...", "warn")
+        pack = d / "odt.exe"
+        r = requests.get(ODT_PACK_URL, timeout=120)
+        r.raise_for_status()
+        pack.write_bytes(r.content)
+        run_hidden([str(pack), f"/extract:{d}", "/quiet"], timeout=300)
+        if not exe.exists():
+            raise RuntimeError("Không lấy được setup.exe của ODT")
+        return exe
+
+    def _run(self, label, fn):
+        if self.busy or self.e.busy_tool:
+            return "Đang chạy một việc khác, chờ xong rồi thử lại."
+        self.busy = label
+
+        def job():
+            self.e.busy_tool = label
+            self.e.log(f"▶ {label}")
+            try:
+                ok, detail = fn()
+            except Exception as e:          # noqa: BLE001
+                ok, detail = False, str(e)
+            self.e.log(f"{'✔' if ok else '✖'} {label}" + (f": {detail}" if detail else ""), "ok" if ok else "err")
+            self.e.st.add_history(label, "MS Office", "Xong" if ok else "Lỗi", detail)
+            self.busy = ""
+            self.e.busy_tool = ""
+        threading.Thread(target=job, daemon=True).start()
+        return ""
+
+    def _configure(self, xml, workdir=None, mode="/configure"):
+        exe = self._setup_exe()
+        cfg = Path(os.environ.get("TEMP", str(BASE))) / f"winaio_office_{int(time.time())}.xml"
+        cfg.write_text(xml, encoding="utf-8")
+        self.e.log("Cấu hình ODT:\n" + xml.strip(), "dim")
+        if FAKE:
+            time.sleep(2)
+            return True, ""
+        code = subprocess.call([str(exe), mode, str(cfg)], cwd=str(workdir or exe.parent), creationflags=CREATE_NO_WINDOW)
+        try:
+            cfg.unlink()
+        except OSError:
+            pass
+        return code == 0, "" if code == 0 else f"ODT trả mã {code}"
+
+    def install(self, o):
+        if not (o.get("apps") or o.get("project") or o.get("visio")):
+            return "Chọn ít nhất 1 ứng dụng (hoặc Project / Visio)."
+        ver = o.get("ver", "2024")
+        name = f"Cài Microsoft Office {ver if ver != '365' else '365'} {o.get('ed', 'ProPlus')} {o.get('bit', '64')}-bit"
+
+        def fn():
+            src = str(self.offline_dir()) if self.has_offline() else ""
+            self.e.log("📦 Cài OFFLINE từ " + src if src else "🌐 Cài ONLINE: Microsoft tải bộ cài trong lúc cài")
+            ok, d = self._configure(office_config(o, src), workdir=src or None)
+            if ok and o.get("shortcut", True):
+                self.shortcuts()
+            return ok, d
+        return self._run(name, fn)
+
+    def download_offline(self, o):
+        def fn():
+            dest = self.offline_dir()
+            dest.mkdir(parents=True, exist_ok=True)
+            exe = self._setup_exe()
+            if exe.parent != dest and not FAKE:
+                shutil.copy2(exe, dest / "setup.exe")
+            self.e.log(f"⬇ Tải thư viện Office về {dest} (vài GB, mất khá lâu)...")
+            return self._configure(office_config(o, str(dest)), workdir=dest, mode="/download")
+        return self._run("Tải thư viện Office offline", fn)
+
+    def uninstall(self):
+        xml = ('<?xml version="1.0" encoding="UTF-8"?>\n<Configuration>\n  <Remove All="TRUE" />\n'
+               '  <Display Level="Full" AcceptEULA="TRUE" />\n  <RemoveMSI />\n</Configuration>\n')
+        return self._run("Gỡ toàn bộ Microsoft Office", lambda: self._configure(xml))
+
+    def shortcuts(self):
+        d = office_dir()
+        if not d:
+            return "Chưa thấy Office (Office16) trên máy."
+        made = []
+        desk = Path(os.environ.get("PUBLIC", r"C:\Users\Public")) / "Desktop"
+        for n, exe in OFFICE_EXES.items():
+            if (d / exe).exists():
+                made.append(n)
+                if not FAKE and IS_WIN:
+                    ps(f"$s=(New-Object -ComObject WScript.Shell).CreateShortcut('{desk / (n + '.lnk')}'); "
+                       f"$s.TargetPath='{d / exe}'; $s.Save()", timeout=30)
+        self.e.log("🔗 Đã ghim ra Desktop: " + ", ".join(made) if made else "Không có ứng dụng Office nào để ghim.")
+        return ""
+
+    @staticmethod
+    def _ospp():
+        for base in (os.environ.get("ProgramFiles", r"C:\Program Files"), os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)")):
+            for sub in ("root\\Office16", "Office16"):
+                p = Path(base) / "Microsoft Office" / sub / "ospp.vbs"
+                if p.exists():
+                    return p
+        return None
+
+    def license_status(self):
+        p = self._ospp()
+        if FAKE:
+            return {"ok": True, "out": "LICENSE NAME: Office 24, Office24ProPlus2024R_Retail edition\nLICENSE STATUS:  ---LICENSED---\nLast 5 characters of installed product key: XXXXX"}
+        if not p:
+            return {"ok": False, "out": "Chưa thấy Office trên máy (không có ospp.vbs)."}
+        code, out = run_hidden(f'cscript //nologo "{p}" /dstatus', shell=True, timeout=120)
+        return {"ok": code == 0, "out": out}
+
+    def enter_key(self, key):
+        key = (key or "").strip().upper()
+        if not re.fullmatch(r"[A-Z0-9]{5}(-[A-Z0-9]{5}){4}", key):
+            return {"ok": False, "out": "Key không đúng dạng XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"}
+        p = self._ospp()
+        if FAKE:
+            return {"ok": True, "out": "(chạy thử) Product key installation successful\nProduct activation successful"}
+        if not p:
+            return {"ok": False, "out": "Chưa thấy Office trên máy (không có ospp.vbs)."}
+        c1, o1 = run_hidden(f'cscript //nologo "{p}" /inpkey:{key}', shell=True, timeout=120)
+        c2, o2 = run_hidden(f'cscript //nologo "{p}" /act', shell=True, timeout=180)
+        self.e.st.add_history("Nhập key Office", "MS Office", "Xong" if c2 == 0 else "Lỗi", o1 + "\n" + o2)
+        return {"ok": c2 == 0, "out": o1 + "\n" + o2}
+
+
+# ================================================================= NGUỒN & Ổ USB (gộp từ Power & USB Eject)
+BUS = {1: "SCSI", 2: "ATAPI", 3: "ATA", 4: "1394", 5: "SSA", 6: "Fibre", 7: "USB", 8: "RAID", 9: "iSCSI", 10: "SAS",
+       11: "SATA", 12: "SD", 13: "MMC", 14: "Virtual", 15: "VHD", 16: "Spaces", 17: "NVMe", 18: "SCM", 19: "UFS"}
+VETO = ["Không rõ lý do", "Thiết bị legacy", "Có tệp/cửa sổ đang mở trên ổ", "Ứng dụng Windows đang dùng ổ",
+        "Dịch vụ Windows đang dùng ổ", "Có chương trình đang giữ ổ", "Thiết bị khác chặn", "Driver chặn",
+        "Yêu cầu không hợp lệ", "Thiếu nguồn", "Thiết bị không thể tắt", "Driver legacy", "Không đủ quyền"]
+
+DISK_PS = r"""
+$vols=@{}; Get-Volume -ErrorAction SilentlyContinue | Where-Object DriveLetter | ForEach-Object { $vols[[string]$_.DriveLetter]=$_.FileSystemLabel }
+$parts=@(Get-Partition -ErrorAction SilentlyContinue)
+$dd=@{}; Get-CimInstance Win32_DiskDrive -ErrorAction SilentlyContinue | ForEach-Object { $dd[[int]$_.Index]=$_ }
+$out=@()
+foreach($d in Get-CimInstance -Namespace root\Microsoft\Windows\Storage MSFT_Disk){
+  $w=$dd[[int]$d.Number]
+  $ls=@($parts | Where-Object { $_.DiskNumber -eq $d.Number -and $_.DriveLetter } | ForEach-Object { [string]$_.DriveLetter })
+  $out += [ordered]@{ n=[int]$d.Number; name=[string]$d.FriendlyName; bus=[string]$d.BusType; off=[bool]$d.IsOffline;
+    ro=[bool]$d.IsReadOnly; size=[double]$d.Size; sys=[bool]($d.IsSystem -or $d.IsBoot);
+    pnp=$(if($w){[string]$w.PNPDeviceID}else{''}); media=$(if($w){[string]$w.MediaType}else{''});
+    letters=@($ls | ForEach-Object { [ordered]@{ l=$_; label=[string]$vols[$_] } }) }
+}
+ConvertTo-Json -InputObject @($out) -Depth 4 -Compress
+"""
+
+FAKE_DISKS = [
+    {"n": 0, "name": "Samsung SSD 980 PRO 1TB", "bus": 17, "off": False, "ro": False, "size": 1e12, "sys": True, "pnp": "", "media": "Fixed hard disk media", "letters": [{"l": "C", "label": "Windows"}]},
+    {"n": 1, "name": "WDC WD20EZBX-00AYRA0", "bus": 11, "off": False, "ro": False, "size": 2e12, "sys": False, "pnp": "", "media": "Fixed hard disk media", "letters": [{"l": "D", "label": "Data"}]},
+    {"n": 2, "name": "WD Elements 25A2", "bus": 7, "off": False, "ro": False, "size": 4e12, "sys": False, "pnp": "USBSTOR\\DISK", "media": "External hard disk media", "letters": [{"l": "E", "label": "Phim"}, {"l": "F", "label": "Backup"}]},
+    {"n": 3, "name": "Samsung PSSD T7", "bus": 7, "off": False, "ro": False, "size": 1e12, "sys": False, "pnp": "SCSI\\DISK", "media": "External hard disk media", "letters": [{"l": "G", "label": "T7"}]},
+]
+
+
+class Power:
+    def __init__(self, eng):
+        self.e = eng
+        self.busy = False
+        self.shutdown_at = 0.0
+        sa = eng.st.cfg.get("shutdown_at") or 0
+        if sa and sa > time.time():
+            self.shutdown_at = float(sa)
+
+    # ---- nguồn & phiên
+    def force_shutdown(self):
+        self.e.log("⏻ TẮT MÁY NGAY (force)", "warn")
+        if FAKE or not IS_WIN:
+            return True
+        try:
+            self._shutdown_privilege()
+            EWX_SHUTDOWN, EWX_FORCE, EWX_POWEROFF = 0x1, 0x4, 0x8
+            if ctypes.windll.user32.ExitWindowsEx(ctypes.c_uint(EWX_SHUTDOWN | EWX_FORCE | EWX_POWEROFF), ctypes.c_uint32(0x80000000)):
+                return True
+        except Exception:                   # noqa: BLE001
+            pass
+        subprocess.Popen(["shutdown.exe", "/s", "/f", "/t", "0"], creationflags=CREATE_NO_WINDOW)
+        return True
+
+    @staticmethod
+    def _shutdown_privilege():
+        from ctypes import wintypes
+        adv, k32 = ctypes.windll.advapi32, ctypes.windll.kernel32
+
+        class LUID(ctypes.Structure):
+            _fields_ = [("Low", wintypes.DWORD), ("High", wintypes.LONG)]
+
+        class TP(ctypes.Structure):
+            _fields_ = [("Count", wintypes.DWORD), ("Luid", LUID), ("Attr", wintypes.DWORD)]
+        tok = wintypes.HANDLE()
+        adv.OpenProcessToken(k32.GetCurrentProcess(), 0x20 | 0x8, ctypes.byref(tok))
+        tp = TP(1, LUID(), 0x2)
+        adv.LookupPrivilegeValueW(None, "SeShutdownPrivilege", ctypes.byref(tp.Luid))
+        adv.AdjustTokenPrivileges(tok, False, ctypes.byref(tp), 0, None, None)
+        k32.CloseHandle(tok)
+
+    def lock(self):
+        self.e.log("🔒 Khóa máy")
+        if FAKE or not IS_WIN:
+            return True
+        return bool(ctypes.windll.user32.LockWorkStation())
+
+    def switch_user(self):
+        self.e.log("👥 Đổi người dùng")
+        if FAKE or not IS_WIN:
+            return True
+        try:
+            if ctypes.windll.wtsapi32.WTSDisconnectSession(None, ctypes.c_uint32(0xFFFFFFFF), False):
+                return True
+        except Exception:                   # noqa: BLE001
+            pass
+        tsd = Path(os.environ.get("WINDIR", "C:\\Windows")) / "System32" / "tsdiscon.exe"
+        if tsd.exists():
+            subprocess.Popen([str(tsd)], creationflags=CREATE_NO_WINDOW)
+            return True
+        return bool(ctypes.windll.user32.LockWorkStation())
+
+    def schedule(self, mode, minutes=0, hh=0, mm=0):
+        now_ = dt.datetime.now()
+        if mode == "at":
+            t = now_.replace(hour=int(hh) % 24, minute=int(mm) % 60, second=0, microsecond=0)
+            if t <= now_:
+                t += dt.timedelta(days=1)          # giờ này đã qua -> tắt vào ngày mai
+        else:
+            m = int(minutes)
+            if m < 1:
+                return "Số phút phải từ 1 trở lên"
+            t = now_ + dt.timedelta(minutes=m)
+        secs = max(1, int((t - now_).total_seconds()))
+        if not FAKE and IS_WIN:
+            run_hidden(["shutdown.exe", "/a"])
+            code, out = run_hidden(["shutdown.exe", "/s", "/f", "/t", str(secs), "/c", f"{APP_TITLE}: tắt máy theo hẹn giờ"])
+            if code != 0:
+                return f"Hẹn giờ thất bại (shutdown.exe trả mã {code}). {out}"
+        self.shutdown_at = t.timestamp()
+        self.e.st.cfg["shutdown_at"] = self.shutdown_at
+        self.e.st.save_config(persist=False)
+        self.e.log(f"⏱ Đã hẹn ép tắt máy lúc {t:%H:%M} ngày {t:%d/%m}", "warn")
+        return ""
+
+    def cancel(self):
+        if not FAKE and IS_WIN:
+            code, _ = run_hidden(["shutdown.exe", "/a"])
+            msg = "Đã hủy hẹn giờ tắt máy." if code == 0 else (
+                "Lệnh hẹn giờ đã không còn (có thể đã bị hủy trước đó)." if self.shutdown_at else "Không có lệnh tắt máy nào đang hẹn.")
+        else:
+            msg = "Đã hủy hẹn giờ tắt máy."
+        self.shutdown_at = 0.0
+        self.e.st.cfg["shutdown_at"] = 0
+        self.e.st.save_config(persist=False)
+        self.e.log(msg)
+        return msg
+
+    # ---- ổ đĩa
+    def disks(self):
+        if FAKE or not IS_WIN:
+            raw = [dict(d) for d in FAKE_DISKS]
+        else:
+            code, out = ps(DISK_PS, timeout=60)
+            try:
+                raw = json.loads(out[out.index("["):])
+            except Exception:               # noqa: BLE001
+                return {"err": out[:300] or f"mã {code}", "disks": []}
+        for d in raw:
+            media = (d.get("media") or "").lower()
+            b = str(d.get("bus", "")).strip()
+            d["bus_name"] = BUS.get(int(b), "Khác") if b.isdigit() else (b or "Khác")   # Windows trả số hoặc chữ (USB, SATA...)
+            d["size_text"] = human(d.get("size") or 0)
+            d["external"] = (d["bus_name"].upper() in ("USB", "1394", "SD", "MMC") or "external" in media
+                             or "removable" in media) and not d.get("sys")
+        return {"err": "", "disks": raw}
+
+    def _disk(self, n):
+        return next((d for d in self.disks()["disks"] if int(d["n"]) == int(n)), None)
+
+    @staticmethod
+    def _flush_dismount(letter, dismount=True):
+        """Ghi hết dữ liệu đang đệm xuống ổ, rồi dismount (tháo ổ khỏi hệ thống tệp)."""
+        from ctypes import wintypes
+        k32 = ctypes.windll.kernel32
+        k32.CreateFileW.restype = ctypes.c_void_p
+        k32.CreateFileW.argtypes = [wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD, ctypes.c_void_p, wintypes.DWORD,
+                                    wintypes.DWORD, ctypes.c_void_p]
+        h = k32.CreateFileW(f"\\\\.\\{letter}:", 0xC0000000, 3, None, 3, 0, None)
+        if not h or h == ctypes.c_void_p(-1).value:
+            return f"{letter}: không mở được (lỗi {k32.GetLastError()})"
+        try:
+            k32.FlushFileBuffers(ctypes.c_void_p(h))
+            if not dismount:
+                return f"{letter}: đã ghi hết"
+            ret = ctypes.c_ulong()
+            locked = k32.DeviceIoControl(ctypes.c_void_p(h), 0x00090018, None, 0, None, 0, ctypes.byref(ret), None)
+            ok = k32.DeviceIoControl(ctypes.c_void_p(h), 0x00090020, None, 0, None, 0, ctypes.byref(ret), None)
+            if not ok:
+                return f"{letter}: dismount lỗi {k32.GetLastError()}"
+            return f"{letter}: " + ("đã ghi hết + dismount" if locked else "đã ghi hết + dismount ép (có chương trình đang mở tệp)")
+        finally:
+            k32.CloseHandle(ctypes.c_void_p(h))
+
+    @staticmethod
+    def _eject(pnp):
+        """Yêu cầu Windows tháo thiết bị (giống Safely Remove Hardware). Trả '' nếu được, ngược lại lý do."""
+        cm = ctypes.windll.cfgmgr32
+        dev = ctypes.c_uint32()
+        if cm.CM_Locate_DevNodeW(ctypes.byref(dev), ctypes.c_wchar_p(pnp), 0) != 0:
+            return "Không tìm thấy thiết bị"
+        targets = []
+        parent = ctypes.c_uint32()
+        if cm.CM_Get_Parent(ctypes.byref(parent), dev, 0) == 0:
+            targets.append(parent.value)          # thường là thiết bị USB chứa ổ (USB\VID_...)
+        targets.append(dev.value)
+        reason = "Không rõ lý do"
+        for t in targets:
+            veto = ctypes.c_int(0)
+            name = ctypes.create_unicode_buffer(260)
+            r = cm.CM_Request_Device_EjectW(ctypes.c_uint32(t), ctypes.byref(veto), name, 260, 0)
+            if r == 0 and veto.value == 0:
+                return ""
+            v = veto.value
+            reason = (VETO[v] if 0 <= v < len(VETO) else f"Mã {v}") + (f" — {name.value}" if name.value else "") + f" (CR={r})"
+        return reason
+
+    def safe_remove(self, n):
+        if self.busy:
+            return {"ok": False, "msg": "Đang xử lý một ổ khác, thử lại sau giây lát."}
+        self.busy = True
+        try:
+            d = self._disk(n)
+            if not d:
+                return {"ok": False, "msg": "Không thấy ổ này nữa (đã rút?)"}
+            nm = d["name"]
+            self.e.log(f"⏏ Safely Remove: {nm}")
+            if FAKE or not IS_WIN:
+                time.sleep(1)
+                FAKE_DISKS[:] = [x for x in FAKE_DISKS if x["n"] != int(n)]
+                msg = f"✓ Đã tháo an toàn “{nm}”. Có thể rút ổ ra."
+                self.e.log(msg, "ok")
+                return {"ok": True, "msg": msg}
+            for l in d.get("letters") or []:
+                self._flush_dismount(l["l"], dismount=False)
+            why = self._eject(d["pnp"]) if d.get("pnp") else "Không có mã thiết bị"
+            if not why:
+                msg = f"✓ Đã tháo an toàn “{nm}”. Có thể rút ổ ra."
+                self.e.log(msg, "ok")
+                return {"ok": True, "msg": msg}
+            msg = f"✗ Windows từ chối: {why}\n→ Đóng chương trình / cửa sổ đang mở tệp trên ổ rồi thử lại, hoặc dùng “Ép ngắt ổ”."
+            self.e.log(msg, "err")
+            return {"ok": False, "msg": msg}
+        finally:
+            self.busy = False
+
+    def force_remove(self, n):
+        if self.busy:
+            return {"ok": False, "msg": "Đang xử lý một ổ khác, thử lại sau giây lát."}
+        self.busy = True
+        try:
+            d = self._disk(n)
+            if not d:
+                return {"ok": False, "msg": "Không thấy ổ này nữa (đã rút?)"}
+            nm = d["name"]
+            self.e.log(f"⚡ Ép ngắt: {nm}", "warn")
+            if FAKE or not IS_WIN:
+                time.sleep(1.2)
+                for x in FAKE_DISKS:
+                    if x["n"] == int(n):
+                        x["off"] = True
+                msg = f"✓ Đã ngắt ổ “{nm}”. Có thể rút ra."
+                self.e.log(msg, "ok")
+                return {"ok": True, "msg": msg}
+            for l in d.get("letters") or []:
+                self.e.log("  " + self._flush_dismount(l["l"]))
+            code, out = ps(f"Set-Disk -Number {int(n)} -IsOffline $true", timeout=60)
+            self.e.log("  Disk → Offline (tạm thời)" if code == 0 else f"  Không đặt được Offline: {out[:200]}")
+            why = self._eject(d["pnp"]) if d.get("pnp") else "Không có mã thiết bị"
+            if not why:
+                msg = f"✓ Đã ngắt ổ “{nm}”. Có thể rút ra."
+            elif code == 0:
+                msg = (f"! Windows vẫn chưa cho tháo ({why}).\n✓ Nhưng ổ đã được ghi hết dữ liệu + dismount + Offline → AN TOÀN để rút. "
+                       "Cắm lại hoặc khởi động lại máy, ổ sẽ tự Online.")
+            else:
+                msg = f"✗ Không ngắt được ({why}). Hãy tắt máy rồi rút ổ."
+            self.e.log(msg, "ok" if (not why or code == 0) else "err")
+            return {"ok": not why or code == 0, "msg": msg}
+        finally:
+            self.busy = False
+
+
+# ================================================================= TEST MÁY: PIN LAPTOP
+FAKE_BATTERY = {"has": True, "ac": False, "charging": False, "pct": 78, "left_min": 214,
+                "batteries": [{"name": "DELL 9JRV0", "maker": "SMP", "chem": "LiP", "serial": "1234",
+                               "design": 54000, "full": 46310, "cycles": 312, "health": 86}]}
+
+
+def battery_info():
+    """% pin hiện tại (GetSystemPowerStatus) + độ chai pin từ báo cáo powercfg /batteryreport của Windows."""
+    if FAKE or not IS_WIN:
+        return json.loads(json.dumps(FAKE_BATTERY))
+
+    class SPS(ctypes.Structure):
+        _fields_ = [("ac", ctypes.c_ubyte), ("flag", ctypes.c_ubyte), ("pct", ctypes.c_ubyte), ("saver", ctypes.c_ubyte),
+                    ("life", ctypes.c_ulong), ("full", ctypes.c_ulong)]
+    st = SPS()
+    ctypes.windll.kernel32.GetSystemPowerStatus(ctypes.byref(st))
+    has = not (st.flag & 128) and st.flag != 255
+    res = {"has": has, "ac": st.ac == 1, "charging": bool(st.flag & 8), "pct": st.pct if st.pct <= 100 else None,
+           "left_min": (st.life // 60) if st.life not in (0xFFFFFFFF, 4294967295) else None, "batteries": []}
+    if not has:
+        return res
+    out = Path(os.environ.get("TEMP", str(BASE))) / "winaio_battery.xml"
+    run_hidden(["powercfg", "/batteryreport", "/xml", "/output", str(out)], timeout=60)
+    try:
+        import xml.etree.ElementTree as ET
+        root = ET.parse(out).getroot()
+        ns = {"b": root.tag.split("}")[0].strip("{")} if root.tag.startswith("{") else {}
+        q = (lambda e, t: e.findtext(f"b:{t}", default="", namespaces=ns)) if ns else (lambda e, t: e.findtext(t, default=""))
+        for b in root.iter(f"{{{ns['b']}}}Battery" if ns else "Battery"):
+            design, full = int(q(b, "DesignCapacity") or 0), int(q(b, "FullChargeCapacity") or 0)
+            res["batteries"].append({"name": q(b, "Id"), "maker": q(b, "Manufacturer"), "chem": q(b, "Chemistry"),
+                                     "serial": q(b, "SerialNumber"), "design": design, "full": full,
+                                     "cycles": int(q(b, "CycleCount") or 0) or None,
+                                     "health": round(full * 100 / design) if design else None})
+    except Exception as e:                  # noqa: BLE001
+        res["err"] = f"Không đọc được báo cáo pin: {e}"
+    finally:
+        try:
+            out.unlink()
+        except OSError:
+            pass
+    return res
+
+
+def battery_report_html():
+    if FAKE or not IS_WIN:
+        return ""
+    out = Path(os.environ.get("TEMP", str(BASE))) / f"BaoCaoPin_{os.environ.get('COMPUTERNAME', 'PC')}.html"
+    code, txt = run_hidden(["powercfg", "/batteryreport", "/output", str(out)], timeout=60)
+    if code != 0 or not out.exists():
+        return txt or "Không tạo được báo cáo pin"
+    os.startfile(str(out))                   # noqa: S606
+    return ""
+
+
+# ================================================================= API cho giao diện
+class Api:
+    def __init__(self, eng, app=None):
+        self._e = eng
+        self._s = eng.st
+        self._app = app
+        self._admin = False
+        self._upd = {}
+        self._quit_fn = None
+
+    def _need_admin(self):
+        if not self._admin:
+            raise PermissionError("Cần mở khóa Admin")
+
+    # ---- đọc
+    def init(self):
+        return {"title": APP_TITLE, "version": APP_VERSION, "repo": REPO, "browser": getattr(self, "_browser", False), "theme": self._s.cfg.get("theme", "light"),
+                "tools": [{"id": t[0], "group": t[1], "label": t[2], "confirm": t[5], "kind": t[3], "fn": t[4]} for t in TOOLS],
+                "quick": [{"label": q[0], "target": q[1]} for q in QUICK], "is_win": IS_WIN or FAKE,
+                "default_pw": self._s.cfg.get("admin_hash") == hash_pw("admin", self._s.cfg.get("admin_salt", ""))}
+
+    def groups(self):
+        return {"columns": self._s.columns(), "layout": self._s.layout(), "groups": self._s.groups()}
+
+    def set_layout(self, mode):
+        self._need_admin()
+        self._s.cfg["layout"] = "columns" if mode == "columns" else "grid"
+        self._s.save_config()
+        return True
+
+    def set_columns(self, n):
+        self._need_admin()
+        self._s.cfg["columns"] = max(2, min(6, int(n)))
+        self._s.save_config()
+        if self._s.layout() == "columns":
+            with self._s.lock:
+                self._s.auto_columns(all_groups=True)    # chia lại các nhóm cho đều theo số cột mới
+                self._s.commit()
+        return True
+
+    def state(self, since=0):
+        e = self._e
+        with e.lock:
+            logs = [l for l in e.logs if l[0] > since]
+            q = list(e.queue)
+        today = dt.datetime.now().strftime("%d/%m/%Y")
+        with self._s.lock:
+            done_today = self._s.db.execute("SELECT COUNT(*) FROM history WHERE ts LIKE ? AND status IN ('Xong','Đã mở trang web')",
+                                            (today + "%",)).fetchone()[0]
+        return {"logs": logs, "cur": e.cur, "queue": q, "batch": [e.batch_i, e.batch_n], "results": e.results,
+                "checks": e.checks, "winget": e.winget, "admin": self._admin, "busy_tool": e.busy_tool, "sysinfo": e.sysinfo,
+                "done_today": done_today, "running": bool(e.worker and e.worker.is_alive()),
+                "shutdown_at": e.power.shutdown_at, "now": time.time(), "upd": self._upd}
+
+    def history(self, limit=1000):
+        with self._s.lock:
+            return [dict(r) for r in self._s.db.execute("SELECT * FROM history ORDER BY id DESC LIMIT ?", (int(limit),))]
+
+    def settings(self):
+        self._need_admin()
+        c = self._s.cfg
+        return {"download_dir": c.get("download_dir"), "keep_installer": c.get("keep_installer", True),
+                "winget_auto": c.get("winget_auto", True), "winget": self._e.winget, "data_dir": str(DATA), "dl_path": str(self._e.dl_path()), "on_disk": self._s.on_disk}
+
+    # ---- admin
+    def unlock(self, pw):
+        c = self._s.cfg
+        if hash_pw(pw or "", c.get("admin_salt", "")) == c.get("admin_hash"):
+            self._admin = True
+            self._e.log("🔓 Đã mở khóa Admin: hiện nút ✎ để sửa tên, đổi nguồn.")
+            return True
+        return False
+
+    def lock_admin(self):
+        self._admin = False
+        self._e.log("🔒 Đã khóa Admin.")
+        return True
+
+    def change_password(self, old, new):
+        self._need_admin()
+        c = self._s.cfg
+        if hash_pw(old or "", c.get("admin_salt", "")) != c.get("admin_hash"):
+            return "Mật khẩu cũ không đúng"
+        if len(new or "") < 4:
+            return "Mật khẩu mới cần ít nhất 4 ký tự"
+        c["admin_salt"] = secrets.token_hex(8)
+        c["admin_hash"] = hash_pw(new, c["admin_salt"])
+        self._s.save_config()
+        return ""
+
+    def save_settings(self, d):
+        self._need_admin()
+        for k in ("download_dir", "keep_installer", "winget_auto"):
+            if k in d:
+                self._s.cfg[k] = d[k]
+        self._s.save_config()
+        return True
+
+    def set_theme(self, t):
+        self._s.cfg["theme"] = "dark" if t == "dark" else "light"
+        self._s.save_config()
+        return True
+
+    # ---- sửa nút / nhóm (chỉ Admin)
+    def save_app(self, a):
+        self._need_admin()
+        st = self._s
+        with st.lock:
+            vals = (a.get("icon", "").strip(), a.get("name", "").strip() or "Nút mới", a.get("src", "").strip(),
+                    a.get("args", "").strip(), a.get("note", "").strip(), int(a["group_id"]))
+            if a.get("id"):
+                old = st.app(int(a["id"]))
+                if old and old["group_id"] != int(a["group_id"]):      # đổi nhóm -> xuống cuối nhóm mới
+                    o = st.db.execute("SELECT COALESCE(MAX(ord),-1)+1 FROM apps WHERE group_id=?", (int(a["group_id"]),)).fetchone()[0]
+                    st.db.execute("UPDATE apps SET ord=? WHERE id=?", (o, int(a["id"])))
+                st.db.execute("UPDATE apps SET icon=?, name=?, src=?, args=?, note=?, group_id=? WHERE id=?", vals + (int(a["id"]),))
+            else:
+                o = st.db.execute("SELECT COALESCE(MAX(ord),-1)+1 FROM apps WHERE group_id=?", (int(a["group_id"]),)).fetchone()[0]
+                st.db.execute("INSERT INTO apps(icon, name, src, args, note, group_id, ord) VALUES(?,?,?,?,?,?,?)", vals + (o,))
+            st.commit()
+        self._e.log(f"✎ Đã lưu nút: {vals[1]}")
+        return True
+
+    def delete_app(self, aid):
+        self._need_admin()
+        with self._s.lock:
+            self._s.db.execute("DELETE FROM apps WHERE id=?", (int(aid),))
+            self._s.commit()
+        return True
+
+    def move_app(self, aid, delta):
+        self._need_admin()
+        st = self._s
+        a = st.app(int(aid))
+        if not a:
+            return False
+        with st.lock:
+            ids = [r[0] for r in st.db.execute("SELECT id FROM apps WHERE group_id=? ORDER BY ord, id", (a["group_id"],))]
+            i = ids.index(a["id"])
+            j = max(0, min(len(ids) - 1, i + int(delta)))
+            ids.insert(j, ids.pop(i))
+            for k, x in enumerate(ids):
+                st.db.execute("UPDATE apps SET ord=? WHERE id=?", (k, x))
+            st.commit()
+        return True
+
+    def save_group(self, gid, name):
+        self._need_admin()
+        st = self._s
+        name = (name or "").strip().upper() or "NHÓM MỚI"
+        with st.lock:
+            if gid:
+                st.db.execute("UPDATE groups SET name=? WHERE id=?", (name, int(gid)))
+            else:                                   # nhóm mới -> cuối cột đang ngắn nhất
+                n = st.columns()
+                h = [0] * n
+                for col, napps in st.db.execute("SELECT g.col, (SELECT COUNT(*) FROM apps a WHERE a.group_id=g.id) FROM groups g"):
+                    h[min(int(col or 0), n - 1)] += 2 + napps
+                c = min(range(n), key=lambda i: (h[i], i))
+                o = st.db.execute("SELECT COALESCE(MAX(ord),-1)+1 FROM groups WHERE col=?", (c,)).fetchone()[0]
+                gp = st.db.execute("SELECT COALESCE(MAX(gpos),-1)+1 FROM groups").fetchone()[0]
+                st.db.execute("INSERT INTO groups(name, ord, col, gpos) VALUES(?,?,?,?)", (name, o, c, gp))
+            st.commit()
+        return True
+
+    def delete_group(self, gid):
+        self._need_admin()
+        with self._s.lock:
+            self._s.db.execute("DELETE FROM apps WHERE group_id=?", (int(gid),))
+            self._s.db.execute("DELETE FROM groups WHERE id=?", (int(gid),))
+            self._s.commit()
+        return True
+
+    def move_group(self, gid, way):
+        """way: up / down (trong cột), left / right (sang cột bên cạnh, giữ vị trí hàng)."""
+        self._need_admin()
+        st = self._s
+        n = st.columns()
+        if st.layout() == "grid":
+            # Lưới: đổi chỗ với ô bên cạnh (trái / phải) hoặc ô ngay trên / dưới (cách n ô)
+            with st.lock:
+                ids = [r[0] for r in st.db.execute("SELECT id FROM groups ORDER BY gpos, id")]
+                i = ids.index(int(gid))
+                step = {"left": -1, "right": 1, "up": -n, "down": n}.get(way, 0)
+                if way == "left" and i % n == 0 or way == "right" and (i % n == n - 1 or i == len(ids) - 1):
+                    return False
+                j = i + step
+                if j >= len(ids):
+                    j = len(ids) - 1              # hàng dưới chưa đủ ô -> xuống cuối
+                if j < 0 or j == i:
+                    return False
+                ids[i], ids[j] = ids[j], ids[i]
+                for k, x in enumerate(ids):
+                    st.db.execute("UPDATE groups SET gpos=? WHERE id=?", (k, x))
+                st.commit()
+            return True
+        with st.lock:
+            rows = st.db.execute("SELECT id, col FROM groups ORDER BY col, ord, id").fetchall()
+            cols = [[] for _ in range(n)]
+            for gid_, col in rows:
+                cols[min(int(col or 0), n - 1)].append(gid_)
+            c = next(i for i, x in enumerate(cols) if int(gid) in x)
+            i = cols[c].index(int(gid))
+            if way in ("up", "down", -1, 1):
+                j = max(0, min(len(cols[c]) - 1, i + (-1 if way in ("up", -1) else 1)))
+                cols[c].insert(j, cols[c].pop(i))
+            else:
+                c2 = c + (-1 if way == "left" else 1)
+                if not 0 <= c2 < n:
+                    return False
+                cols[c2].insert(min(i, len(cols[c2])), cols[c].pop(i))
+            for ci, ids in enumerate(cols):
+                for k, x in enumerate(ids):
+                    st.db.execute("UPDATE groups SET col=?, ord=? WHERE id=?", (ci, k, x))
+            st.commit()
+        return True
+
+    def export_data(self):
+        self._need_admin()
+        self._s.ensure_disk()
+        BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+        p = BACKUP_DIR / f"WinAIO_nut_{dt.datetime.now():%Y%m%d_%H%M%S}.json"
+        save_json(p, self._s.export_data())
+        open_target(str(BACKUP_DIR))
+        return str(p)
+
+    def import_file(self, path):
+        self._need_admin()
+        data = load_json(path, None)
+        if not isinstance(data, dict) or not isinstance(data.get("groups"), list):
+            return "File không đúng định dạng bản xuất của Win AIO"
+        self.export_data_silent()
+        self._s.import_data(data)
+        return ""
+
+    def export_data_silent(self):
+        self._s.ensure_disk()
+        BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+        save_json(BACKUP_DIR / f"WinAIO_truoc_khi_doi_{dt.datetime.now():%Y%m%d_%H%M%S}.json", self._s.export_data())
+
+    def reset_defaults(self):
+        self._need_admin()
+        self.export_data_silent()
+        self._s.load_defaults()
+        return True
+
+    def clear_history(self):
+        self._need_admin()
+        with self._s.lock:
+            self._s.db.execute("DELETE FROM history")
+            self._s.commit()
+        return True
+
+    def test_source(self, src):
+        """Kiểm tra nhanh link: là file tải được hay trang web."""
+        kind = src_kind(src)
+        if kind != "web":
+            if kind == "file":
+                p = Path(os.path.expandvars(src))
+                p = p if p.is_absolute() else BASE / p
+                return f"File trên máy: {'CÓ' if p.exists() else 'KHÔNG THẤY'} ({p})"
+            return {"winget": "Cài bằng winget (Windows tự tải bản mới nhất).", "cmd": "Chạy lệnh Windows.",
+                    "none": "Chưa nhập nguồn."}[kind]
+        if FAKE:
+            return "File tải được: setup.exe (40.0 MB)"
+        try:
+            import requests
+            r = requests.get(Engine._gdrive_direct(src), stream=True, timeout=15, allow_redirects=True,
+                             headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
+            ct = r.headers.get("Content-Type", "")
+            size = int(r.headers.get("Content-Length") or 0)
+            r.close()
+            if "text/html" in ct:
+                return f"Đây là TRANG WEB (HTTP {r.status_code}). Bấm nút sẽ mở trang bằng trình duyệt."
+            name = unquote(Path(urlparse(r.url).path).name)
+            return f"File tải được (HTTP {r.status_code}): {name or '?'} {('(' + human(size) + ')') if size else ''}"
+        except Exception as e:              # noqa: BLE001
+            return f"Không kết nối được: {e}"
+
+    # ---- cập nhật từ GitHub
+    @staticmethod
+    def _vt(v):
+        return tuple(int(x) for x in re.findall(r"\d+", v or "0")[:4]) or (0,)
+
+    def check_update(self, silent=False):
+        try:
+            import requests
+            r = requests.get(f"https://api.github.com/repos/{REPO}/releases/latest", timeout=15,
+                             headers={"Accept": "application/vnd.github+json", "User-Agent": "WinAIO"})
+            if r.status_code == 404:
+                res = {"ok": False, "msg": "Chưa đọc được bản phát hành trên GitHub (repo WIN-AIO cần để Public và có Release)."}
+            else:
+                r.raise_for_status()
+                j = r.json()
+                asset = next((a for a in j.get("assets", []) if a["name"].lower().endswith(".exe")), None)
+                tag = j.get("tag_name", "")
+                newer = self._vt(tag) > self._vt(APP_VERSION)
+                res = {"ok": True, "has": bool(newer and asset), "latest": tag, "current": APP_VERSION,
+                       "notes": (j.get("body") or "").strip()[:3000], "page": j.get("html_url", ""),
+                       "url": asset["browser_download_url"] if asset else "", "size": asset["size"] if asset else 0}
+        except Exception as e:              # noqa: BLE001
+            res = {"ok": False, "msg": f"Không kiểm tra được cập nhật: {e}"}
+        self._upd = {k: res.get(k) for k in ("has", "latest")} if res.get("ok") else {}
+        if not silent:
+            self._e.log("⟳ " + (f"Có bản mới {res['latest']}" if res.get("has") else
+                               f"Đang dùng bản mới nhất ({APP_VERSION})" if res.get("ok") else res["msg"]))
+        return res
+
+    def do_update(self):
+        info = self.check_update(silent=True)
+        if not info.get("has"):
+            return info.get("msg") or "Đang dùng bản mới nhất."
+        if not getattr(sys, "frozen", False):
+            open_target(info["page"])
+            return "Bản chạy bằng Python: đã mở trang tải bản mới."
+        import requests
+        exe = Path(sys.executable).resolve()
+        new = exe.with_name(exe.stem + ".new.exe")
+        self._e.log(f"⟳ Đang tải bản {info['latest']}...")
+        with requests.get(info["url"], stream=True, timeout=60) as r:
+            r.raise_for_status()
+            with open(new, "wb") as f:
+                for chunk in r.iter_content(256 * 1024):
+                    f.write(chunk)
+        if new.stat().st_size < 1_000_000:
+            new.unlink(missing_ok=True)
+            return "File tải về bị lỗi (quá nhỏ), thử lại sau."
+        bat = Path(os.environ.get("TEMP", str(BASE))) / "winaio_update.bat"
+        pid = os.getpid()
+        bat.write_text(
+            "@echo off\r\nchcp 65001 >nul\r\n:w\r\n"
+            f'tasklist /fi "PID eq {pid}" | find "{pid}" >nul && (ping -n 2 127.0.0.1 >nul & goto w)\r\n'
+            "set n=0\r\n:m\r\n"
+            f'move /y "{new}" "{exe}" >nul 2>&1 && goto ok\r\n'
+            "set /a n+=1\r\nif %n% lss 40 (ping -n 2 127.0.0.1 >nul & goto m)\r\n:ok\r\n"
+            f'start "" "{exe}"\r\ndel "%~f0"\r\n', encoding="utf-8")
+        subprocess.Popen(["cmd", "/c", str(bat)], creationflags=CREATE_NO_WINDOW | 0x00000200, close_fds=True)
+        self._e.log(f"⟳ Đã tải xong {info['latest']}, tool sẽ tự mở lại.")
+        threading.Timer(0.8, lambda: self._quit_fn() if self._quit_fn else os._exit(0)).start()
+        return ""
+
+    def open_url(self, u):
+        if u:
+            if IS_WIN and not FAKE:
+                os.startfile(u)              # noqa: S606
+        return True
+
+    # ---- MS Office
+    def office_info(self):
+        return {"status": self._e.office.status(), "apps": OFFICE_APPS, "langs": OFFICE_LANGS, "editions": OFFICE_EDITIONS}
+
+    def office_install(self, o):
+        return self._e.office.install(o)
+
+    def office_download(self, o):
+        return self._e.office.download_offline(o)
+
+    def office_uninstall(self):
+        return self._e.office.uninstall()
+
+    def office_shortcuts(self):
+        return self._e.office.shortcuts()
+
+    def office_license(self):
+        return self._e.office.license_status()
+
+    def office_key(self, key):
+        return self._e.office.enter_key(key)
+
+    # ---- nguồn & ổ USB
+    def pw_shutdown(self):
+        return self._e.power.force_shutdown()
+
+    def pw_lock(self):
+        return self._e.power.lock()
+
+    def pw_switch(self):
+        return self._e.power.switch_user()
+
+    def pw_schedule(self, mode, minutes=0, hh=0, mm=0):
+        return self._e.power.schedule(mode, minutes, hh, mm)
+
+    def pw_cancel(self):
+        return self._e.power.cancel()
+
+    def disks(self):
+        return self._e.power.disks()
+
+    def disk_safe(self, n):
+        return self._e.power.safe_remove(n)
+
+    def disk_force(self, n):
+        return self._e.power.force_remove(n)
+
+    # ---- chạy
+    def install(self, ids):
+        n = self._e.enqueue(ids)
+        return n
+
+    def stop(self):
+        self._e.stop()
+        return True
+
+    def run_tool(self, tid, extra=None):
+        return self._e.run_tool(tid, extra)
+
+    def quick(self, target):
+        if target in ("cmd.exe", "powershell.exe") and IS_WIN and not FAKE:
+            subprocess.Popen(["cmd", "/c", "start", "", target], cwd=os.environ.get("USERPROFILE", "C:\\"))
+        else:
+            open_target(target)
+        return True
+
+    def open_path(self, p):
+        p = Path(p)
+        open_target(str(p if p.is_absolute() else BASE / p))
+        return True
+
+    def live(self):
+        return self._e.live()
+
+    def battery(self):
+        return battery_info()
+
+    def battery_report(self):
+        return battery_report_html()
+
+    def refresh_sysinfo(self):
+        self._e.sysinfo = None
+        threading.Thread(target=lambda: setattr(self._e, "sysinfo", self._e._read_sysinfo()), daemon=True).start()
+        return True
+
+    def pick_file(self):
+        return self._dialog("file")
+
+    def pick_folder(self):
+        return self._dialog("folder")
+
+    def _dialog(self, kind):
+        if not self._app or not self._app.win:
+            return None
+        import webview
+        t = webview.FOLDER_DIALOG if kind == "folder" else webview.OPEN_DIALOG
+        r = self._app.win.create_file_dialog(t, directory=str(BASE))
+        if not r:
+            return None
+        p = Path(r[0])
+        try:                                 # file nằm trong thư mục tool -> lưu đường dẫn tương đối (chạy được từ USB)
+            return str(p.resolve().relative_to(BASE))
+        except ValueError:
+            return str(p)
+
+
+# ================================================================= cửa sổ
+def page_html(token=""):
+    web = RES / "web"
+    html = (web / "index.html").read_text(encoding="utf-8")
+    css = (web / "style.css").read_text(encoding="utf-8")
+    js = (web / "app.js").read_text(encoding="utf-8")
+    html = html.replace('<link rel="stylesheet" href="style.css">', f"<style>{css}</style>")
+    tjs = (web / "test.js").read_text(encoding="utf-8")
+    html = html.replace('<script src="test.js"></script>', f"<script>{tjs}</script>")
+    return html.replace('<script src="app.js"></script>', f"<script>window.__TOKEN={json.dumps(token)};</script><script>{js}</script>")
+
+
+def start_http(api, port=0):
+    """Server nội bộ 127.0.0.1 phục vụ giao diện + API.
+    - Trang chạy trên http://127.0.0.1 (ngữ cảnh an toàn) nên dùng được mic, webcam cho tab Test máy.
+    - API bắt buộc header X-Token ngẫu nhiên: trang web lạ trên máy không gọi được (bị CORS chặn, không đọc được mã)."""
+    from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
+    token = secrets.token_urlsafe(24)
+    last = {"t": time.time()}
+
+    class H(BaseHTTPRequestHandler):
+        def log_message(self, *a):
+            pass
+
+        def _send(self, code, body, ctype):
+            b = body.encode("utf-8") if isinstance(body, str) else body
+            self.send_response(code)
+            self.send_header("Content-Type", ctype)
+            self.send_header("Content-Length", str(len(b)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(b)
+
+        def do_GET(self):
+            last["t"] = time.time()
+            if self.path.split("?")[0] == "/favicon.ico":
+                ico = RES / "icon.ico"
+                return self._send(200, ico.read_bytes() if ico.exists() else b"", "image/x-icon")
+            if self.path.split("?")[0] not in ("/", "/index.html"):
+                return self._send(404, "not found", "text/plain")
+            self._send(200, page_html(token), "text/html; charset=utf-8")
+
+        def do_POST(self):
+            if self.client_address[0] not in ("127.0.0.1", "::1") or self.headers.get("X-Token") != token:
+                return self._send(403, "forbidden", "text/plain")
+            last["t"] = time.time()
+            name = self.path.rsplit("/", 1)[-1]
+            args = json.loads(self.rfile.read(int(self.headers.get("Content-Length") or 0)) or b"[]")
+            fn = getattr(api, name, None)
+            if name.startswith("_") or not callable(fn):
+                return self._send(404, "{}", "application/json")
+            try:
+                res = fn(*args)
+            except PermissionError as e:
+                return self._send(200, json.dumps({"__err": str(e)}, ensure_ascii=False), "application/json; charset=utf-8")
+            except Exception as e:          # noqa: BLE001
+                return self._send(500, json.dumps({"__err": str(e)}, ensure_ascii=False), "application/json; charset=utf-8")
+            self._send(200, json.dumps(res, ensure_ascii=False), "application/json; charset=utf-8")
+
+    srv = ThreadingHTTPServer(("127.0.0.1", port), H)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    return srv, f"http://127.0.0.1:{srv.server_address[1]}/", last
+
+
+def has_webview2():
+    """Edge WebView2 Runtime (Win 11 và Win 10 cập nhật đều có). Thiếu -> dùng trình duyệt."""
+    if not IS_WIN:
+        return True
+    import winreg
+    key = r"Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}"
+    for root, path in ((winreg.HKEY_LOCAL_MACHINE, "SOFTWARE\\WOW6432Node\\" + key), (winreg.HKEY_LOCAL_MACHINE, "SOFTWARE\\" + key),
+                       (winreg.HKEY_CURRENT_USER, "Software\\" + key)):
+        try:
+            with winreg.OpenKey(root, path) as k:
+                v = winreg.QueryValueEx(k, "pv")[0]
+                if v and v != "0.0.0.0":
+                    return True
+        except OSError:
+            continue
+    return False
+
+
+class App:
+    def __init__(self):
+        self.st = Store()
+        self.eng = Engine(self.st)
+        self.win = None
+        self.api = Api(self.eng, self)
+        self.api._quit_fn = self.quit
+
+    def quit(self):
+        try:
+            self.win.destroy()
+        except Exception:                   # noqa: BLE001
+            os._exit(0)
+
+    def _on_close(self):
+        self.eng.stop_flag.set()
+        self.st.save_config(persist=False)        # chỉ lưu nếu đã có thư mục Data
+
+    def run(self, selftest=False):
+        import webview
+        g = self.st.cfg.get("window") or {}
+        sw, sh = 1920, 1080
+        try:
+            sc = webview.screens[0]
+            sw, sh = int(sc.width), int(sc.height)
+        except Exception:                   # noqa: BLE001
+            pass
+        kw = dict(width=max(1000, min(int(g.get("width", min(1440, sw - 60))), sw)),
+                  height=max(640, min(int(g.get("height", min(900, sh - 80))), sh - 30)),
+                  min_size=(min(1000, sw - 40), min(640, sh - 80)), background_color="#eef1f5")
+        _, url, _ = start_http(self.api)            # nạp từ 127.0.0.1 -> dùng được mic / webcam
+        self.win = webview.create_window(f"{APP_TITLE} {APP_VERSION}", url=url, js_api=self.api,
+                                         maximized=bool(g.get("max")) or sw < 1280, **kw)
+        self.win.events.resized += lambda w, h: self.st.cfg.setdefault("window", {}).update(width=w, height=h)
+        self.win.events.closing += self._on_close
+        if selftest:
+            threading.Thread(target=self._selftest, daemon=True).start()
+        icon = RES / "icon.ico"
+        try:
+            webview.start(icon=str(icon) if icon.exists() else None)
+        except TypeError:
+            webview.start()
+
+    def _selftest(self):
+        """Dùng khi build trên GitHub: mở cửa sổ, đọc giao diện, ghi kết quả ra selftest.txt rồi thoát."""
+        lines = []
+        try:
+            time.sleep(10)
+            for _ in range(60):                     # chờ đọc xong thông tin máy (PowerShell lần đầu hơi chậm)
+                if self.eng.sysinfo:
+                    break
+                time.sleep(1)
+            js = ("JSON.stringify({errs: window.__errs, started: !!window.__started, rows: document.querySelectorAll('.arow').length,"
+                  " groups: document.querySelectorAll('.gcard').length, title: document.getElementById('ptitle').textContent,"
+                  " ver: document.getElementById('ver').textContent, navs: document.querySelectorAll('.nav').length,"
+                  " tests: document.querySelectorAll('.tst').length, md: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),"
+                  " secure: window.isSecureContext, origin: location.origin})")
+            lines.append("UI: " + str(self.win.evaluate_js(js)))
+            lines.append("sysinfo: " + json.dumps(self.eng.sysinfo, ensure_ascii=False))
+            lines.append("checks: " + json.dumps(self.eng.checks))
+            d = self.eng.power.disks()
+            lines.append("disks: " + json.dumps(d, ensure_ascii=False)[:1500])
+            lines.append("battery: " + json.dumps(battery_info(), ensure_ascii=False))
+            lines.append("defender: " + json.dumps(self.eng.run_tool("def_status"), ensure_ascii=False))
+            lines.append("Data folder exists: " + str(DATA.exists()))
+            lines.append("webview2: " + str(has_webview2()))
+        except Exception as e:              # noqa: BLE001
+            lines.append("ERROR: " + repr(e))
+        (BASE / "selftest.txt").write_text("\n".join(lines), encoding="utf-8")
+        self.quit()
+
+
+def serve(port=8765, open_browser=False):
+    """Giao diện bằng trình duyệt: để thử, và dự phòng khi máy chưa có WebView2."""
+    st = Store()
+    api = Api(Engine(st))
+    api._browser = open_browser
+    srv, url, last = start_http(api, port)
+    print(f"Giao diện: {url}", flush=True)
+    api._quit_fn = lambda: os._exit(0)
+    if open_browser:
+        api._e.log("Máy chưa có Edge WebView2 → đang mở giao diện bằng trình duyệt. Đóng tab trình duyệt là tool tự thoát.", "warn")
+        edge = next((p for p in (Path(os.environ.get("ProgramFiles(x86)", "")) / "Microsoft/Edge/Application/msedge.exe",
+                                 Path(os.environ.get("ProgramFiles", "")) / "Microsoft/Edge/Application/msedge.exe") if p.exists()), None)
+        if edge:
+            subprocess.Popen([str(edge), f"--app={url}", "--window-size=1440,900"])
+        else:
+            import webbrowser
+            webbrowser.open(url)
+    while True:                              # đóng tab trình duyệt -> không còn gọi API -> tự thoát
+        time.sleep(5)
+        if open_browser and time.time() - last["t"] > 25 and not (api._e.worker and api._e.worker.is_alive()):
+            os._exit(0)
+
+
+def main():
+    if "--serve" in sys.argv:
+        serve(int(os.environ.get("WINAIO_PORT", "8765")))
+        return
+    if IS_WIN and not is_admin_windows() and "--no-admin" not in sys.argv:
+        if relaunch_as_admin():
+            return
+    if "--browser" in sys.argv or not has_webview2():
+        serve(0, open_browser=True)
+        return
+    try:
+        App().run(selftest="--selftest" in sys.argv)
+    except Exception as e:                  # noqa: BLE001  pywebview lỗi -> dùng trình duyệt
+        if "--selftest" in sys.argv:
+            (BASE / "selftest.txt").write_text("ERROR pywebview: " + repr(e), encoding="utf-8")
+            return
+        serve(0, open_browser=True)
+
+
+if __name__ == "__main__":
+    main()

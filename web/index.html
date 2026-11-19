@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Win AIO by Duy Anh</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<aside class="side" id="side">
+  <div class="brand">
+    <div class="logo">W</div>
+    <div class="hide-mini"><b>WIN AIO</b><small id="ver">by Duy Anh</small></div>
+    <span class="fold" id="fold" title="Thu gọn / mở rộng">«</span>
+  </div>
+  <div class="menu-l hide-mini">MENU</div>
+  <div class="nav" data-p="system"><span class="ic">🖥</span><span class="hide-mini">Hệ thống</span><span class="led sm ok hide-mini"><i></i></span></div>
+  <div class="nav" data-p="apps"><span class="ic">📦</span><span class="hide-mini">Cài phần mềm</span><span class="badge hide-mini" id="bd-apps" hidden></span><span class="led sm ok hide-mini"><i></i></span></div>
+  <div class="nav" data-p="power"><span class="ic">⏻</span><span class="hide-mini">Nguồn &amp; Ổ USB</span><span class="badge o hide-mini" id="bd-power" hidden></span><span class="led sm ok hide-mini"><i></i></span></div>
+  <div class="nav" data-p="test"><span class="ic">🧪</span><span class="hide-mini">Test máy</span><span class="led sm ok hide-mini"><i></i></span></div>
+  <div class="nav" data-p="tools"><span class="ic">🧰</span><span class="hide-mini">Tiện ích Windows</span><span class="led sm ok hide-mini"><i></i></span></div>
+  <div class="nav" data-p="history"><span class="ic">☰</span><span class="hide-mini">Nhật ký</span><span class="led sm ok hide-mini"><i></i></span></div>
+  <div class="nav" data-p="settings"><span class="ic">⚙</span><span class="hide-mini">Cài đặt</span><span class="lk hide-mini" id="lk-settings">🔒</span><span class="led sm ok hide-mini"><i></i></span></div>
+  <div class="raised alert hide-mini" id="alert"><span class="led big ok" id="aled"><i></i></span>
+    <div><b id="a1">Sẵn sàng</b><small id="a2">Chọn phần mềm để cài</small></div></div>
+  <div class="grow"></div>
+  <div class="panel hide-mini">
+    <h4>BẢNG ĐÈN TRẠNG THÁI</h4>
+    <div class="legend"><span><i style="background:#22c55e;color:#22c55e"></i>Tốt</span><span><i style="background:#ffc81a;color:#ffc81a"></i>Đang chạy</span>
+      <span><i style="background:#f23a3a;color:#f23a3a"></i>Lỗi</span><span><i style="background:#b9c0c9;color:transparent"></i>Tắt</span></div>
+    <div id="tiles"></div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="top">
+    <div><h1 id="ptitle">Cài phần mềm</h1><div class="sub" id="psub"></div></div>
+    <div class="acts">
+      <button class="btn" id="bUpd">⟳ Cập nhật</button>
+      <button class="btn" id="bTheme">◐ Giao diện</button>
+      <button class="btn" id="bLock">🔒 Admin</button>
+    </div>
+  </div>
+
+  <!-- ===================== HỆ THỐNG ===================== -->
+  <section class="page" id="pg-system">
+    <div class="syswrap">
+      <div class="hero" id="hero"><div class="empty"><span class="spin"></span> Đang đọc thông tin máy...</div></div>
+      <div class="sysgrid" id="info"></div>
+      <div class="sec" style="margin-top:16px"><h4>MỞ NHANH</h4><div class="d">Các công cụ có sẵn của Windows.</div><div class="qgrid" id="quick"></div></div>
+    </div>
+  </section>
+
+  <!-- ===================== CÀI PHẦN MỀM ===================== -->
+  <section class="page" id="pg-apps">
+    <div class="stats s4">
+      <div class="stat" style="--c:#2f7fa3"><div class="l">TỔNG PHẦN MỀM</div><div class="sq">▦</div><div class="n" id="s-total">0</div></div>
+      <div class="stat" style="--c:#e2552a"><div class="l">ĐÃ CHỌN</div><div class="sq">●</div><div class="n" id="s-sel">0</div></div>
+      <div class="stat" style="--c:#e2342a"><div class="l">ĐANG CÀI / CHỜ</div><div class="sq">⬇</div><div class="n" id="s-run">0</div></div>
+      <div class="stat" style="--c:#21964a"><div class="l">XONG HÔM NAY</div><div class="sq">✔</div><div class="n" id="s-done">0</div></div>
+    </div>
+    <div class="energy three">
+      <div class="k" style="color:#dc2626">⬇ TẢI VỀ</div><div class="i" id="e-dl-i">—</div><div class="bar"><div class="b-red" id="e-dl"></div></div><div class="p" style="color:#dc2626" id="e-dl-p">0%</div>
+      <div class="k" style="color:#2f7fa3">⚙ CÀI ĐẶT</div><div class="i" id="e-in-i">—</div><div class="bar"><div class="b-blue" id="e-in"></div></div><div class="p" style="color:#2f7fa3" id="e-in-p">0%</div>
+      <div class="k" style="color:#16a34a">Σ TỔNG ĐỢT</div><div class="i" id="e-all-i">—</div><div class="bar"><div class="b-green" id="e-all"></div></div><div class="p" style="color:#16a34a" id="e-all-p">0%</div>
+    </div>
+    <div class="selbar">
+      <div class="r1">
+        <button class="btn" id="bAll">☑ Chọn tất cả</button>
+        <button class="btn" id="bNone">☐ Bỏ chọn</button>
+        <span class="cnt" id="selcnt">Đã chọn: 0</span>
+        <span style="margin-left:14px;color:var(--muted)">⌕ Tìm</span> <input type="search" id="q" style="width:220px" placeholder="tên phần mềm...">
+        <span style="margin-left:auto"></span>
+        <button class="btn red shine" id="bGo">▶ Cài mục đã chọn</button>
+        <button class="btn out" id="bStop" disabled>■ Dừng</button>
+      </div>
+    </div>
+    <div class="admbar adm"><span>🔓 Admin: <b>✎</b> sửa tên / đổi link · <b>▲▼</b> cạnh nút đổi vị trí nút · dưới tên nhóm <b>◀ ▲ ▼ ▶</b> di chuyển nhóm.</span>
+      <span style="margin-left:auto;white-space:nowrap">Kiểu xếp <select id="lay"><option value="grid">Lưới (thẳng hàng)</option><option value="columns">Cột dọc</option></select></span>
+      <span style="white-space:nowrap">Số cột <select id="nCol"><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></span>
+      <button class="btn sm" id="bAddGroup" style="margin-left:0">＋ Thêm nhóm</button></div>
+    <div class="appwrap"><div class="appgrid" id="groups"></div></div>
+    <div class="crt"><div class="log" id="log"></div></div>
+  </section>
+
+  <!-- ===================== NGUỒN & Ổ USB ===================== -->
+  <section class="page" id="pg-power">
+    <div class="pwgrid">
+      <div class="pwleft">
+        <div class="sec"><h4>NGUỒN &amp; PHIÊN</h4>
+          <button class="bigred" id="pwOff"><span class="pi">⏻</span><span><b>TẮT MÁY NGAY</b><small>Force · ép đóng mọi ứng dụng · không hỏi lại</small></span></button>
+          <div class="tbtns">
+            <button class="btn twol" id="pwLock">🔒 Khóa máy<small>Ngay lập tức · Win+L</small></button>
+            <button class="btn twol" id="pwSwitch">👥 Đổi người dùng<small>Màn hình đăng nhập</small></button>
+          </div></div>
+        <div class="sec"><h4>HẸN GIỜ TẮT MÁY <span class="pill t-err" style="margin-left:4px">FORCE</span></h4>
+          <div class="seg" id="pwSeg" style="margin-top:6px"><div data-m="after" class="on">Sau thời gian</div><div data-m="at">Vào lúc</div></div>
+          <div class="fr" id="pwAfter"><input type="number" id="pwMin" value="60" min="1" max="10000" style="width:100px"> <b>phút</b>
+            <span class="chips" id="pwChips"><span data-v="15">15</span><span data-v="30">30</span><span data-v="60">60</span><span data-v="90">90</span><span data-v="120">120</span><span data-v="180">180</span></span></div>
+          <div class="fr" id="pwAt" hidden><input type="time" id="pwTime" value="23:00" style="width:130px">
+            <span style="color:var(--muted);font-size:12px">Nếu giờ này đã qua → tắt vào ngày mai.</span></div>
+          <div class="countdown"><div class="cd" id="pwCd">--:--:--</div><div class="cdt" id="pwCdText">Chưa hẹn giờ</div></div>
+          <div class="row-acts"><button class="btn red shine" id="pwSet">⏱ Hẹn giờ tắt</button><button class="btn out" id="pwCancel">✕ Hủy hẹn</button></div>
+        </div>
+      </div>
+      <div class="sec pwright"><h4>Ổ ĐĨA NGOÀI <span style="margin-left:auto"></span>
+          <label class="ck" style="margin:0;font-size:12px;color:var(--text);letter-spacing:0;text-transform:none"><input type="checkbox" id="dkInt"> Hiện ổ trong</label>
+          <button class="btn sm" id="dkRef">⟳ Làm mới</button></h4>
+        <div class="d" id="dkInfo">Đang đọc danh sách ổ...</div>
+        <div class="dklist" id="dkList"></div></div>
+    </div>
+    <div class="crt"><div class="log" id="log3"></div></div>
+  </section>
+
+  <!-- ===================== TEST MÁY ===================== -->
+  <section class="page" id="pg-test">
+    <div class="syswrap">
+      <div class="tsum" id="tsum"></div>
+      <div class="testgrid" id="tests"></div>
+    </div>
+  </section>
+
+  <!-- ===================== TIỆN ÍCH ===================== -->
+  <section class="page" id="pg-tools">
+    <div class="syswrap"><div class="toolgrid" id="tools"></div></div>
+    <div class="crt"><div class="log" id="log2"></div></div>
+  </section>
+
+  <!-- ===================== NHẬT KÝ ===================== -->
+  <section class="page" id="pg-history">
+    <div class="row-acts" style="margin-top:14px">
+      <button class="btn" id="hRef">⟳ Làm mới</button>
+      <button class="btn out adm" id="hClear">✕ Xóa toàn bộ</button>
+      <span style="margin-left:14px;color:var(--muted)">⌕ Tìm</span> <input type="search" id="hq" style="width:260px">
+      <span style="color:var(--muted)">Trạng thái</span>
+      <select id="hShow"><option>Tất cả</option><option>Xong</option><option>Lỗi</option><option>Hôm nay</option></select>
+      <span class="cnt" id="hCount" style="margin-left:auto;color:var(--muted);font-weight:600"></span>
+    </div>
+    <div class="tablewrap"><table>
+      <thead><tr><th>THỜI GIAN</th><th>TÊN</th><th>NGUỒN</th><th>TRẠNG THÁI</th><th>CHI TIẾT</th></tr></thead>
+      <tbody id="hRows"></tbody></table></div>
+    <div class="logl">Nhấp đúp một dòng để xem đầy đủ chi tiết.</div>
+  </section>
+
+  <!-- ===================== CÀI ĐẶT ===================== -->
+  <section class="page" id="pg-settings">
+    <div class="sets" id="sets"></div>
+  </section>
+
+  <!-- ===================== KHÓA ===================== -->
+  <section class="page" id="pg-locked">
+    <div class="lockpage"><div class="raised">
+      <div class="big">🔒</div><h3>Cài đặt đang khóa</h3>
+      <p style="color:var(--muted)">Cần mật khẩu Admin để đổi cài đặt, mật khẩu, sao lưu danh sách nút.</p>
+      <button class="btn red shine" id="lkOpen">🔑 Nhập mật khẩu Admin</button>
+    </div></div>
+  </section>
+
+  <div class="foot"><span id="status">Sẵn sàng.</span><span id="verfoot" style="margin-left:auto"></span><div class="fb" style="margin-left:12px"><div id="fb"></div></div></div>
+</main>
+<div class="toast" id="toast"></div>
+<div class="tview" id="tview" hidden></div>
+<script src="test.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

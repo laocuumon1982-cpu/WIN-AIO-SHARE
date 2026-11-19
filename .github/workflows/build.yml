@@ -1,0 +1,52 @@
+name: Build Win AIO
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Cai thu vien
+        run: python -m pip install pywebview requests pyinstaller
+      - name: Dong goi 1 file exe
+        run: python -m PyInstaller --noconfirm --clean --onefile --noconsole --uac-admin --name "Win AIO by Duy Anh" --icon icon.ico --add-data "icon.ico;." --add-data "web;web" --collect-all webview --collect-all pythonnet --collect-all clr_loader win_aio.py
+      - name: Chay thu exe (mo cua so, doc giao dien, ghi selftest.txt)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force T | Out-Null
+          Copy-Item 'dist/Win AIO by Duy Anh.exe' T/
+          $p = Start-Process -FilePath 'T/Win AIO by Duy Anh.exe' -ArgumentList '--selftest' -PassThru
+          if (-not $p.WaitForExit(150000)) { Stop-Process -Id $p.Id -Force; Write-Host "Qua 150s - dung" }
+          Start-Sleep 3
+          Get-ChildItem T
+          if (Test-Path T/selftest.txt) { Get-Content T/selftest.txt -Encoding utf8 } else { Write-Host "KHONG CO selftest.txt"; exit 1 }
+          if (Select-String -Path T/selftest.txt -Pattern '^ERROR' -Quiet) { exit 1 }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Win-AIO-by-Duy-Anh
+          path: |
+            dist/Win AIO by Duy Anh.exe
+            T/selftest.txt
+      - name: Phat hanh (khi so phien ban trong win_aio.py chua co Release)
+        if: github.ref == 'refs/heads/main'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ver = (Select-String -Path win_aio.py -Pattern '^APP_VERSION = "([^"]+)"').Matches[0].Groups[1].Value
+          Write-Host "Phien ban: $ver"
+          gh release view $ver *> $null
+          if ($LASTEXITCODE -eq 0) { Write-Host "Da co Release $ver - bo qua"; exit 0 }
+          Copy-Item 'dist/Win AIO by Duy Anh.exe' 'Win-AIO-by-Duy-Anh.exe'
+          gh release create $ver 'Win-AIO-by-Duy-Anh.exe' --target $env:GITHUB_SHA --title "Win AIO by Duy Anh $ver" --notes-file CHANGELOG_LATEST.md

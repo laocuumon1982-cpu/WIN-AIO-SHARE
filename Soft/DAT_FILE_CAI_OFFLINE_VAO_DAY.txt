@@ -1,0 +1,2 @@
+﻿Bỏ file cài đặt offline vào thư mục này.
+Trong tool (chế độ Admin) đặt nguồn app dạng: Soft\Ten file.exe
