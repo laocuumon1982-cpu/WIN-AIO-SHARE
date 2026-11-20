@@ -9,6 +9,14 @@ CHỈ 1 FILE EXE
     Mở tool để xem thông tin, tắt máy, tháo ổ... thì không tạo gì thêm.
   - Máy chưa có Edge WebView2 (Win 10 cũ / LTSC): tool tự mở giao diện bằng trình duyệt Edge. Đóng tab là tool tự thoát.
 
+MỞ TOOL BẰNG 1 DÒNG LỆNH (không cần USB)
+  - Bấm chuột phải nút Start -> Terminal / Windows PowerShell, gõ (hoặc dán) rồi Enter:
+      irm https://raw.githubusercontent.com/laocuumon1982-cpu/WIN-AIO-SHARE/main/aio.ps1 | iex
+  - Hoặc Win + R, dán dòng sau rồi Enter:
+      powershell irm https://raw.githubusercontent.com/laocuumon1982-cpu/WIN-AIO-SHARE/main/aio.ps1 | iex
+  - Lệnh tự tải bản mới nhất về %LOCALAPPDATA%\WinAIO rồi mở tool (bấm Yes ở hộp UAC). Thư mục Data cũng nằm ở đó.
+    Chạy lại lần sau: đã có bản mới nhất thì mở luôn, không tải lại.
+
 WINGET TỰ CẬP NHẬT
   - Mở tool sẽ so bản winget trên máy với bản mới nhất của Microsoft. Bản cũ / chưa có -> tự cài bản mới, chạy ngầm.
   - Đèn "winget" bên trái: vàng = đang cập nhật, xanh = đã là bản mới nhất. Bấm nút WINGET lúc đang cập nhật thì tool chờ xong mới cài.

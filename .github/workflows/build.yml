@@ -56,3 +56,13 @@ jobs:
           if ($LASTEXITCODE -eq 0) { Write-Host "Da co Release $ver - bo qua"; exit 0 }
           Copy-Item 'dist/Win AIO by Duy Anh.exe' 'Win-AIO-by-Duy-Anh.exe'
           gh release create $ver 'Win-AIO-by-Duy-Anh.exe' --target $env:GITHUB_SHA --title "Win AIO by Duy Anh $ver" --notes-file CHANGELOG_LATEST.md
+      - name: Thu lenh 1 dong (irm ... | iex) tren Windows PowerShell 5.1
+        if: github.ref == 'refs/heads/main'
+        shell: powershell
+        run: |
+          $env:WINAIO_NOSTART = '1'
+          irm "https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/aio.ps1" | iex
+          irm "https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/aio.ps1" | iex
+          $f = Get-Item "$env:LOCALAPPDATA\WinAIO\Win AIO by Duy Anh.exe"
+          Write-Host ("exe: " + $f.Length + " bytes, ban: " + (Get-Content "$env:LOCALAPPDATA\WinAIO\version.txt"))
+          if ($f.Length -lt 5MB) { exit 1 }

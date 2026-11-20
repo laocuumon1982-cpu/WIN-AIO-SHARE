@@ -4,6 +4,14 @@ Bộ tiện ích cài Win, cài phần mềm, thiết lập Windows, quản lý 
 
 Tải bản mới nhất ở mục **Releases** (`Win-AIO-by-Duy-Anh.exe`). Trong tool có nút **⟳ Cập nhật**.
 
+**Không cần USB — mở PowerShell trên máy bất kỳ và gõ 1 dòng:**
+
+```powershell
+irm https://raw.githubusercontent.com/laocuumon1982-cpu/WIN-AIO-SHARE/main/aio.ps1 | iex
+```
+
+Lệnh tự tải bản mới nhất về `%LOCALAPPDATA%\WinAIO` rồi mở tool (bấm Yes ở hộp UAC). Chạy lại lần sau chỉ tải khi có bản mới.
+
 - Mở tool không cần mật khẩu. Nút **🔒 Admin** (mật khẩu mặc định `admin`) mở chế độ sửa nút: đổi tên, đổi link nguồn app, thêm / xóa nút và nhóm.
 - Thư mục `Data` kế bên exe chỉ được tạo khi tải app, sửa nút hoặc đổi cài đặt. Bên trong: `winaio.db` (danh sách nút + nhật ký), `config.json` (cài đặt), `Downloads`, `Backup`.
 - Bỏ file cài offline vào thư mục `Soft` kế bên exe, rồi đặt nguồn nút dạng `Soft\ten file.exe`.
