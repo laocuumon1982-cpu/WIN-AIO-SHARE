@@ -96,7 +96,7 @@ const PAGES = {
   history: ["Nhật ký", "Những gì tool đã cài / đã chạy"],
   settings: ["Cài đặt", "Mật khẩu Admin, thư mục tải, sao lưu danh sách nút"]};
 const KIND = {web: "WEB", winget: "WINGET", file: "FILE", cmd: "LỆNH", office: "OFFICE", none: "CHƯA CÓ NGUỒN"};
-let INIT = {}, G = [], NCOL = 4, LAYOUT = "grid", page = "apps", ADMIN = false, picked = new Set(), logSeq = 0, ST = {}, HIST = [];
+let INIT = {}, G = [], NCOL = 4, LAYOUT = "grid", page = "system", ADMIN = false, picked = new Set(), logSeq = 0, ST = {}, HIST = [];
 
 function showPage(p) {
   page = p;
@@ -205,14 +205,23 @@ function fitGroups(cards) {
     const cols = Array.from({length: n}, () => ({h: 0, html: []}));
     cards.forEach(x => { const c = cols.reduce((b, k) => k.h < b.h ? k : b, cols[0]); c.html.push(x.html); c.h += x.w; });
     el.style.setProperty("--ncol", n);
-    el.classList.toggle("notag", W / n < 240);          // cột hẹp: ẩn nhãn WINGET / WEB để tên phần mềm không bị cắt
     el.innerHTML = cols.map(c => `<div class="gcol">${c.html.join("")}</div>`).join("");
   };
-  const lo = Math.max(2, Math.floor(W / 330)), hi = Math.max(lo, Math.floor(W / 185));
-  let n = lo;
-  for (; n <= hi; n++) { put(n); if (wrap.scrollHeight <= wrap.clientHeight + 1) return; }
-  put(hi);
-  fitBox(el, .68);
+  const n = bestFit(el, put, Math.max(2, Math.floor(W / 420)), Math.max(2, Math.floor(W / 185)), W, 235, .68, 1.35);
+  el.classList.toggle("notag", W / n / (+el.style.zoom || 1) < 270);   // cột hẹp: ẩn nhãn WINGET / WEB để tên không bị cắt
+}
+/* Thử từng số cột: mỗi số cột tìm cỡ (zoom) lớn nhất vừa khung, chọn cách cho nút to nhất
+   mà cột vẫn đủ rộng (minCol px sau khi phóng). */
+function bestFit(el, put, lo, hi, W, minCol, minZ, maxZ) {
+  let best = null;
+  for (let n = lo; n <= hi; n++) {
+    put(n); fitBox(el, minZ, maxZ);
+    const z = +el.style.zoom || 1, ok = W / n / z >= minCol;
+    if (ok && (!best || z > best.z + .01)) best = {n, z};
+  }
+  if (!best) best = {n: hi};
+  put(best.n); fitBox(el, minZ, maxZ);
+  return best.n;
 }
 let fitT;
 window.addEventListener("resize", () => { clearTimeout(fitT); fitT = setTimeout(() => { if (page === "apps" && LAYOUT === "fit") renderGroups(); }, 150); });
@@ -573,10 +582,7 @@ function renderTools() {
     el.innerHTML = cols.map(c => `<div class="tcol">${c.html.join("")}</div>`).join("");
   };
   el.style.zoom = "";
-  const lo = Math.max(1, Math.floor(w / 340)), hi = Math.max(lo, Math.floor(w / 250));
-  let n = lo, ok = false;
-  for (; n <= hi && !ok; n++) { put(n); ok = wrap.scrollHeight <= wrap.clientHeight + 1; }
-  if (!ok) { put(hi); fitBox(el, .72); }
+  bestFit(el, put, Math.max(1, Math.floor(w / 480)), Math.max(1, Math.floor(w / 250)), w, 290, .72, 1.4);
   $("quick").innerHTML = INIT.quick.map((q, i) => `<button class="btn" data-q="${i}">${esc(q.label)}</button>`).join("");
 }
 let toolT;
@@ -837,7 +843,7 @@ async function start() {
   if (INIT.browser) $("ptitle").parentElement.insertAdjacentHTML("beforeend", '<div class="browserbar">Đang chạy bằng trình duyệt (máy chưa có Edge WebView2). Đóng tab này là tool tự thoát.</div>');
   await loadGroups();
   setTimeout(() => checkUpd(true).catch(() => {}), 4000);
-  showPage("apps");
+  showPage("system");
   tick(); setInterval(tick, 700);
 }
 window.addEventListener("pywebviewready", start);

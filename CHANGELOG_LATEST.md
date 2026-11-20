@@ -1,5 +1,5 @@
-Win AIO by Duy Anh v2.1.3
+Win AIO by Duy Anh v2.1.4
 
-- Thông tin & khởi động: tự phóng to cho đầy màn hình (màn hình lớn chữ và thẻ to hơn), màn hình nhỏ thì thu lại vừa khung — luôn vừa 1 màn hình, không phải kéo.
-- Bảng đèn trạng thái: mỗi đèn 1 hàng, chữ to hơn, tên bên trái - trạng thái bên phải, không còn bị cắt chữ. Rê chuột lên đèn để xem giải thích đầy đủ.
-- Cột trái rộng hơn chút; màn hình thấp thì tự gọn lại theo từng bước, vẫn giữ chữ trên bảng đèn.
+- Mở tool: cửa sổ mặc định phóng to toàn màn hình, vào thẳng trang Thông tin & khởi động.
+- Menu trái: nhóm HỆ THỐNG (Thông tin & khởi động, Quản lý, Nguồn & Ổ USB) chuyển lên trên cùng.
+- Cài phần mềm và Tiện ích Windows: nút tự to ra cho đầy khung màn hình (màn hình lớn nút và chữ to hơn), màn hình nhỏ thì thu lại vừa khung — không phải kéo.

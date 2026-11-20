@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v2.1.4
+- Mở tool phóng to toàn màn hình, nhóm Hệ thống lên đầu menu; nút Cài phần mềm / Tiện ích tự to ra vừa khung.
+
 ## v2.1.3
 - Thông tin & khởi động tự phóng to cho đầy màn hình; bảng đèn trạng thái to, không bị cắt chữ.
 

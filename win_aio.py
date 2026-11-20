@@ -31,7 +31,7 @@ from urllib.parse import unquote, urlparse, parse_qs
 import mgr
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v2.1.3"
+APP_VERSION = "v2.1.4"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -2562,7 +2562,7 @@ class App:
                   min_size=(min(1000, sw - 40), min(640, sh - 80)), background_color="#eef1f5")
         _, url, _ = start_http(self.api)            # nạp từ 127.0.0.1 -> dùng được mic / webcam
         self.win = webview.create_window(f"{APP_TITLE} {APP_VERSION}", url=url, js_api=self.api,
-                                         maximized=bool(g.get("max")) or sw < 1280, **kw)
+                                         maximized=self.st.cfg.get("start_maximized", True) or sw < 1280, **kw)
         self.win.events.resized += lambda w, h: self.st.cfg.setdefault("window", {}).update(width=w, height=h)
         self.win.events.closing += self._on_close
         if selftest:

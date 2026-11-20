@@ -1,9 +1,10 @@
-﻿WIN AIO BY DUY ANH - v2.1.3
+﻿WIN AIO BY DUY ANH - v2.1.4
 =========================
 
 CHỈ 1 FILE EXE
   - Chép "Win AIO by Duy Anh.exe" vào USB / ổ nào cũng được rồi chạy. Không cần cài.
   - Tool tự xin quyền Administrator (Windows hiện hộp UAC, bấm Yes).
+  - Mở tool: cửa sổ phóng to toàn màn hình, vào trang Thông tin & khởi động. Nút trong các trang tự to / nhỏ cho vừa màn hình.
   - Thư mục Data kế bên exe CHỈ được tạo khi: tải app, sửa nút (Admin), đổi cài đặt / giao diện, sao lưu Wifi - Driver.
     Mở tool để xem thông tin, tắt máy, tháo ổ... thì không tạo gì thêm.
   - Máy chưa có Edge WebView2 (Win 10 cũ / LTSC): tool tự mở giao diện bằng trình duyệt Edge. Đóng tab là tool tự thoát.
