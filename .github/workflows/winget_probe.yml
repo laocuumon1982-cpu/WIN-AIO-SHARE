@@ -1,0 +1,12 @@
+name: Kiem tra ID winget
+on:
+  push:
+    branches: [main]
+    paths: ["tools/winget_probe.ps1", ".github/workflows/winget_probe.yml"]
+jobs:
+  probe:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+      - shell: pwsh
+        run: ./tools/winget_probe.ps1
