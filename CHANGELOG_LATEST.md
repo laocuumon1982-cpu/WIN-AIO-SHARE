@@ -1,4 +1,8 @@
-Win AIO by Duy Anh v2.0
+Win AIO by Duy Anh v2.0.1
+
+- Sửa: ổ không phải SSD không còn hiện "SSD còn 100%" ở mục Sức khỏe ổ cứng.
+
+Từ v2.0:
 
 - Tab Hệ thống có nhóm mới KHỞI ĐỘNG ĐẶC BIỆT (đều hỏi xác nhận trước khi khởi động lại):
   - Vào BIOS / UEFI: khởi động lại thẳng vào màn hình BIOS (máy UEFI).

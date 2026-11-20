@@ -29,7 +29,7 @@ from pathlib import Path
 from urllib.parse import unquote, urlparse, parse_qs
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v2.0"
+APP_VERSION = "v2.0.1"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -1761,7 +1761,8 @@ def disk_health():
             warn.append(f"{(d.get('rerr') or 0) + (d.get('werr') or 0)} lỗi đọc / ghi đã tự sửa")
         d["verdict"] = "bad" if bad else ("warn" if warn else "ok")
         d["notes"] = why + warn
-        d["life"] = (100 - d["wear"]) if isinstance(d.get("wear"), (int, float)) else None
+        ssd = (d.get("media") or "").upper() == "SSD" or (d.get("bus") or "").upper() == "NVME"
+        d["life"] = (100 - d["wear"]) if ssd and isinstance(d.get("wear"), (int, float)) else None   # chỉ SSD mới có hao mòn
     return {"err": "", "disks": raw}
 
 
