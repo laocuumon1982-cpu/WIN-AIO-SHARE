@@ -107,7 +107,7 @@ function showPage(p) {
   $("psub").textContent = PAGES[p][1];
   if (p === "history") loadHistory();
   if (p === "power") loadDisks();
-  if (p === "system") { live(); loadBoot().catch(() => {}); }
+  if (p === "system") { live(); loadBoot().then(fitSys).catch(() => {}); [30, 400].forEach(t => setTimeout(fitSys, t)); }
   if (p === "tools") renderTools();
   if (p === "apps" && LAYOUT === "fit" && G.length) renderGroups();
   if (p === "test") { loadBattery(); loadDisk(); renderSum(); }
@@ -205,18 +205,36 @@ function fitGroups(cards) {
     const cols = Array.from({length: n}, () => ({h: 0, html: []}));
     cards.forEach(x => { const c = cols.reduce((b, k) => k.h < b.h ? k : b, cols[0]); c.html.push(x.html); c.h += x.w; });
     el.style.setProperty("--ncol", n);
-    el.classList.toggle("notag", W / n < 228);          // cột hẹp: ẩn nhãn WINGET / WEB để tên phần mềm không bị cắt
+    el.classList.toggle("notag", W / n < 240);          // cột hẹp: ẩn nhãn WINGET / WEB để tên phần mềm không bị cắt
     el.innerHTML = cols.map(c => `<div class="gcol">${c.html.join("")}</div>`).join("");
   };
-  const lo = Math.max(2, Math.floor(W / 240)), hi = Math.max(lo, Math.floor(W / 190));
+  const lo = Math.max(2, Math.floor(W / 330)), hi = Math.max(lo, Math.floor(W / 200));
   let n = lo;
   for (; n <= hi; n++) { put(n); if (wrap.scrollHeight <= wrap.clientHeight + 1) return; }
   put(hi);
-  const z = Math.max(.7, (wrap.clientHeight - 4) / wrap.scrollHeight);
-  if (z < 1) el.style.zoom = z.toFixed(3);
+  fitBox(el, .7);
 }
 let fitT;
 window.addEventListener("resize", () => { clearTimeout(fitT); fitT = setTimeout(() => { if (page === "apps" && LAYOUT === "fit") renderGroups(); }, 150); });
+/* thu nhỏ cả khối nội dung cho vừa khung (không phải kéo); nhỏ nhất `min` */
+function fitBox(inner, min = .72) {
+  if (!inner || !inner.offsetParent) return;
+  const wrap = inner.parentElement;
+  inner.style.zoom = "";
+  const fits = () => wrap.scrollHeight <= wrap.clientHeight + 1;
+  if (fits()) return;
+  // thu nhỏ thì chữ dàn rộng ra và khối thấp đi thêm -> dò tìm mức lớn nhất vẫn vừa
+  let lo = min, hi = 1;
+  for (let k = 0; k < 7; k++) { const z = (lo + hi) / 2; inner.style.zoom = z.toFixed(3); fits() ? lo = z : hi = z; }
+  inner.style.zoom = lo.toFixed(3);
+}
+const fitSys = () => fitBox($("sysbox"));
+function fitSide() {
+  const sd = $("side"); sd.classList.remove("tight", "tight2", "tight3");
+  for (const c of ["tight", "tight2", "tight3"]) if (sd.scrollHeight > sd.clientHeight + 1) sd.classList.add(c);
+}
+let fitST;
+window.addEventListener("resize", () => { clearTimeout(fitST); fitST = setTimeout(() => { fitSide(); if (page === "system") fitSys(); }, 160); });
 function updSel() {
   const ids = new Set(allApps().map(a => a.id));
   [...picked].forEach(i => { if (!ids.has(i)) picked.delete(i); });
@@ -418,6 +436,8 @@ function renderInfo() {
       `<div class="lbar"><span>Đang dùng</span><div class="bar"><div class="b-blue" id="lRam"></div></div><b id="lRamT">0%</b></div>`),
     scard("🎮", "#7c3aed", "CARD ĐỒ HỌA", (si.gpu || []).map(g => `<div class="gpu"><div class="big sm2">${esc(g.name)}</div><div class="chips3">
       ${g.vram ? `<span>${g.vram} GB VRAM</span>` : ""}${g.res ? `<span>${esc(g.res)}${g.hz > 1 ? " @ " + g.hz + " Hz" : ""}</span>` : ""}${g.driver ? `<span>Driver ${esc(g.driver)}</span>` : ""}</div></div>`).join("") || '<div class="logl">Không đọc được</div>'),
+    scard("🌐", "#16a34a", "MẠNG", (si.net || []).map(n => `<div class="nic"><div class="big sm2">${esc(n.name)} <em>${esc(n.speed)}</em></div>
+      <div class="logl" style="margin:0 0 4px">${esc(n.desc)}</div>${kv([["IPv4", n.ip], ["MAC", n.mac]])}</div>`).join("") || '<div class="logl">Không có mạng đang kết nối</div>'),
     scard("🪟", "#0f8fd8", "HỆ ĐIỀU HÀNH", kv([["Phiên bản", `${os.name} ${os.ver}`], ["Build", os.build], ["Kiến trúc", os.arch], ["Ngày cài Win", os.installed],
       ["Khởi động lúc", os.boot], ["Bản quyền", goodBad(os.license, /Đã/.test(os.license || "") ? true : /Chưa/.test(os.license || "") ? false : null), true],
       ["BitLocker ổ C", goodBad(os.bitlocker, /BẬT/.test(os.bitlocker || "") ? false : /Tắt/.test(os.bitlocker || "") ? true : null), true]])),
@@ -425,8 +445,6 @@ function renderInfo() {
       ["Chế độ khởi động", bd.mode ? pill(bd.mode, bd.mode === "UEFI" ? "t-done" : "t-skip") : "", true],
       ["Secure Boot", goodBad(bd.secure, bd.secure === "Bật" ? true : bd.secure === "Tắt" ? false : null), true],
       ["TPM", goodBad(bd.tpm && bd.tpm !== "Không có" ? "TPM " + bd.tpm : "Không có", bd.tpm && bd.tpm !== "Không có" ? true : null), true]])),
-    scard("🌐", "#16a34a", "MẠNG", (si.net || []).map(n => `<div class="nic"><div class="big sm2">${esc(n.name)} <em>${esc(n.speed)}</em></div>
-      <div class="logl" style="margin:0 0 4px">${esc(n.desc)}</div>${kv([["IPv4", n.ip], ["MAC", n.mac]])}</div>`).join("") || '<div class="logl">Không có mạng đang kết nối</div>'),
     scard("💽", "#0d9488", "LƯU TRỮ", `<div class="dgrid"><div>${(si.disks || []).map(d => `<div class="pdisk"><span class="di">${d.media === "HDD" ? "🗄️" : "⚡"}</span>
         <div class="dx"><b>${esc(d.name)}</b><div class="chips3"><span>${esc([d.bus, d.media].filter(Boolean).join(" "))}</span><span>${gb(d.size)}</span></div></div>
         ${goodBad(d.health || "?", d.health === "Tốt" ? true : d.health ? false : null)}</div>`).join("")}</div>
@@ -435,6 +453,7 @@ function renderInfo() {
           <div class="bar"><div class="${pct >= 90 ? "b-red" : pct >= 75 ? "b-orange" : "b-green"}" style="width:${pct}%"></div></div></div>`; }).join("")}</div></div>`, true),
   ];
   $("info").innerHTML = cards.join("");
+  [30, 400, 1500].forEach(t => setTimeout(fitSys, t));
   $("bSysRef").onclick = () => { api("refresh_sysinfo"); ST.sysinfo = null; infoShown = undefined; renderInfo(); };
   $("bSysCopy").onclick = () => { copyLocal(sysText(si)) && toast("Đã copy thông tin máy"); };
   live();
@@ -556,7 +575,7 @@ function renderTools() {
   const lo = Math.max(1, Math.floor(w / 340)), hi = Math.max(lo, Math.floor(w / 250));
   let n = lo, ok = false;
   for (; n <= hi && !ok; n++) { put(n); ok = wrap.scrollHeight <= wrap.clientHeight + 1; }
-  if (!ok) { put(hi); const z = Math.max(.72, (wrap.clientHeight - 4) / wrap.scrollHeight); if (z < 1) el.style.zoom = z.toFixed(3); }
+  if (!ok) { put(hi); fitBox(el, .72); }
   $("quick").innerHTML = INIT.quick.map((q, i) => `<button class="btn" data-q="${i}">${esc(q.label)}</button>`).join("");
 }
 let toolT;
@@ -745,7 +764,8 @@ function tiles() {
     ["Hàng đợi cài", run ? "run" : "ok", run ? `${q} mục đang cài / chờ` : "Trống"],
     ["Hẹn giờ tắt máy", ST.shutdown_at ? "run" : "off", ST.shutdown_at ? "Tắt lúc " + new Date(ST.shutdown_at * 1000).toLocaleTimeString("vi-VN", {hour: "2-digit", minute: "2-digit"}) : "Chưa hẹn"],
     ["Chế độ Admin", ADMIN ? "run" : "off", ADMIN ? "Đang mở - có thể sửa nút" : "Đã khóa"]];
-  $("tiles").innerHTML = T.map(([n, s, d]) => `<div class="raised tile">${led(s)}<div class="tx"><b>${n}</b><small class="s-${s}">${esc(d)}</small></div></div>`).join("");
+  const html = T.map(([n, s, d]) => `<div class="raised tile" title="${esc(n + ": " + d)}">${led(s)}<div class="tx"><b>${n}</b><small class="s-${s}">${esc(d)}</small></div></div>`).join("");
+  if (html !== $("tiles").innerHTML) { $("tiles").innerHTML = html; fitSide(); }
 }
 function bar(id, pct, text) {
   $(id).style.width = (pct < 0 ? 100 : pct) + "%";

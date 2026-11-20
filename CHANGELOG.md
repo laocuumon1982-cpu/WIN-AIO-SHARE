@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v2.1.2
+- Thông tin & khởi động vừa 1 màn hình; nút Cài phần mềm thoáng hơn; cột trái không phải kéo.
+
 ## v2.1.1
 - Kiểu xếp "Tự vừa màn hình": nút nhỏ gọn, không phải kéo lên xuống (Cài phần mềm, Tiện ích Windows).
 

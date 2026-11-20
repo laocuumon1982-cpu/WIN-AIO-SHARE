@@ -1,6 +1,5 @@
-Win AIO by Duy Anh v2.1.1
+Win AIO by Duy Anh v2.1.2
 
-- Cài phần mềm: kiểu xếp mới "Tự vừa màn hình" (mặc định) — nút nhỏ gọn hơn, các nhóm xếp khít vào nhiều cột theo độ rộng màn hình, không phải kéo lên xuống. Màn hình nhỏ thì ẩn nhãn WINGET / WEB và thu nhỏ vừa đủ.
-- Ô thống kê và thanh tiến độ mỏng lại, khung nhật ký thấp hơn để dành chỗ cho các nút.
-- Tiện ích Windows: nút gọn hơn, tự chia số cột cho vừa màn hình.
-- Admin: kiểu "Tự vừa màn hình" dùng ◀ ▶ để đổi thứ tự nhóm; vẫn chọn lại được kiểu Lưới / Cột dọc.
+- Thông tin & khởi động: thu gọn lại để vừa 1 màn hình (thông tin máy 4 cột, khởi động đặc biệt và mở nhanh xếp thành hàng). Màn hình nhỏ thì tự thu nhỏ vừa đủ, không phải kéo.
+- Cài phần mềm: nút và nhóm thoáng hơn; màn hình rộng dùng ít cột hơn cho nút to, dễ bấm. Thanh tiến độ tải / cài / tổng gom lại 1 hàng.
+- Cột trái tự gọn lại cho vừa màn hình: bảng đèn trạng thái xếp 2 cột; màn hình thấp thì ẩn bớt chữ phụ.
