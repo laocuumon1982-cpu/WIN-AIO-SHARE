@@ -18,6 +18,8 @@ $ids = @(
 )
 $src = Get-Content win_aio.py -Raw -Encoding UTF8
 $ids += ([regex]::Matches($src, '"winget:([^"]+)"') | ForEach-Object { $_.Groups[1].Value }) | Sort-Object -Unique
+foreach ($q in 'AnyDesk','LDPlayer','EVKey') { Write-Host "== search $q"; winget search $q --accept-source-agreements --disable-interactivity 2>&1 | Select-Object -Last 8 | ForEach-Object { Write-Host "S  $_" } }
+$ids = @('AnyDesk.AnyDesk','AnyDesk.AnyDesk.MSI') + $ids
 foreach ($id in $ids) {
     $o = winget show --id $id --exact --accept-source-agreements --disable-interactivity 2>&1 | Out-String
     $v = ([regex]::Match($o, '(?m)^\s*(Version|Phi.n b.n):\s*(.+)$')).Groups[2].Value.Trim()
