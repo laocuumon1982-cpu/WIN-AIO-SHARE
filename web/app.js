@@ -208,30 +208,31 @@ function fitGroups(cards) {
     el.classList.toggle("notag", W / n < 240);          // cột hẹp: ẩn nhãn WINGET / WEB để tên phần mềm không bị cắt
     el.innerHTML = cols.map(c => `<div class="gcol">${c.html.join("")}</div>`).join("");
   };
-  const lo = Math.max(2, Math.floor(W / 330)), hi = Math.max(lo, Math.floor(W / 200));
+  const lo = Math.max(2, Math.floor(W / 330)), hi = Math.max(lo, Math.floor(W / 185));
   let n = lo;
   for (; n <= hi; n++) { put(n); if (wrap.scrollHeight <= wrap.clientHeight + 1) return; }
   put(hi);
-  fitBox(el, .7);
+  fitBox(el, .68);
 }
 let fitT;
 window.addEventListener("resize", () => { clearTimeout(fitT); fitT = setTimeout(() => { if (page === "apps" && LAYOUT === "fit") renderGroups(); }, 150); });
 /* thu nhỏ cả khối nội dung cho vừa khung (không phải kéo); nhỏ nhất `min` */
-function fitBox(inner, min = .72) {
+function fitBox(inner, min = .72, max = 1) {
   if (!inner || !inner.offsetParent) return;
   const wrap = inner.parentElement;
   inner.style.zoom = "";
   const fits = () => wrap.scrollHeight <= wrap.clientHeight + 1;
-  if (fits()) return;
-  // thu nhỏ thì chữ dàn rộng ra và khối thấp đi thêm -> dò tìm mức lớn nhất vẫn vừa
-  let lo = min, hi = 1;
-  for (let k = 0; k < 7; k++) { const z = (lo + hi) / 2; inner.style.zoom = z.toFixed(3); fits() ? lo = z : hi = z; }
+  let lo, hi;
+  if (fits()) { if (max <= 1) return; lo = 1; hi = max; inner.style.zoom = max; if (fits()) return; }   // còn trống -> phóng to cho đầy
+  else { lo = min; hi = 1; }
+  // đổi cỡ thì chữ dàn lại và chiều cao đổi theo -> dò tìm mức lớn nhất vẫn vừa
+  for (let k = 0; k < 8; k++) { const z = (lo + hi) / 2; inner.style.zoom = z.toFixed(3); fits() ? lo = z : hi = z; }
   inner.style.zoom = lo.toFixed(3);
 }
-const fitSys = () => fitBox($("sysbox"));
+const fitSys = () => fitBox($("sysbox"), .72, 1.4);
 function fitSide() {
-  const sd = $("side"); sd.classList.remove("tight", "tight2", "tight3");
-  for (const c of ["tight", "tight2", "tight3"]) if (sd.scrollHeight > sd.clientHeight + 1) sd.classList.add(c);
+  const sd = $("side"); sd.classList.remove("tight", "tight2", "tight3", "tight4", "tight5", "tight6");
+  for (const c of ["tight", "tight2", "tight3", "tight4", "tight5", "tight6"]) if (sd.scrollHeight > sd.clientHeight + 1) sd.classList.add(c);
 }
 let fitST;
 window.addEventListener("resize", () => { clearTimeout(fitST); fitST = setTimeout(() => { fitSide(); if (page === "system") fitSys(); }, 160); });
@@ -752,19 +753,19 @@ $("bUpd").onclick = () => checkUpd(false);
 /* ---------------------------------------------------------------- vòng cập nhật trạng thái */
 function tiles() {
   const c = ST.checks || {}, run = ST.running, q = (ST.queue || []).length + (ST.cur ? 1 : 0);
-  const T = [
-    ["Quyền Administrator", c.admin ? "ok" : "err", c.admin ? "Đang chạy bằng quyền Admin" : "Không có quyền Admin\nmột số chức năng sẽ lỗi"],
-    ["Internet", c.net == null ? "run" : c.net ? "ok" : "err", c.net == null ? "Đang kiểm tra..." : c.net ? "Đã kết nối" : "Không vào được mạng"],
-    (() => { const w = ST.winget || {};
-      if (w.state === "updating") return ["winget", "run", `Đang cài bản mới ${w.latest || ""}...`];
-      if (w.state === "err") return ["winget", "err", `Bản cũ ${w.cur || ""} - cập nhật lỗi`];
-      if (c.winget == null || w.state === "check") return ["winget", "run", "Đang kiểm tra..."];
-      if (!c.winget) return ["winget", "off", "Không có - nút WINGET sẽ lỗi"];
-      return ["winget", "ok", w.cur ? `${w.cur}${w.state === "ok" ? " · mới nhất" : ""}` : "Có sẵn"]; })(),
-    ["Hàng đợi cài", run ? "run" : "ok", run ? `${q} mục đang cài / chờ` : "Trống"],
-    ["Hẹn giờ tắt máy", ST.shutdown_at ? "run" : "off", ST.shutdown_at ? "Tắt lúc " + new Date(ST.shutdown_at * 1000).toLocaleTimeString("vi-VN", {hour: "2-digit", minute: "2-digit"}) : "Chưa hẹn"],
-    ["Chế độ Admin", ADMIN ? "run" : "off", ADMIN ? "Đang mở - có thể sửa nút" : "Đã khóa"]];
-  const html = T.map(([n, s, d]) => `<div class="raised tile" title="${esc(n + ": " + d)}">${led(s)}<div class="tx"><b>${n}</b><small class="s-${s}">${esc(d)}</small></div></div>`).join("");
+  const w = ST.winget || {};
+  const T = [   // [tên, đèn, chữ ngắn hiện trên đèn, giải thích đầy đủ khi rê chuột]
+    ["Quyền Admin", c.admin ? "ok" : "err", c.admin ? "Có quyền" : "Thiếu quyền", c.admin ? "Đang chạy bằng quyền Administrator" : "Không có quyền Admin - một số chức năng sẽ lỗi"],
+    ["Internet", c.net == null ? "run" : c.net ? "ok" : "err", c.net == null ? "Đang kiểm tra" : c.net ? "Đã kết nối" : "Mất mạng", c.net === false ? "Không vào được mạng" : ""],
+    w.state === "updating" ? ["winget", "run", "Đang cập nhật", `Đang cài bản mới ${w.latest || ""}`]
+      : w.state === "err" ? ["winget", "err", "Cập nhật lỗi", `Bản cũ ${w.cur || ""} - cập nhật lỗi`]
+      : c.winget == null || w.state === "check" ? ["winget", "run", "Đang kiểm tra", ""]
+      : !c.winget ? ["winget", "off", "Không có", "Không có winget - nút WINGET sẽ lỗi"]
+      : ["winget", "ok", w.cur || "Có sẵn", w.state === "ok" ? "Đã là bản mới nhất" : ""],
+    ["Hàng đợi", run ? "run" : "ok", run ? `${q} đang cài` : "Trống", run ? `${q} mục đang cài / chờ` : "Không có gì đang cài"],
+    ["Hẹn tắt máy", ST.shutdown_at ? "run" : "off", ST.shutdown_at ? "Tắt " + new Date(ST.shutdown_at * 1000).toLocaleTimeString("vi-VN", {hour: "2-digit", minute: "2-digit"}) : "Chưa hẹn", ""],
+    ["Chế độ Admin", ADMIN ? "run" : "off", ADMIN ? "Đang mở" : "Đã khóa", ADMIN ? "Đang mở - có thể sửa nút" : ""]];
+  const html = T.map(([n, s, d, l]) => `<div class="raised tile" title="${esc(n + ": " + (l || d))}">${led(s)}<div class="tx"><b>${n}</b><small class="s-${s}">${esc(d)}</small></div></div>`).join("");
   if (html !== $("tiles").innerHTML) { $("tiles").innerHTML = html; fitSide(); }
 }
 function bar(id, pct, text) {

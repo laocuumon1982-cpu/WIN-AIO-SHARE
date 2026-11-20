@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v2.1.3
+- Thông tin & khởi động tự phóng to cho đầy màn hình; bảng đèn trạng thái to, không bị cắt chữ.
+
 ## v2.1.2
 - Thông tin & khởi động vừa 1 màn hình; nút Cài phần mềm thoáng hơn; cột trái không phải kéo.
 

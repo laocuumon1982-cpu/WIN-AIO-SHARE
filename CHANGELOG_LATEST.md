@@ -1,5 +1,5 @@
-Win AIO by Duy Anh v2.1.2
+Win AIO by Duy Anh v2.1.3
 
-- Thông tin & khởi động: thu gọn lại để vừa 1 màn hình (thông tin máy 4 cột, khởi động đặc biệt và mở nhanh xếp thành hàng). Màn hình nhỏ thì tự thu nhỏ vừa đủ, không phải kéo.
-- Cài phần mềm: nút và nhóm thoáng hơn; màn hình rộng dùng ít cột hơn cho nút to, dễ bấm. Thanh tiến độ tải / cài / tổng gom lại 1 hàng.
-- Cột trái tự gọn lại cho vừa màn hình: bảng đèn trạng thái xếp 2 cột; màn hình thấp thì ẩn bớt chữ phụ.
+- Thông tin & khởi động: tự phóng to cho đầy màn hình (màn hình lớn chữ và thẻ to hơn), màn hình nhỏ thì thu lại vừa khung — luôn vừa 1 màn hình, không phải kéo.
+- Bảng đèn trạng thái: mỗi đèn 1 hàng, chữ to hơn, tên bên trái - trạng thái bên phải, không còn bị cắt chữ. Rê chuột lên đèn để xem giải thích đầy đủ.
+- Cột trái rộng hơn chút; màn hình thấp thì tự gọn lại theo từng bước, vẫn giữ chữ trên bảng đèn.
