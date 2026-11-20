@@ -38,6 +38,9 @@ jobs:
           for ($i = 0; $i -lt 30 -and -not (Test-Path T/ping.txt); $i++) { Start-Sleep 2 }
           if (Test-Path T/ping.txt) { Get-Content T/ping.txt } else {
             Write-Host "KHONG CO ping.txt - exe mo lai bi loi"; Get-Process | Where-Object { $_.Path -like '*Win AIO*' } | Format-Table Id, Path; exit 1 }
+      - name: Kiem tra link tai trong danh sach mac dinh (chi bao cao)
+        continue-on-error: true
+        run: python tools/check_links.py
       - uses: actions/upload-artifact@v4
         with:
           name: Win-AIO-by-Duy-Anh

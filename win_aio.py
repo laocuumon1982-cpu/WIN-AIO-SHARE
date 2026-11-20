@@ -31,7 +31,7 @@ from urllib.parse import unquote, urlparse, parse_qs
 import mgr
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v2.1.4"
+APP_VERSION = "v2.1.5"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -57,6 +57,39 @@ DEFAULT_CONFIG = {
     "admin_hash": "",
     "window": {},
 }
+
+# Link cũ đã chết -> nguồn mới (tự sửa trong dữ liệu đã lưu và lúc cài)
+DEAD_LINKS = [
+    (re.compile(r"^https?://[^/]*(res-download-pc|chat\.zalo\.me|zadn\.vn|zdn\.vn)[^ ]*/ZaloSetup[^/]*\.exe$", re.I), "winget:VNGCorp.Zalo"),
+]
+
+
+def fix_src(src):
+    for rx, new in DEAD_LINKS:
+        if rx.match((src or "").strip()):
+            return new
+    return src
+
+
+def nice_err(e):
+    """Lỗi mạng của requests -> câu dễ hiểu."""
+    t = str(e)
+    host = re.search(r"host='([^']+)'", t)
+    host = host.group(1) if host else ""
+    if "NameResolution" in t or "getaddrinfo" in t:
+        return (f"Không tìm thấy máy chủ {host} - link tải có thể đã chết, hoặc mạng / DNS đang lỗi. "
+                "Thử mở web xem có vào được không; Admin bấm ✎ để đổi nguồn nút này.")
+    if "ConnectTimeout" in t or "ReadTimeout" in t or "timed out" in t:
+        return f"Máy chủ {host} không trả lời (quá thời gian chờ) - kiểm tra mạng rồi thử lại."
+    if "SSLError" in t or "CERTIFICATE" in t:
+        return f"Lỗi bảo mật SSL khi kết nối {host} - kiểm tra ngày giờ máy tính, hoặc phần mềm diệt virus chặn."
+    if "ConnectionError" in t or "Max retries" in t:
+        return f"Không kết nối được {host} - kiểm tra mạng rồi thử lại."
+    m = re.search(r"(\d{3}) Client Error|(\d{3}) Server Error", t)
+    if m:
+        return f"Máy chủ báo lỗi {m.group(1) or m.group(2)} - link tải có thể đã đổi; Admin bấm ✎ để đổi nguồn."
+    return t
+
 
 # ---------------------------------------------------------------- danh sách mặc định (sửa được trong tool)
 DEFAULT_GROUPS = [
@@ -88,7 +121,7 @@ DEFAULT_GROUPS = [
         ("🦁", "Brave", "winget:Brave.Brave", "", ""),
     ]),
     ("NHẮN TIN - HỌP", [
-        ("💬", "Zalo PC", "https://res-download-pc-s.chat.zalo.me/ZaloSetup.exe", "", ""),
+        ("💬", "Zalo PC", "winget:VNGCorp.Zalo", "", ""),
         ("✈️", "Telegram", "winget:Telegram.TelegramDesktop", "", ""),
         ("🎮", "Discord", "https://discord.com/api/download?platform=win", "", ""),
         ("📹", "Zoom", "https://zoom.us/client/latest/ZoomInstaller.exe", "", ""),
@@ -448,6 +481,7 @@ class Store:
     def _migrate(self):
         """Dữ liệu từ bản cũ: thêm nút mới của phiên bản này (chỉ 1 lần, không đụng nút đã sửa)."""
         done = set(self.cfg.get("migrated") or [])
+        self.fix_dead_links()
         if "office" not in done:
             if not self.db.execute("SELECT 1 FROM apps WHERE src LIKE 'office:%'").fetchone():
                 g = (self.db.execute("SELECT id FROM groups WHERE name LIKE '%VĂN PHÒNG%' ORDER BY ord LIMIT 1").fetchone()
@@ -460,6 +494,18 @@ class Store:
             done.add("office")
             self.cfg["migrated"] = sorted(done)
             self.save_config(persist=False)
+
+    def fix_dead_links(self):
+        with self.lock:
+            n = 0
+            for aid, src in self.db.execute("SELECT id, src FROM apps").fetchall():
+                new = fix_src(src)
+                if new != src:
+                    self.db.execute("UPDATE apps SET src=? WHERE id=?", (new, aid))
+                    n += 1
+            if n:
+                self.commit(persist=self.on_disk)
+            return n
 
     def ensure_disk(self):
         """Tạo thư mục Data + chép dữ liệu đang ở bộ nhớ xuống file (chỉ 1 lần)."""
@@ -526,7 +572,7 @@ class Store:
                                        int(pos) if isinstance(pos, int) else gi)).lastrowid
                 for ai, a in enumerate(g.get("apps") or []):
                     self.db.execute("INSERT INTO apps(group_id, icon, name, src, args, note, ord) VALUES(?,?,?,?,?,?,?)",
-                                    (gid, a.get("icon", ""), a.get("name", "Nút mới"), a.get("src", ""), a.get("args", ""),
+                                    (gid, a.get("icon", ""), a.get("name", "Nút mới"), fix_src(a.get("src", "")), a.get("args", ""),
                                      a.get("note", ""), ai))
             self.auto_columns()
             self.commit()
@@ -846,7 +892,7 @@ Remove-Item $d -Recurse -Force; 'OK'
             try:
                 status, detail = self._install(a)
             except Exception as e:          # noqa: BLE001
-                status, detail = "err", str(e)
+                status, detail = "err", nice_err(e)
             if status in ("ok", "web") and self.cur:
                 self.cur.update(inst=100, est=False, phase="Xong")
                 time.sleep(0.6)                      # để thanh % kịp hiện 100%
@@ -859,6 +905,7 @@ Remove-Item $d -Recurse -Force; 'OK'
         self.log("Hàng đợi đã xong." if not self.stop_flag.is_set() else "Đã dừng hàng đợi.")
 
     def _install(self, a):
+        a = dict(a, src=fix_src(a["src"]))
         kind, src = src_kind(a["src"]), a["src"].strip()
         args = (a.get("args") or "").strip()
         if kind == "none":

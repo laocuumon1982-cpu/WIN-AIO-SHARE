@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v2.1.5
+- Sửa lỗi cài Zalo PC (link cũ chết) -> cài bằng winget; báo lỗi mạng dễ hiểu; tự kiểm tra link tải khi build.
+
 ## v2.1.4
 - Mở tool phóng to toàn màn hình, nhóm Hệ thống lên đầu menu; nút Cài phần mềm / Tiện ích tự to ra vừa khung.
 
