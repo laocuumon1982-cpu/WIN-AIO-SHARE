@@ -7,6 +7,7 @@ const TESTS = [
   {id: "mic", ic: "🎤", c: "#16a34a", t: "Micro", d: "Cột âm lượng theo giọng nói, ghi âm 5 giây rồi nghe lại."},
   {id: "pad", ic: "🖱️", c: "#0d9488", t: "Trackpad / chuột", d: "Di chuyển, click trái / phải, cuộn 2 ngón, phóng to thu nhỏ."},
   {id: "cam", ic: "📷", c: "#0f8fd8", t: "Webcam", d: "Xem hình camera, độ phân giải, chụp thử."},
+  {id: "disk", ic: "💽", c: "#0f766e", t: "Sức khỏe ổ cứng", d: "SMART của từng ổ: dự báo hỏng, nhiệt độ, độ hao mòn SSD, giờ chạy, lỗi đọc / ghi."},
   {id: "bat", ic: "🔋", c: "#65a30d", t: "Pin laptop", d: "Dung lượng thiết kế, dung lượng còn lại, độ chai, số lần sạc."},
 ];
 const TRES = {};                       // kết quả: id -> "ok" | "err"
@@ -15,8 +16,9 @@ let BAT = null;
 function initTests() {
   $("tests").innerHTML = TESTS.map(x => `<div class="tst" data-id="${x.id}" style="--ac:${x.c}">
       <div class="sh"><span class="si">${x.ic}</span><div><b>${esc(x.t)}</b><small>${esc(x.d)}</small></div><span class="tres" id="tr-${x.id}"></span></div>
-      <div class="tbody" id="tb-${x.id}">${x.id === "bat" ? '<div class="logl"><span class="spin"></span> Đang đọc pin...</div>' : ""}</div>
+      <div class="tbody" id="tb-${x.id}">${x.id === "bat" ? '<div class="logl"><span class="spin"></span> Đang đọc pin...</div>' : x.id === "disk" ? '<div class="logl"><span class="spin"></span> Đang đọc SMART...</div>' : ""}</div>
       <div class="tacts">${x.id === "bat" ? `<button class="btn sm" data-a="batref">⟳ Đọc lại</button><button class="btn sm" data-a="batrep">📄 Báo cáo pin chi tiết</button>`
+        : x.id === "disk" ? `<button class="btn sm" data-a="diskref">⟳ Kiểm tra lại</button>`
         : `<button class="btn red shine" data-a="run">▶ Bắt đầu test</button>`}
         <span class="sp"></span><button class="btn sm ok" data-a="pass">✓ Đạt</button><button class="btn sm bad" data-a="fail">✗ Lỗi</button></div></div>`).join("");
   $("tests").onclick = e => {
@@ -25,6 +27,7 @@ function initTests() {
     if (a === "run") ({screen: tScreen, touch: tTouch, kb: tKb, spk: tSpk, mic: tMic, pad: tPad, cam: tCam})[id]();
     else if (a === "pass" || a === "fail") setRes(id, a === "pass" ? "ok" : "err");
     else if (a === "batref") loadBattery(true);
+    else if (a === "diskref") loadDisk(true);
     else if (a === "batrep") api("battery_report").then(m => m ? toast(m, "err") : toast("Đã mở báo cáo pin của Windows"));
   };
   renderSum();
@@ -46,6 +49,7 @@ function renderSum() {
   $("tCopy").onclick = () => {
     const lines = [`PHIẾU KIỂM TRA MÁY - ${new Date().toLocaleString("vi-VN")}`, `Máy: ${pc.name || ""} · ${(pc.maker || "") + " " + (pc.model || "")} · Service Tag ${pc.tag || "-"}`, ""];
     TESTS.forEach(x => lines.push(`${TRES[x.id] === "ok" ? "[ĐẠT]" : TRES[x.id] === "err" ? "[LỖI]" : "[ -- ]"} ${x.t}`));
+    (DSK && DSK.disks || []).forEach(d => lines.push(`Ổ: ${d.name} · ${d.verdict === "ok" ? "Tốt" : d.verdict === "warn" ? "Cảnh báo" : "HỎNG"}${d.notes.length ? " (" + d.notes.join("; ") + ")" : ""}${d.life != null ? " · SSD còn " + d.life + "%" : ""}${d.hours ? " · " + d.hours + " giờ chạy" : ""}`));
     if (BAT && BAT.batteries && BAT.batteries[0]) { const b = BAT.batteries[0]; lines.push("", `Pin: còn ${b.health ?? "?"}% so với lúc mới (${b.full} / ${b.design} mWh), ${b.cycles ?? "?"} lần sạc`); }
     copyLocal(lines.join("\n")); toast("Đã copy phiếu kiểm tra");
   };
@@ -309,4 +313,37 @@ function renderBattery() {
           <div class="k">Độ chai</div><div class="v">${b.health != null ? Math.max(0, 100 - b.health) + "%" : "?"} ${h >= 80 ? pill("Tốt", "t-done") : h >= 60 ? pill("Chai vừa", "t-skip") : pill("Chai nhiều - nên thay", "t-err")}</div>
           <div class="k">Số lần sạc</div><div class="v">${b.cycles ?? "Máy không báo"}</div></div></div>`; }).join("") +
     (B.err ? `<div class="logl">${esc(B.err)}</div>` : "");
+}
+
+/* ---------------- 9. sức khỏe ổ cứng ---------------- */
+let DSK = null;
+async function loadDisk(force) {
+  if (DSK && !force) return renderDisk();
+  $("tb-disk").innerHTML = '<div class="logl"><span class="spin"></span> Đang đọc SMART...</div>';
+  DSK = await api("disk_health"); renderDisk();
+  const v = (DSK.disks || []).map(d => d.verdict);
+  if (v.length && !TRES.disk) setRes("disk", v.includes("bad") ? "err" : "ok");
+}
+function renderDisk() {
+  const el = $("tb-disk");
+  if (DSK.err) { el.innerHTML = `<div class="logl">Không đọc được: ${esc(DSK.err)}</div>`; return; }
+  const V = {ok: ["TỐT", "t-done", "#16a34a"], warn: ["CẢNH BÁO", "t-skip", "#d97706"], bad: ["HỎNG / SẮP HỎNG", "t-err", "#e0262a"]};
+  const n = x => x === null || x === undefined || x === "" ? "—" : x;
+  el.innerHTML = (DSK.disks || []).map(d => { const v = V[d.verdict] || V.ok;
+    return `<div class="dh" style="--vc:${v[2]}"><div class="dhh"><span class="dhi">${(d.media || "").toUpperCase() === "HDD" ? "🗄️" : "⚡"}</span>
+        <div><b>${esc(d.name)}</b><small>${esc([d.bus, d.media, d.size ? (d.size >= 1000 ? (d.size / 1000).toFixed(1) + " TB" : d.size + " GB") : ""].filter(Boolean).join(" · "))}${d.serial ? " · SN " + esc(d.serial) : ""}</small></div>
+        ${pill(v[0], v[1])}</div>
+      <div class="dhg">
+        <div><small>Nhiệt độ</small><b>${d.temp ? d.temp + "°C" : "—"}</b></div>
+        <div><small>${d.life != null ? "SSD còn" : "Hao mòn"}</small><b>${d.life != null ? d.life + "%" : "—"}</b></div>
+        <div><small>Giờ chạy</small><b>${d.hours ? d.hours.toLocaleString("vi-VN") + " h" : "—"}</b></div>
+        <div><small>Bật / tắt</small><b>${n(d.starts)}</b></div>
+        <div><small>Lỗi đọc / ghi</small><b>${(d.rerr || 0) + (d.werr || 0)}</b></div>
+        <div><small>Không sửa được</small><b class="${(d.runc || 0) + (d.wunc || 0) ? "red" : ""}">${(d.runc || 0) + (d.wunc || 0)}</b></div>
+        <div><small>SMART dự báo</small><b class="${d.predict ? "red" : ""}">${d.predict === null || d.predict === undefined ? "—" : d.predict ? "SẮP HỎNG" : "Bình thường"}</b></div>
+        <div><small>Windows báo</small><b>${esc({Healthy: "Tốt", Warning: "Cảnh báo", Unhealthy: "Lỗi"}[d.health] || d.health || "—")}</b></div></div>
+      ${d.life != null ? `<div class="lbar"><span>Tuổi thọ SSD</span><div class="bar"><div class="${d.life < 20 ? "b-red" : d.life < 50 ? "b-orange" : "b-green"}" style="width:${d.life}%"></div></div><b>${d.life}%</b></div>` : ""}
+      ${d.notes.length ? `<div class="dhn">⚠ ${d.notes.map(esc).join(" · ")}</div>` : ""}</div>`; }).join("") ||
+    '<div class="logl">Không thấy ổ nào.</div>';
+  el.insertAdjacentHTML("beforeend", '<div class="logl">"—" là ổ / bộ điều khiển không báo chỉ số đó cho Windows (hay gặp ở ổ USB, ổ qua RAID).</div>');
 }

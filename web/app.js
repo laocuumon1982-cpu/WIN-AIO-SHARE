@@ -104,9 +104,9 @@ function showPage(p) {
   $("psub").textContent = PAGES[p][1];
   if (p === "history") loadHistory();
   if (p === "power") loadDisks();
-  if (p === "system") live();
+  if (p === "system") { live(); loadBoot().catch(() => {}); }
   if (p === "tools") renderTools();
-  if (p === "test") { loadBattery(); renderSum(); }
+  if (p === "test") { loadBattery(); loadDisk(); renderSum(); }
   if (p === "settings" && ADMIN) renderSettings();
 }
 document.querySelectorAll(".nav").forEach(n => n.onclick = () => showPage(n.dataset.p));
@@ -428,6 +428,56 @@ async function live() {
 }
 setInterval(live, 1500);
 let infoShown = null;
+
+/* ---------------------------------------------------------------- Khởi động đặc biệt */
+let BOOT = null;
+async function loadBoot() {
+  BOOT = await api("boot_status");
+  const b = BOOT;
+  $("bootst").innerHTML = `${pill(b.fw, b.fw === "UEFI" ? "t-done" : "t-skip")}${b.safe_now ? pill("Đang ở Safe Mode", "t-err") : ""}${b.safe_set ? pill("Lần sau vào Safe Mode", "t-err") : ""}`;
+  document.querySelector('[data-b="normal"]').classList.toggle("hot", !!(b.safe_set || b.safe_now));
+}
+async function bootGo(kind, arg, title, text, okText) {
+  if (!(await confirmBox(title, text, okText || "⏻ Khởi động lại ngay"))) return;
+  const m = await api("boot_action", kind, arg || "");
+  if (m) dialog({title, body: `<div class="msg">${esc(m)}</div>`, buttons: [{text: "OK", cls: "red", def: true}]});
+  else if (kind === "normal") { toast("Đã tắt Safe Mode: lần khởi động sau sẽ vào Windows bình thường"); loadBoot(); }
+  else toast("Đang khởi động lại...");
+}
+document.querySelector(".bootgrid").onclick = async e => {
+  const b = e.target.closest("[data-b]"); if (!b) return;
+  const k = b.dataset.b;
+  if (k === "bios") return bootGo("bios", "", "Vào BIOS / UEFI", "Máy sẽ khởi động lại ngay và vào thẳng màn hình BIOS / UEFI.\nLưu hết công việc đang mở trước khi tiếp tục.");
+  if (k === "recovery") return bootGo("recovery", "", "Menu Recovery nâng cao", "Máy sẽ khởi động lại vào menu khôi phục của Windows (Troubleshoot → Startup Repair, System Restore, Startup Settings...).");
+  if (k === "normal") return bootGo("normal", "", "Thoát Safe Mode", "Bỏ chế độ Safe Mode để lần khởi động sau vào Windows bình thường?\n(Không khởi động lại ngay — bạn tự khởi động lại khi sẵn sàng.)", "✓ Thoát Safe Mode");
+  if (k === "safe") {
+    const mode = await dialog({title: "Vào Safe Mode", width: 560, body: `<div class="msg">Chọn kiểu Safe Mode. Máy sẽ khởi động lại ngay, và <b>sẽ vào Safe Mode mỗi lần khởi động</b> cho tới khi bạn bấm "Thoát Safe Mode" (nút này cũng có trong Win AIO khi đang ở Safe Mode).</div>
+      <div class="ofrow" style="margin-top:12px;flex-direction:column">
+        <label class="ofr on"><input type="radio" name="sm" value="minimal" checked> 🛡️ <b>Tối giản</b> — chỉ driver cơ bản (dùng để gỡ phần mềm / driver lỗi, diệt virus)</label>
+        <label class="ofr"><input type="radio" name="sm" value="network"> 🌐 <b>Có mạng</b> — như trên, thêm Internet / mạng LAN</label>
+        <label class="ofr"><input type="radio" name="sm" value="cmd"> ⌨️ <b>Command Prompt</b> — chỉ cửa sổ dòng lệnh, không có màn hình Windows</label></div>`,
+      buttons: [{text: "Hủy", value: false}, {text: "⏻ Khởi động lại vào Safe Mode", cls: "red", def: true, click: c => c.el.querySelector('input[name="sm"]:checked').value}],
+      onOpen: c => c.el.addEventListener("change", e => { if (e.target.name === "sm") c.el.querySelectorAll(".ofr").forEach(l => l.classList.toggle("on", l.contains(e.target))); })});
+    if (!mode) return;
+    const m = await api("boot_action", "safe", mode);
+    return m ? dialog({title: "Vào Safe Mode", body: `<div class="msg">${esc(m)}</div>`, buttons: [{text: "OK", cls: "red", def: true}]}) : toast("Đang khởi động lại vào Safe Mode...");
+  }
+  if (k === "once") {
+    if (!BOOT) await loadBoot();
+    if (BOOT.fw !== "UEFI") return dialog({title: "Chọn ổ khởi động", body: `<div class="msg">Máy đang khởi động kiểu Legacy BIOS nên Windows không chọn ổ khởi động hộ được.\nKhởi động lại rồi bấm phím Boot Menu của hãng (thường là F12, F11, F8, Esc).</div>`, buttons: [{text: "OK", cls: "red", def: true}]});
+    const E = BOOT.entries || [];
+    if (!E.length) return dialog({title: "Chọn ổ khởi động", body: `<div class="msg">Không đọc được danh sách ổ khởi động từ UEFI.</div>`, buttons: [{text: "OK", cls: "red", def: true}]});
+    const id = await dialog({title: "Chọn ổ khởi động (1 lần)", width: 600, body: `<div class="msg">Chọn ổ / USB để khởi động <b>một lần</b>. Lần khởi động sau đó máy trở lại thứ tự cũ.</div>
+      <div class="ofrow" style="margin-top:12px;flex-direction:column">${E.map((x, i) => `<label class="ofr${i ? "" : " on"}"><input type="radio" name="be" value="${esc(x.id)}"${i ? "" : " checked"}>
+        ${/usb|sandisk|kingston|flash/i.test(x.name) ? "🔌" : /windows/i.test(x.name) ? "🪟" : /pxe|network|ipv|lan/i.test(x.name) ? "🌐" : "💽"} ${esc(x.name)}</label>`).join("")}</div>
+      <div class="logl">Cắm USB trước rồi mới mở danh sách này. USB boot cần là loại UEFI.</div>`,
+      buttons: [{text: "Hủy", value: false}, {text: "⏻ Khởi động lại vào ổ này", cls: "red", def: true, click: c => c.el.querySelector('input[name="be"]:checked').value}],
+      onOpen: c => c.el.addEventListener("change", e => { if (e.target.name === "be") c.el.querySelectorAll(".ofr").forEach(l => l.classList.toggle("on", l.contains(e.target))); })});
+    if (!id) return;
+    const m = await api("boot_action", "once", id);
+    return m ? dialog({title: "Chọn ổ khởi động", body: `<div class="msg">${esc(m)}</div>`, buttons: [{text: "OK", cls: "red", def: true}]}) : toast("Đang khởi động lại...");
+  }
+};
 
 /* ---------------------------------------------------------------- Tiện ích */
 const TOOL_SEC = {

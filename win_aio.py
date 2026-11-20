@@ -29,7 +29,7 @@ from pathlib import Path
 from urllib.parse import unquote, urlparse, parse_qs
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v1.9"
+APP_VERSION = "v2.0"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -1704,6 +1704,163 @@ def battery_report_html():
     return ""
 
 
+# ================================================================= TEST MÁY: SỨC KHỎE Ổ CỨNG (SMART)
+DISK_HEALTH_PS = r"""
+$ErrorActionPreference='SilentlyContinue'
+$fp=@{}; Get-CimInstance -Namespace root\wmi -ClassName MSStorageDriver_FailurePredictStatus | ForEach-Object { $fp[(($_.InstanceName -replace '_\d+$','')).ToUpper()]=[bool]$_.PredictFailure }
+$pnp=@{}; Get-CimInstance Win32_DiskDrive | ForEach-Object { $pnp[[string]$_.Index]=([string]$_.PNPDeviceID).ToUpper() }
+$out=@(Get-PhysicalDisk | Sort-Object { [int]$_.DeviceId } | ForEach-Object {
+  $r=$_ | Get-StorageReliabilityCounter
+  $id=[string]$_.DeviceId; $pf=$null; if($pnp[$id] -and $fp.ContainsKey($pnp[$id])){ $pf=$fp[$pnp[$id]] }
+  [ordered]@{ id=[int]$id; name=[string]$_.FriendlyName; media=[string]$_.MediaType; bus=[string]$_.BusType; size=[math]::Round($_.Size/1GB);
+    health=[string]$_.HealthStatus; op=[string]($_.OperationalStatus -join ', '); serial=([string]$_.SerialNumber).Trim(); fw=[string]$_.FirmwareVersion;
+    temp=$r.Temperature; tmax=$r.TemperatureMax; wear=$r.Wear; hours=$r.PowerOnHours; starts=$r.StartStopCycleCount;
+    rerr=$r.ReadErrorsTotal; werr=$r.WriteErrorsTotal; runc=$r.ReadErrorsUncorrected; wunc=$r.WriteErrorsUncorrected; predict=$pf } })
+ConvertTo-Json -InputObject $out -Depth 3 -Compress
+"""
+
+FAKE_DISK_HEALTH = [
+    {"id": 0, "name": "Samsung SSD 980 PRO 1TB", "media": "SSD", "bus": "NVMe", "size": 932, "health": "Healthy", "op": "OK",
+     "serial": "S5GXNF0R123456", "fw": "5B2QGXA7", "temp": 41, "tmax": 68, "wear": 6, "hours": 5120, "starts": 1830,
+     "rerr": 0, "werr": 0, "runc": 0, "wunc": 0, "predict": False},
+    {"id": 1, "name": "WDC WD20EZBX-00AYRA0", "media": "HDD", "bus": "SATA", "size": 1863, "health": "Warning", "op": "OK",
+     "serial": "WD-WX12A3456789", "fw": "01.01A01", "temp": 47, "tmax": 55, "wear": None, "hours": 28750, "starts": 4210,
+     "rerr": 12, "werr": 0, "runc": 3, "wunc": 0, "predict": False},
+]
+
+
+def disk_health():
+    """Sức khỏe từng ổ: trạng thái Windows, dự báo hỏng SMART, nhiệt độ, độ hao mòn SSD, giờ chạy, lỗi đọc / ghi."""
+    if FAKE or not IS_WIN:
+        raw = json.loads(json.dumps(FAKE_DISK_HEALTH))
+    else:
+        code, out = ps(DISK_HEALTH_PS, timeout=120)
+        try:
+            raw = json.loads(out[out.index("["):])
+        except Exception:                   # noqa: BLE001
+            return {"err": out[:300] or f"mã {code}", "disks": []}
+    for d in raw:
+        h = (d.get("health") or "").lower()
+        why = []
+        if h in ("unhealthy", "2"):
+            why.append("Windows báo ổ LỖI")
+        if d.get("predict"):
+            why.append("SMART dự báo ổ sắp hỏng")
+        if (d.get("runc") or 0) + (d.get("wunc") or 0) > 0:
+            why.append(f"{(d.get('runc') or 0) + (d.get('wunc') or 0)} lỗi đọc / ghi không sửa được")
+        bad = bool(why)
+        warn = []
+        if h in ("warning", "1"):
+            warn.append("Windows cảnh báo ổ")
+        if (d.get("wear") or 0) >= 80:
+            warn.append(f"SSD đã hao mòn {d['wear']}%")
+        lim = 70 if (d.get("media") or "").upper() == "SSD" or (d.get("bus") or "").upper() == "NVME" else 55
+        if (d.get("temp") or 0) >= lim:
+            warn.append(f"Nhiệt độ cao {d['temp']}°C")
+        if (d.get("rerr") or 0) + (d.get("werr") or 0) > 0 and not bad:
+            warn.append(f"{(d.get('rerr') or 0) + (d.get('werr') or 0)} lỗi đọc / ghi đã tự sửa")
+        d["verdict"] = "bad" if bad else ("warn" if warn else "ok")
+        d["notes"] = why + warn
+        d["life"] = (100 - d["wear"]) if isinstance(d.get("wear"), (int, float)) else None
+    return {"err": "", "disks": raw}
+
+
+# ================================================================= HỆ THỐNG: KHỞI ĐỘNG ĐẶC BIỆT
+FAKE_BOOT_ENTRIES = [{"id": "{9dea862c-5cdd-4e70-acc1-f32b344d4795}", "name": "Windows Boot Manager"},
+                     {"id": "{a1b2c3d4-0000-1111-2222-333344445555}", "name": "UEFI: SanDisk Ultra USB 3.0"},
+                     {"id": "{b2c3d4e5-6666-7777-8888-999900001111}", "name": "UEFI: WDC WD20EZBX"}]
+
+
+def firmware_type():
+    if FAKE or not IS_WIN:
+        return "UEFI"
+    t = ctypes.c_uint(0)
+    try:
+        if ctypes.windll.kernel32.GetFirmwareType(ctypes.byref(t)):
+            return {1: "Legacy BIOS", 2: "UEFI"}.get(t.value, "Không rõ")
+    except Exception:                       # noqa: BLE001
+        pass
+    return "Không rõ"
+
+
+def boot_status():
+    if FAKE or not IS_WIN:
+        return {"fw": "UEFI", "safe_now": False, "safe_set": "", "entries": FAKE_BOOT_ENTRIES}
+    _, cur = run_hidden(["bcdedit", "/enum", "{current}"], timeout=30)
+    m = re.search(r"^\s*safeboot\s+(\S+)", cur or "", re.I | re.M)
+    fw = firmware_type()
+    return {"fw": fw, "safe_now": bool(ctypes.windll.user32.GetSystemMetrics(67)),
+            "safe_set": m.group(1) if m else "", "entries": boot_entries() if fw == "UEFI" else []}
+
+
+def boot_entries():
+    """Danh sách mục khởi động trong UEFI (ổ cứng, USB, mạng...) từ bcdedit /enum firmware."""
+    _, out = run_hidden(["bcdedit", "/enum", "firmware", "/v"], timeout=30)
+    res = []
+    for blk in re.split(r"\r?\n\s*\r?\n", out or ""):
+        lines = [l for l in blk.splitlines() if l.strip() and not set(l.strip()) <= set("-")]
+        kv = [re.split(r"\s{2,}", l.strip(), maxsplit=1) for l in lines]
+        kv = [x for x in kv if len(x) == 2]
+        gid = next((v for _, v in kv if re.fullmatch(r"\{[0-9a-fA-F-]{36}\}", v)), "")
+        if not gid:
+            continue
+        name = next((v for k, v in kv if k.lower() in ("description", "mô tả", "beschreibung", "descripción")), "")
+        if not name:                          # Windows ngôn ngữ khác: lấy giá trị chữ đầu tiên không phải mã / đường dẫn
+            name = next((v for _, v in kv if not re.match(r"^(\{|partition=|\\\\|\d+$|Yes$|No$|Có$|Không$)", v)), "")
+        if name and "fwbootmgr" not in gid.lower():
+            res.append({"id": gid, "name": name})
+    return res
+
+
+def _restart(args, label):
+    if FAKE or not IS_WIN:
+        return 0, f"(chạy thử) {label}"
+    return run_hidden(["shutdown.exe"] + args, timeout=30)
+
+
+def boot_action(kind, arg=""):
+    """kind: bios / recovery / once (arg = mã ổ) / safe (arg = minimal|network|cmd) / normal."""
+    if kind == "bios":
+        if firmware_type() != "UEFI":
+            return "Máy đang khởi động kiểu Legacy BIOS nên Windows không đưa thẳng vào BIOS được. Khởi động lại rồi bấm phím vào BIOS của hãng (thường là F2, Del, F10, Esc)."
+        code, out = _restart(["/r", "/fw", "/t", "0"], "vào BIOS / UEFI")
+        return "" if code == 0 else f"Không vào được BIOS: {out}"
+    if kind == "recovery":
+        code, out = _restart(["/r", "/o", "/t", "0"], "menu Recovery nâng cao")
+        return "" if code == 0 else f"Không mở được menu Recovery: {out}"
+    if kind == "once":
+        if not re.fullmatch(r"\{[0-9a-fA-F-]{36}\}", arg or ""):
+            return "Mục khởi động không hợp lệ"
+        if not FAKE and IS_WIN:
+            code, out = run_hidden(["bcdedit", "/set", "{fwbootmgr}", "bootsequence", arg], timeout=30)
+            if code != 0:
+                return f"Không đặt được ổ khởi động: {out}"
+        code, out = _restart(["/r", "/t", "0"], "khởi động vào ổ đã chọn")
+        return "" if code == 0 else out
+    if kind == "safe":
+        mode = {"minimal": "minimal", "network": "network", "cmd": "minimal"}.get(arg)
+        if not mode:
+            return "Kiểu Safe Mode không hợp lệ"
+        if not FAKE and IS_WIN:
+            code, out = run_hidden(["bcdedit", "/set", "{current}", "safeboot", mode], timeout=30)
+            if code != 0:
+                return f"Không đặt được Safe Mode: {out}"
+            if arg == "cmd":
+                run_hidden(["bcdedit", "/set", "{current}", "safebootalternateshell", "yes"], timeout=30)
+            else:
+                run_hidden(["bcdedit", "/deletevalue", "{current}", "safebootalternateshell"], timeout=30)
+        code, out = _restart(["/r", "/t", "0"], "vào Safe Mode")
+        return "" if code == 0 else out
+    if kind == "normal":
+        if not FAKE and IS_WIN:
+            run_hidden(["bcdedit", "/deletevalue", "{current}", "safebootalternateshell"], timeout=30)
+            code, out = run_hidden(["bcdedit", "/deletevalue", "{current}", "safeboot"], timeout=30)
+            if code != 0 and "safeboot" in boot_status().get("safe_set", "safeboot"):
+                return f"Không tắt được Safe Mode: {out}"
+        return ""
+    return "Lệnh không hợp lệ"
+
+
 # ================================================================= API cho giao diện
 class Api:
     def __init__(self, eng, app=None):
@@ -2128,6 +2285,20 @@ class Api:
     def battery(self):
         return battery_info()
 
+    def disk_health(self):
+        return disk_health()
+
+    def boot_status(self):
+        return boot_status()
+
+    def boot_action(self, kind, arg=""):
+        self._e.log(f"⏻ Khởi động đặc biệt: {kind} {arg}".strip(), "warn")
+        msg = boot_action(kind, arg)
+        self._e.st.add_history("Khởi động: " + kind, "Hệ thống", "Lỗi" if msg else "Xong", msg)
+        if msg:
+            self._e.log("✖ " + msg, "err")
+        return msg
+
     def battery_report(self):
         return battery_report_html()
 
@@ -2301,6 +2472,8 @@ class App:
             lines.append("checks: " + json.dumps(self.eng.checks))
             d = self.eng.power.disks()
             lines.append("disks: " + json.dumps(d, ensure_ascii=False)[:1500])
+            lines.append("diskhealth: " + json.dumps(disk_health(), ensure_ascii=False)[:1200])
+            lines.append("boot: " + json.dumps(boot_status(), ensure_ascii=False)[:800])
             lines.append("battery: " + json.dumps(battery_info(), ensure_ascii=False))
             lines.append("defender: " + json.dumps(self.eng.run_tool("def_status"), ensure_ascii=False))
             lines.append("Data folder exists: " + str(DATA.exists()))

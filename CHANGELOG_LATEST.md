@@ -1,13 +1,9 @@
-Win AIO by Duy Anh v1.9
+Win AIO by Duy Anh v2.0
 
-- Tab mới "🧪 Test máy" để kiểm tra laptop / PC, kèm PHIẾU KIỂM TRA (Đạt / Lỗi từng mục, copy phiếu gửi khách):
-  - Màn hình: 15 màn toàn màu / dải màu / bàn cờ (tìm điểm chết, hở sáng, sọc, phân tầng màu).
-  - Cảm ứng: lưới 60 ô sáng xanh khi chạm, vẽ đường, đếm số ngón chạm cùng lúc.
-  - Bàn phím: bàn phím ảo, phím đang giữ sáng đỏ, đã nhận sáng xanh, đếm số phím; tùy chọn Numpad.
-  - Loa: loa trái / phải / cả hai, quét 60 Hz → 12 kHz, âm trầm, giai điệu thử.
-  - Micro: chọn micro, cột âm lượng trực tiếp, ghi âm 5 giây rồi phát lại.
-  - Trackpad / chuột: di chuyển, click trái / phải, nhấp đúp, cuộn dọc / ngang, phóng to thu nhỏ, giữ kéo.
-  - Webcam: xem hình, độ phân giải, khung hình, chụp thử, mở app Camera của Windows.
-  - Pin laptop: % pin, đang sạc, thời gian còn lại, dung lượng thiết kế / sạc đầy, độ chai, số lần sạc, báo cáo pin chi tiết của Windows.
-- Giao diện chạy qua máy chủ nội bộ 127.0.0.1 (để dùng được micro / webcam), API có mã bảo vệ ngẫu nhiên.
-- Nguồn cập nhật chuyển sang github.com/laocuumon1982-cpu/WIN-AIO-SHARE.
+- Tab Hệ thống có nhóm mới KHỞI ĐỘNG ĐẶC BIỆT (đều hỏi xác nhận trước khi khởi động lại):
+  - Vào BIOS / UEFI: khởi động lại thẳng vào màn hình BIOS (máy UEFI).
+  - Chọn ổ khởi động: liệt kê các mục khởi động UEFI (ổ cứng, USB...), chọn 1 mục để khởi động 1 lần, lần sau trở lại thứ tự cũ.
+  - Vào Safe Mode: Tối giản / Có mạng / Command Prompt. Thoát Safe Mode: lần sau khởi động bình thường (nút sáng xanh khi đang đặt Safe Mode).
+  - Menu Recovery nâng cao: Startup Repair, System Restore, Startup Settings...
+  - Hiện máy đang khởi động UEFI hay Legacy BIOS; máy Legacy được hướng dẫn phím của hãng.
+- Tab Test máy có mục mới SỨC KHỎE Ổ CỨNG: đánh giá Tốt / Cảnh báo / Hỏng cho từng ổ theo trạng thái Windows, SMART dự báo hỏng, lỗi đọc / ghi không sửa được, nhiệt độ, độ hao mòn và tuổi thọ còn lại của SSD, giờ chạy, số lần bật / tắt. Kết quả có trong phiếu kiểm tra.

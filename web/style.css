@@ -713,3 +713,24 @@ body.dark .abtn{box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 2px 0 var(--btn
 .batrow{display:flex;gap:18px;align-items:center}
 .ring.sm{width:90px;height:90px;flex:none}.ring.sm .rin{width:70px;height:70px}.ring.sm .rin b{font-size:19px}.ring.sm .rin small{font-size:9px}
 .tview[hidden]{display:none!important}
+
+/* ------------------------------------------------------------------ v2.0: khởi động đặc biệt + sức khỏe ổ */
+.bootc .sh{align-items:center}.bootc .sh > div{flex:1}
+.bootst{display:flex;gap:6px}
+.bootgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.bootgrid .tbtn{height:58px}
+.bootgrid .tt b{display:block;font-size:13px}.bootgrid .tt small{display:block;font-size:11px;color:var(--muted);font-weight:600;margin-top:1px}
+.bootgrid .tbtn.hot{border-color:#16a34a;box-shadow:0 0 0 3px rgba(34,197,94,.25),0 3px 0 var(--btn-sh);animation:hotglow 1.6s ease-in-out infinite}
+.ofrow .ofr{line-height:1.4}
+.tst[data-id="disk"]{grid-column:span 2}
+@media (max-width:1100px){.tst[data-id="disk"]{grid-column:auto}}
+.dh{border:1px solid var(--border);border-left:4px solid var(--vc);border-radius:12px;padding:10px 12px;margin-bottom:10px;background:var(--head)}
+.dhh{display:flex;align-items:center;gap:10px}.dhh > div{flex:1;min-width:0}
+.dhh b{display:block;font-size:13.5px}.dhh small{color:var(--muted);font-weight:600;font-size:11.5px}
+.dhi{font-size:22px}
+.dhg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:9px}
+.dhg > div{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:5px 9px}
+.dhg small{display:block;color:var(--muted);font-weight:700;font-size:10.5px;letter-spacing:.3px}
+.dhg b{font-size:14px}.dhg b.red{color:var(--red)}
+.dhn{margin-top:8px;color:#b45309;font-weight:700;font-size:12.5px}
+.dh .lbar{margin-top:8px}

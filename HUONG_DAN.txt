@@ -1,4 +1,4 @@
-﻿WIN AIO BY DUY ANH - v1.9
+﻿WIN AIO BY DUY ANH - v2.0
 =========================
 
 CHỈ 1 FILE EXE
@@ -18,11 +18,20 @@ CẬP NHẬT
     tải về, tự thay file exe rồi mở lại. Dữ liệu trong Data giữ nguyên.
   - Mở tool sau 4 giây sẽ tự kiểm tra; có bản mới thì nút chuyển xanh "⟳ Có bản vX.Y".
 
+KHỞI ĐỘNG ĐẶC BIỆT (tab Hệ thống) - máy khởi động lại NGAY sau khi xác nhận, lưu công việc trước
+  - Vào BIOS / UEFI. Máy Legacy BIOS: khởi động lại rồi bấm phím của hãng (F2, Del, F10, Esc).
+  - Chọn ổ khởi động: cắm USB trước, chọn mục rồi khởi động 1 lần từ đó. Lần sau máy trở lại thứ tự cũ.
+  - Vào Safe Mode (Tối giản / Có mạng / Command Prompt): máy sẽ vào Safe Mode MỖI LẦN khởi động cho tới khi
+    bấm "Thoát Safe Mode" (chạy Win AIO ngay trong Safe Mode để bấm). Nút này sáng xanh khi đang đặt Safe Mode.
+  - Menu Recovery nâng cao: Startup Repair, System Restore, Startup Settings, gỡ bản cập nhật...
+
 TEST MÁY (kiểm tra laptop / PC)
   - Mỗi mục bấm "▶ Bắt đầu test", xong bấm ✓ Đạt hoặc ✗ Lỗi. Trên cùng là PHIẾU KIỂM TRA, bấm "⧉ Copy phiếu" để gửi khách.
   - Màn hình: bấm chuột / → / Space đổi màu, ← lùi, Esc thoát. Cảm ứng: chạm kín các ô, nhấp đúp / Esc thoát.
   - Bàn phím: bấm lần lượt các phím; bấm Esc 2 lần liền để thoát. Phím Fn và phím riêng của hãng Windows không báo.
   - Micro / Webcam: lần đầu Windows hỏi quyền -> bấm Cho phép (Allow). Không mở được thì vào Cài đặt -> Quyền riêng tư.
+  - Sức khỏe ổ cứng: Tốt / Cảnh báo / Hỏng theo SMART, lỗi đọc ghi không sửa được, nhiệt độ, hao mòn SSD, giờ chạy.
+    Ổ báo HỎNG / SẮP HỎNG: sao lưu dữ liệu ngay. Ô "—" là ổ không báo chỉ số đó (ổ USB, ổ qua RAID).
   - Pin: độ chai = phần dung lượng đã mất so với lúc mới. Trên 20% là chai vừa, trên 40% nên thay pin.
 
 NGUỒN & Ổ USB (gộp từ Power & USB Eject)

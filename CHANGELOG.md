@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v2.0
+- Khởi động đặc biệt (BIOS, chọn ổ khởi động 1 lần, Safe Mode, Recovery); test sức khỏe ổ cứng (SMART).
+
 ## v1.9
 - Tab Test máy (màn hình, cảm ứng, bàn phím, loa, micro, trackpad, webcam, pin) + phiếu kiểm tra; cập nhật từ repo WIN-AIO-SHARE.
 
