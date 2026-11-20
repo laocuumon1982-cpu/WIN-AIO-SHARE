@@ -1,4 +1,4 @@
-﻿WIN AIO BY DUY ANH - v2.0.2
+﻿WIN AIO BY DUY ANH - v2.1
 =========================
 
 CHỈ 1 FILE EXE
@@ -33,6 +33,35 @@ TEST MÁY (kiểm tra laptop / PC)
   - Sức khỏe ổ cứng: Tốt / Cảnh báo / Hỏng theo SMART, lỗi đọc ghi không sửa được, nhiệt độ, hao mòn SSD, giờ chạy.
     Ổ báo HỎNG / SẮP HỎNG: sao lưu dữ liệu ngay. Ô "—" là ổ không báo chỉ số đó (ổ USB, ổ qua RAID).
   - Pin: độ chai = phần dung lượng đã mất so với lúc mới. Trên 20% là chai vừa, trên 40% nên thay pin.
+
+QUẢN LÝ (v2.1)
+  - Khởi động cùng Windows: chọn mục (bấm vào dòng) -> Vô hiệu / Kích hoạt (giống Task Manager), Xóa (có lưu bản sao
+    trong Data\Backup), Mở vị trí file. Cột "Nhà phát hành" để nhận ra chương trình lạ.
+  - Gỡ phần mềm tận gốc: bấm "🗑 Gỡ" -> chạy trình gỡ của phần mềm (có thể gỡ im lặng), xong tool tìm thư mục và registry
+    còn sót. Bỏ tick mục muốn giữ rồi bấm Xóa. Cửa sổ gỡ của phần mềm còn mở thì làm xong rồi bấm "Quét lại".
+  - Ứng dụng MS Store: tick nhiều ứng dụng rồi gỡ 1 lần (có tùy chọn gỡ cho mọi tài khoản). Ứng dụng hệ thống đã được ẩn.
+  - Defender & bảo mật: bảng trạng thái, bật / tắt Realtime, Cloud, gửi mẫu, Firewall, SmartScreen, UAC; thêm / bỏ ngoại lệ.
+    Tamper Protection đang bật thì Windows chặn đổi Defender -> tắt nó trong Windows Security trước.
+
+DỌN DẸP (v2.1)
+  - Dọn rác hệ thống: bấm Quét để đo, tick mục muốn dọn. Cache trình duyệt không xóa mật khẩu / lịch sử / dấu trang.
+  - Phân tích ổ đĩa: xem thư mục nào chiếm nhiều chỗ, bấm tên thư mục để xem sâu hơn, ⬆ để lên thư mục cha.
+  - Cache CapCut PC: xóa cache dựng video, dự án giữ nguyên (CapCut đang mở sẽ được tắt).
+  - Virus macro Excel: tìm file lạ tự mở cùng Excel (XLSTART) -> cách ly vào Data\Backup; đặt lại Excel không tự chạy macro.
+  - Xóa metadata ảnh JPG / PNG (GPS, máy chụp...): ảnh gốc giữ nguyên, ảnh sạch lưu trong thư mục con "Da_xoa_metadata".
+
+SAO LƯU (v2.1)
+  - Chọn NƠI LƯU trên cùng (nên dùng ổ D, ổ USB / ổ cứng ngoài, không lưu vào ổ C nếu sắp cài lại Win).
+  - Thư mục người dùng: Desktop, Tài liệu, Tải về, Ảnh, Video, Nhạc. Khôi phục: chọn thư mục SaoLuu_..., file trùng tên giữ nguyên.
+  - Zalo PC: sao lưu / khôi phục tin nhắn, ảnh, file đã nhận. Khôi phục không xóa dữ liệu cũ (đổi tên giữ lại).
+  - Zalo nhiều tài khoản: nhập tên -> "Mở Zalo mới", mỗi tài khoản 1 cửa sổ riêng, dữ liệu trong Data\ZaloTaiKhoan.
+  - Trình duyệt Chrome, Edge, Cốc Cốc, Brave, Firefox: dấu trang, tiện ích, mật khẩu, lịch sử. Mật khẩu chỉ dùng lại được
+    khi khôi phục trên cùng tài khoản Windows (Windows mã hóa mật khẩu theo tài khoản).
+
+TIỆN ÍCH WINDOWS - mới ở v2.1
+  - Xóa / hiện lại mũi tên trên biểu tượng shortcut (Explorer tự khởi động lại).
+  - Nhóm MẠNG: DNS Google / Cloudflare / tự động, xóa cache DNS, xem mật khẩu Wifi đã lưu, reset mạng (cần khởi động lại).
+  - Admin -> tab Cài phần mềm -> "⚖ Tự sắp xếp": chia các nhóm phần mềm cho đều, tùy chọn xếp nút A → Z.
 
 NGUỒN & Ổ USB (gộp từ Power & USB Eject)
   - TẮT MÁY NGAY: ép tắt ngay, không hỏi lại (dùng khi khẩn cấp).

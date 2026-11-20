@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v2.1
+- Trang Quản lý (khởi động, gỡ tận gốc, MS Store, Defender), Dọn dẹp (rác, phân tích ổ, CapCut, macro Excel, metadata ảnh), Sao lưu (thư mục người dùng, Zalo, Zalo nhiều tài khoản, trình duyệt); xóa mũi tên shortcut; nhóm Mạng; menu gọn; tự sắp xếp nhóm.
+
 ## v2.0.2
 - Sửa lỗi "invalid originating onefile parent process" sau khi tự cập nhật.
 

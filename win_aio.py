@@ -28,8 +28,10 @@ import zipfile
 from pathlib import Path
 from urllib.parse import unquote, urlparse, parse_qs
 
+import mgr
+
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v2.0.2"
+APP_VERSION = "v2.1"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -142,6 +144,15 @@ TOOLS = [
     ("hiber", "THIẾT LẬP WINDOWS", "💤 Tắt ngủ đông", "cmd", "powercfg -h off", ""),
     ("tz", "THIẾT LẬP WINDOWS", "🕒 Múi giờ Việt Nam", "cmd", 'tzutil /s "SE Asia Standard Time" && w32tm /resync', ""),
     ("restart_explorer", "THIẾT LẬP WINDOWS", "🔄 Khởi động lại Explorer", "cmd", "taskkill /f /im explorer.exe & start explorer.exe", ""),
+    ("arrow_off", "THIẾT LẬP WINDOWS", "🏹 Xóa mũi tên shortcut", "ps",
+     "$k='HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Icons'; New-Item $k -Force | Out-Null; "
+     "Set-ItemProperty $k '29' ($env:windir + '\\System32\\shell32.dll,-50'); ie4uinit.exe -show; "
+     + ("Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 3; "
+        "if(-not (Get-Process explorer -ErrorAction SilentlyContinue)){ Start-Process explorer.exe }") + "; 'Đã xóa mũi tên trên biểu tượng shortcut'", ""),
+    ("arrow_on", "THIẾT LẬP WINDOWS", "↩ Hiện lại mũi tên shortcut", "ps",
+     "Remove-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Icons' '29' -ErrorAction SilentlyContinue; "
+     "ie4uinit.exe -show; " + ("Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 3; "
+        "if(-not (Get-Process explorer -ErrorAction SilentlyContinue)){ Start-Process explorer.exe }") + "; 'Đã hiện lại mũi tên shortcut'", ""),
     ("ctx_old", "THIẾT LẬP WINDOWS", "🖱 Menu chuột phải kiểu cũ", "ps",
      "New-Item 'HKCU:\\Software\\Classes\\CLSID\\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\\InprocServer32' -Force | Out-Null; "
      "Set-Item 'HKCU:\\Software\\Classes\\CLSID\\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\\InprocServer32' -Value ''; "
@@ -175,6 +186,17 @@ TOOLS = [
      "Remove-ItemProperty 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU' NoAutoUpdate -ErrorAction SilentlyContinue; "
      "Set-Service wuauserv -StartupType Manual; Start-Service wuauserv", ""),
     ("upd_open", "WINDOWS UPDATE", "⚙ Mở Windows Update", "open", "ms-settings:windowsupdate", ""),
+
+    ("dns_google", "MẠNG", "🌐 DNS Google 8.8.8.8", "ps",
+     "Get-NetAdapter | Where-Object Status -eq 'Up' | Set-DnsClientServerAddress -ServerAddresses 8.8.8.8,8.8.4.4; Clear-DnsClientCache; 'Đã đặt DNS Google cho mạng đang dùng'", ""),
+    ("dns_cf", "MẠNG", "🌐 DNS Cloudflare 1.1.1.1", "ps",
+     "Get-NetAdapter | Where-Object Status -eq 'Up' | Set-DnsClientServerAddress -ServerAddresses 1.1.1.1,1.0.0.1; Clear-DnsClientCache; 'Đã đặt DNS Cloudflare cho mạng đang dùng'", ""),
+    ("dns_auto", "MẠNG", "↺ DNS tự động (nhà mạng)", "ps",
+     "Get-NetAdapter | Where-Object Status -eq 'Up' | Set-DnsClientServerAddress -ResetServerAddresses; Clear-DnsClientCache; 'Đã trả DNS về tự động'", ""),
+    ("dns_flush", "MẠNG", "🧹 Xóa cache DNS", "cmd", "ipconfig /flushdns", ""),
+    ("wifi_pw", "MẠNG", "🔑 Xem mật khẩu Wifi đã lưu", "fn", "wifi_passwords", ""),
+    ("net_reset", "MẠNG", "🔁 Reset mạng (Winsock, TCP/IP)", "cmd", "netsh winsock reset & netsh int ip reset & ipconfig /flushdns",
+     "Đặt lại toàn bộ cấu hình mạng (Winsock, TCP/IP)? Cần khởi động lại máy sau khi xong."),
 
     ("clean_temp", "DỌN DẸP", "🗑 Xóa file tạm", "ps",
      "$n=0; foreach($p in @($env:TEMP,'C:\\Windows\\Temp')){ Get-ChildItem $p -Force -ErrorAction SilentlyContinue | "
@@ -548,6 +570,8 @@ class Engine:
         self.wg_ready.set()
         self.power = Power(self)
         self.office = OfficeSetup(self)
+        mgr.init(ps=ps, run=run_hidden, fake=FAKE, base=BASE, data=DATA, ensure_disk=store.ensure_disk, log=self.log,
+                 history=lambda n, src, st, d="": store.add_history(n, src, st, d or ""))
         threading.Thread(target=self._bg_checks, daemon=True).start()
 
     # ---- nhật ký
@@ -1165,6 +1189,21 @@ Remove-Item $d -Recurse -Force; 'OK'
         if not folder:
             return 1, "Chưa chọn thư mục"
         return run_hidden(["pnputil", "/add-driver", str(Path(folder) / "*.inf"), "/subdirs", "/install"], timeout=3600)
+
+    def _t_wifi_passwords(self, _):
+        if FAKE:
+            return 0, "Wifi_NhaDuyAnh    →  12345678\nCafe_Sang         →  cafesang2026\nAndroidAP         →  (mạng mở / không lưu mật khẩu)"
+        _, out = run_hidden(["netsh", "wlan", "show", "profiles"], timeout=30)
+        names = [m.strip() for m in re.findall(r":\s*(.+)$", out or "", re.M) if m.strip() and "<" not in m]
+        names = [n for n in names if not re.search(r"(?i)^(none|không)$", n)]
+        rows = []
+        for n in dict.fromkeys(names):
+            _, o = run_hidden(["netsh", "wlan", "show", "profile", f"name={n}", "key=clear"], timeout=30)
+            if not o or "SSID" not in o and "Profile" not in o:
+                continue
+            m = re.search(r"(?im)^\s*(Key Content|Nội dung khóa|Nội dung Khóa)\s*:\s*(.+)$", o)
+            rows.append(f"{n:<30} →  {m.group(2).strip() if m else '(mạng mở / không lưu mật khẩu)'}")
+        return (0, "\n".join(rows)) if rows else (1, "Máy chưa lưu mạng Wifi nào (hoặc không có card Wifi).")
 
     def _t_win_key(self, key):
         key = (key or "").strip().upper()
@@ -1905,6 +1944,31 @@ class Api:
         self._s.save_config()
         return True
 
+    def auto_arrange(self, sort_apps=False):
+        """Tự sắp xếp nhóm: chia các nhóm vào cột sao cho chiều cao đều nhau (giữ thứ tự nhóm);
+        kiểu Lưới: nhóm nhiều nút lên trước để mỗi hàng cao gần bằng nhau. Tùy chọn xếp nút A-Z."""
+        self._need_admin()
+        st = self._s
+        n = st.columns()
+        with st.lock:
+            rows = st.db.execute("SELECT g.id, (SELECT COUNT(*) FROM apps a WHERE a.group_id=g.id) FROM groups g "
+                                 "ORDER BY " + ("gpos, id" if st.layout() == "grid" else "col, ord, id")).fetchall()
+            h, ords = [0] * n, [0] * n
+            for gid, cnt in rows:                    # cột dọc: nhóm kế tiếp vào cột đang thấp nhất
+                c = min(range(n), key=lambda i: (h[i], i))
+                st.db.execute("UPDATE groups SET col=?, ord=? WHERE id=?", (c, ords[c], gid))
+                h[c] += 2 + cnt
+                ords[c] += 1
+            for k, (gid, _) in enumerate(sorted(rows, key=lambda r: -r[1])):
+                st.db.execute("UPDATE groups SET gpos=? WHERE id=?", (k, gid))
+            if sort_apps:
+                for gid, _ in rows:
+                    ids = [r[0] for r in st.db.execute("SELECT id FROM apps WHERE group_id=? ORDER BY name COLLATE NOCASE", (gid,))]
+                    for k, x in enumerate(ids):
+                        st.db.execute("UPDATE apps SET ord=? WHERE id=?", (k, x))
+            st.commit()
+        return True
+
     def set_columns(self, n):
         self._need_admin()
         self._s.cfg["columns"] = max(2, min(6, int(n)))
@@ -2299,6 +2363,37 @@ class Api:
     def battery(self):
         return battery_info()
 
+    # ---- Quản lý / Dọn dẹp / Sao lưu (mgr.py)
+    M_SYNC = {"startup_list", "startup_set", "startup_delete", "programs_list", "leftovers_rescan", "leftovers_delete", "appx_list",
+              "defender_status", "defender_set", "defender_excl", "capcut_info", "xlstart_scan", "xlstart_quarantine", "excel_safe_macro",
+              "backup_info", "zalo_info", "zalo_open", "zalo_profile_delete", "browsers_info", "job_status", "job_stop"}
+    M_JOB = {"uninstall_run", "appx_remove", "clean_scan", "clean_run", "folder_sizes", "capcut_clean", "metadata_strip", "backup_user",
+             "restore_user", "zalo_backup", "zalo_restore", "browser_backup", "browser_restore"}
+
+    def m(self, name, *args):
+        if name not in self.M_SYNC:
+            raise ValueError("Không có chức năng " + name)
+        return getattr(mgr, name)(*args)
+
+    def mjob(self, name, label, *args):
+        if name not in self.M_JOB:
+            raise ValueError("Không có chức năng " + name)
+        return mgr.job_start(label, getattr(mgr, name), *args)
+
+    def open_folder(self, p):
+        if p and (FAKE or Path(p).exists()):
+            open_target(str(Path(p) if Path(p).is_dir() else Path(p).parent))
+        return True
+
+    def select_in_explorer(self, p):
+        if not FAKE and IS_WIN and p:
+            q = mgr.exe_of(p)
+            if Path(q).exists():
+                subprocess.Popen(["explorer", "/select,", q])
+            elif Path(q).parent.exists():
+                os.startfile(str(Path(q).parent))     # noqa: S606
+        return True
+
     def disk_health(self):
         return disk_health()
 
@@ -2327,6 +2422,10 @@ class Api:
     def pick_folder(self):
         return self._dialog("folder")
 
+    def pick_folder_abs(self):
+        r = self._dialog("folder")
+        return str(mgr.absp(r)) if r else r
+
     def _dialog(self, kind):
         if not self._app or not self._app.win:
             return None
@@ -2349,8 +2448,8 @@ def page_html(token=""):
     css = (web / "style.css").read_text(encoding="utf-8")
     js = (web / "app.js").read_text(encoding="utf-8")
     html = html.replace('<link rel="stylesheet" href="style.css">', f"<style>{css}</style>")
-    tjs = (web / "test.js").read_text(encoding="utf-8")
-    html = html.replace('<script src="test.js"></script>', f"<script>{tjs}</script>")
+    for extra in ("test.js", "mgr.js"):
+        html = html.replace(f'<script src="{extra}"></script>', f"<script>{(web / extra).read_text(encoding='utf-8')}</script>")
     return html.replace('<script src="app.js"></script>', f"<script>window.__TOKEN={json.dumps(token)};</script><script>{js}</script>")
 
 
@@ -2490,6 +2589,15 @@ class App:
             lines.append("boot: " + json.dumps(boot_status(), ensure_ascii=False)[:800])
             lines.append("battery: " + json.dumps(battery_info(), ensure_ascii=False))
             lines.append("defender: " + json.dumps(self.eng.run_tool("def_status"), ensure_ascii=False))
+            for nm, f in [("startup", lambda: [(x["name"], x["on"], x["pub"]) for x in mgr.startup_list()]),
+                          ("programs", lambda: [len(mgr.programs_list())] + [x["name"] for x in mgr.programs_list()[:8]]),
+                          ("appx", lambda: len(mgr.appx_list())), ("mgr_defender", mgr.defender_status),
+                          ("backup", lambda: [(d["key"], d["path"], d["exists"]) for d in mgr.backup_info()["dirs"]]),
+                          ("zalo", mgr.zalo_info), ("browsers", mgr.browsers_info), ("capcut", mgr.capcut_info), ("xlstart", mgr.xlstart_scan)]:
+                try:
+                    lines.append(f"{nm}: " + json.dumps(f(), ensure_ascii=False, default=str)[:1200])
+                except Exception as e:      # noqa: BLE001
+                    lines.append(f"{nm}: ERROR {e!r}")
             lines.append("Data folder exists: " + str(DATA.exists()))
             lines.append("webview2: " + str(has_webview2()))
         except Exception as e:              # noqa: BLE001

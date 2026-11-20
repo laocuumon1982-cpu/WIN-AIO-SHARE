@@ -13,12 +13,19 @@
     <div class="hide-mini"><b>WIN AIO</b><small id="ver">by Duy Anh</small></div>
     <span class="fold" id="fold" title="Thu gọn / mở rộng">«</span>
   </div>
-  <div class="menu-l hide-mini">MENU</div>
-  <div class="nav" data-p="system"><span class="ic">🖥</span><span class="hide-mini">Hệ thống</span><span class="led sm ok hide-mini"><i></i></span></div>
+  <div class="menu-l hide-mini">CÀI ĐẶT</div>
   <div class="nav" data-p="apps"><span class="ic">📦</span><span class="hide-mini">Cài phần mềm</span><span class="badge hide-mini" id="bd-apps" hidden></span><span class="led sm ok hide-mini"><i></i></span></div>
-  <div class="nav" data-p="power"><span class="ic">⏻</span><span class="hide-mini">Nguồn &amp; Ổ USB</span><span class="badge o hide-mini" id="bd-power" hidden></span><span class="led sm ok hide-mini"><i></i></span></div>
-  <div class="nav" data-p="test"><span class="ic">🧪</span><span class="hide-mini">Test máy</span><span class="led sm ok hide-mini"><i></i></span></div>
   <div class="nav" data-p="tools"><span class="ic">🧰</span><span class="hide-mini">Tiện ích Windows</span><span class="led sm ok hide-mini"><i></i></span></div>
+  <div class="menu-l hide-mini">HỆ THỐNG</div>
+  <div class="nav" data-p="system"><span class="ic">🖥</span><span class="hide-mini">Thông tin & khởi động</span><span class="led sm ok hide-mini"><i></i></span></div>
+  <div class="nav" data-p="manage"><span class="ic">🛠</span><span class="hide-mini">Quản lý</span><span class="led sm ok hide-mini"><i></i></span></div>
+  <div class="nav" data-p="power"><span class="ic">⏻</span><span class="hide-mini">Nguồn &amp; Ổ USB</span><span class="badge o hide-mini" id="bd-power" hidden></span><span class="led sm ok hide-mini"><i></i></span></div>
+  <div class="menu-l hide-mini">DỌN DẸP &amp; SAO LƯU</div>
+  <div class="nav" data-p="clean"><span class="ic">🧹</span><span class="hide-mini">Dọn dẹp</span><span class="led sm ok hide-mini"><i></i></span></div>
+  <div class="nav" data-p="backup"><span class="ic">💾</span><span class="hide-mini">Sao lưu</span><span class="led sm ok hide-mini"><i></i></span></div>
+  <div class="menu-l hide-mini">KIỂM TRA</div>
+  <div class="nav" data-p="test"><span class="ic">🧪</span><span class="hide-mini">Test máy</span><span class="led sm ok hide-mini"><i></i></span></div>
+  <div class="menu-l hide-mini">KHÁC</div>
   <div class="nav" data-p="history"><span class="ic">☰</span><span class="hide-mini">Nhật ký</span><span class="led sm ok hide-mini"><i></i></span></div>
   <div class="nav" data-p="settings"><span class="ic">⚙</span><span class="hide-mini">Cài đặt</span><span class="lk hide-mini" id="lk-settings">🔒</span><span class="led sm ok hide-mini"><i></i></span></div>
   <div class="raised alert hide-mini" id="alert"><span class="led big ok" id="aled"><i></i></span>
@@ -87,7 +94,7 @@
     <div class="admbar adm"><span>🔓 Admin: <b>✎</b> sửa tên / đổi link · <b>▲▼</b> cạnh nút đổi vị trí nút · dưới tên nhóm <b>◀ ▲ ▼ ▶</b> di chuyển nhóm.</span>
       <span style="margin-left:auto;white-space:nowrap">Kiểu xếp <select id="lay"><option value="grid">Lưới (thẳng hàng)</option><option value="columns">Cột dọc</option></select></span>
       <span style="white-space:nowrap">Số cột <select id="nCol"><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></span>
-      <button class="btn sm" id="bAddGroup" style="margin-left:0">＋ Thêm nhóm</button></div>
+      <button class="btn sm" id="bArrange" title="Chia nhóm cho đều chiều cao">⚖ Tự sắp xếp</button><button class="btn sm" id="bAddGroup" style="margin-left:0">＋ Thêm nhóm</button></div>
     <div class="appwrap"><div class="appgrid" id="groups"></div></div>
     <div class="crt"><div class="log" id="log"></div></div>
   </section>
@@ -120,6 +127,20 @@
     </div>
     <div class="crt"><div class="log" id="log3"></div></div>
   </section>
+
+  <!-- ===================== QUẢN LÝ ===================== -->
+  <section class="page" id="pg-manage">
+    <div class="subtabs" id="mtabs"><div data-t="startup" class="on">🚀 Khởi động cùng Windows</div><div data-t="programs">🗑️ Gỡ phần mềm tận gốc</div>
+      <div data-t="appx">🛍️ Ứng dụng MS Store</div><div data-t="defender">🛡️ Defender &amp; bảo mật</div></div>
+    <div class="mpane" id="mp-startup"></div><div class="mpane" id="mp-programs" hidden></div>
+    <div class="mpane" id="mp-appx" hidden></div><div class="mpane" id="mp-defender" hidden></div>
+  </section>
+
+  <!-- ===================== DỌN DẸP ===================== -->
+  <section class="page" id="pg-clean"><div class="syswrap" id="cleanwrap"></div></section>
+
+  <!-- ===================== SAO LƯU ===================== -->
+  <section class="page" id="pg-backup"><div class="syswrap" id="backwrap"></div></section>
 
   <!-- ===================== TEST MÁY ===================== -->
   <section class="page" id="pg-test">
@@ -170,6 +191,7 @@
 <div class="toast" id="toast"></div>
 <div class="tview" id="tview" hidden></div>
 <script src="test.js"></script>
+<script src="mgr.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

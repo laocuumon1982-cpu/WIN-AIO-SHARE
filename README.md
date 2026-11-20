@@ -1,6 +1,6 @@
 # Win AIO by Duy Anh
 
-Bộ tiện ích cài Win, cài phần mềm, thiết lập Windows, test laptop / PC, tắt máy khẩn cấp và tháo ổ USB an toàn. Chỉ 1 file exe portable.
+Bộ tiện ích cài Win, cài phần mềm, thiết lập Windows, quản lý khởi động / gỡ tận gốc / Defender, dọn dẹp, sao lưu (thư mục người dùng, Zalo, trình duyệt), test laptop / PC, tắt máy khẩn cấp và tháo ổ USB an toàn. Chỉ 1 file exe portable.
 
 Tải bản mới nhất ở mục **Releases** (`Win-AIO-by-Duy-Anh.exe`). Trong tool có nút **⟳ Cập nhật**.
 

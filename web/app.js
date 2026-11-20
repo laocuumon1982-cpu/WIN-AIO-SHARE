@@ -44,7 +44,7 @@ function dialog({title, body = "", buttons = [], width = 600, onOpen, left = ""}
       `<button class="btn ${b.cls || ""}" data-i="${i}">${b.text}</button>`).join("")}</div></div>`;
     document.body.appendChild(ov);
     const dlg = ov.querySelector(".dlg");
-    const close = v => { ov.remove(); dialogs.splice(dialogs.indexOf(ctl), 1); resolve(v); };
+    const close = v => { if (!ov.isConnected) return; ov.remove(); dialogs.splice(dialogs.indexOf(ctl), 1); resolve(v); };
     const ctl = {el: dlg, close, q: s => dlg.querySelector(s), err: t => { const e = dlg.querySelector(".err"); if (e) e.textContent = t || ""; }};
     dialogs.push(ctl);
     dlg.querySelectorAll(".btns > button").forEach(b => b.onclick = async () => {
@@ -85,11 +85,14 @@ function popMenu(anchor, items) {
 
 /* ===================================================================== WIN AIO */
 const PAGES = {
-  system: ["Hệ thống", "Thông tin máy và mở nhanh các công cụ có sẵn của Windows"],
+  system: ["Thông tin & khởi động", "Thông tin máy, khởi động đặc biệt (BIOS, Safe Mode...) và mở nhanh công cụ Windows"],
+  manage: ["Quản lý", "Chương trình khởi động cùng Windows · Gỡ phần mềm tận gốc · Ứng dụng MS Store · Defender"],
+  clean: ["Dọn dẹp", "Dọn rác, phân tích ổ đĩa, cache CapCut, virus macro Excel, xóa metadata ảnh"],
+  backup: ["Sao lưu", "Thư mục người dùng · Zalo · Zalo nhiều tài khoản · Trình duyệt"],
   apps: ["Cài phần mềm", "Bấm 1 nút để cài ngay, hoặc chọn nhiều mục rồi bấm ▶ Cài mục đã chọn"],
   power: ["Nguồn & Ổ USB", "Tắt máy khẩn cấp · Khóa máy · Hẹn giờ tắt · Tháo ổ USB an toàn"],
   test: ["Test máy", "Kiểm tra màn hình, cảm ứng, bàn phím, loa, micro, trackpad, webcam, pin laptop"],
-  tools: ["Tiện ích Windows", "Thiết lập nhanh, Windows Update, dọn dẹp, máy in, BitLocker, sao lưu"],
+  tools: ["Tiện ích Windows", "Thiết lập nhanh, mạng, Defender, Windows Update, máy in, BitLocker, sao lưu Wifi / Driver"],
   history: ["Nhật ký", "Những gì tool đã cài / đã chạy"],
   settings: ["Cài đặt", "Mật khẩu Admin, thư mục tải, sao lưu danh sách nút"]};
 const KIND = {web: "WEB", winget: "WINGET", file: "FILE", cmd: "LỆNH", office: "OFFICE", none: "CHƯA CÓ NGUỒN"};
@@ -107,6 +110,9 @@ function showPage(p) {
   if (p === "system") { live(); loadBoot().catch(() => {}); }
   if (p === "tools") renderTools();
   if (p === "test") { loadBattery(); loadDisk(); renderSum(); }
+  if (p === "manage") mgrShow();
+  if (p === "clean") cleanShow();
+  if (p === "backup") backShow();
   if (p === "settings" && ADMIN) renderSettings();
 }
 document.querySelectorAll(".nav").forEach(n => n.onclick = () => showPage(n.dataset.p));
@@ -201,6 +207,13 @@ $("bGo").onclick = async () => {
   picked.clear(); renderGroups();
 };
 $("bStop").onclick = () => api("stop");
+$("bArrange").onclick = async () => {
+  const r = await dialog({title: "Tự sắp xếp nhóm phần mềm", width: 500, body: `<div class="msg">Chia lại các nhóm cho đều chiều cao (kiểu Lưới: nhóm nhiều nút lên trước).</div>
+      <label class="ck" style="margin-top:10px"><input type="checkbox" id="arA"> Xếp các nút trong mỗi nhóm theo tên A → Z</label>`,
+    buttons: [{text: "Hủy", value: null}, {text: "⚖ Sắp xếp", cls: "red", def: true, click: c => ({a: c.q("#arA").checked})}]});
+  if (!r) return;
+  await api("auto_arrange", r.a); loadGroups(); toast("Đã sắp xếp lại các nhóm");
+};
 $("lay").onchange = async () => { await api("set_layout", $("lay").value); loadGroups(); toast($("lay").value === "grid" ? "Kiểu xếp: Lưới (thẳng hàng)" : "Kiểu xếp: Cột dọc"); };
 $("nCol").onchange = async () => { await api("set_columns", +$("nCol").value); loadGroups(); toast(`Đã chia lại thành ${$("nCol").value} cột`); };
 $("bAddGroup").onclick = async () => {
@@ -488,6 +501,7 @@ const TOOL_SEC = {
   "WINDOWS UPDATE": ["🔄", "#0f8fd8", "Tắt / bật cập nhật tự động"],
   "MÁY IN": ["🖨️", "#7c3aed", "Sửa lỗi kẹt lệnh in, lỗi Spooler"],
   "BITLOCKER": ["🔐", "#d97706", "Kiểm tra và tắt mã hóa ổ đĩa"],
+  "MẠNG": ["🌐", "#0891b2", "DNS, Wifi đã lưu, sửa lỗi mạng"],
   "BẢN QUYỀN (KEY CỦA BẠN)": ["🔑", "#e0262a", "Kiểm tra / nhập key Windows hợp lệ"],
 };
 let toolCols = 0;

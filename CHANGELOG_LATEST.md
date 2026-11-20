@@ -1,4 +1,8 @@
-Win AIO by Duy Anh v2.0.2
+Win AIO by Duy Anh v2.1
 
-- Sửa lỗi sau khi bấm ⟳ Cập nhật hiện hộp "Security validation failure: invalid originating onefile parent process (PID not found)!": bản mới giờ được mở như một bản độc lập (PYINSTALLER_RESET_ENVIRONMENT), không còn báo lỗi rồi phải mở lại bằng tay.
-- Lưu ý: lần cập nhật TỪ bản cũ (v2.0.1 trở về trước) lên bản này vẫn có thể hiện lỗi đó 1 lần vì bản cũ là bên mở bản mới — bấm OK rồi mở lại tool. Từ v2.0.2 trở đi cập nhật sẽ không còn lỗi.
+- Mới: trang QUẢN LÝ — khởi động cùng Windows (vô hiệu / kích hoạt / xóa / mở vị trí, nhà phát hành), gỡ phần mềm tận gốc (dọn thư mục + registry còn sót), gỡ ứng dụng MS Store, Defender & bảo mật (Realtime, Cloud, gửi mẫu, Firewall, SmartScreen, UAC, ngoại lệ, bảng trạng thái).
+- Mới: trang DỌN DẸP — dọn rác hệ thống có đo dung lượng, phân tích ổ đĩa, xóa cache CapCut, quét virus macro Excel (XLSTART), xóa metadata ảnh.
+- Mới: trang SAO LƯU — thư mục người dùng, Zalo PC (sao lưu / khôi phục), Zalo nhiều tài khoản, trình duyệt (Chrome, Edge, Cốc Cốc, Brave, Firefox).
+- Tiện ích Windows: xóa / hiện lại mũi tên shortcut; nhóm MẠNG (DNS Google / Cloudflare / tự động, xóa cache DNS, xem mật khẩu Wifi, reset mạng).
+- Giao diện: menu trái gọn hơn và chia nhóm (Cài đặt · Hệ thống · Dọn dẹp & sao lưu · Kiểm tra · Khác); việc chạy lâu có hộp % tiến độ và nút Dừng.
+- Admin: nút "⚖ Tự sắp xếp" chia đều các nhóm phần mềm, tùy chọn xếp nút A → Z.
