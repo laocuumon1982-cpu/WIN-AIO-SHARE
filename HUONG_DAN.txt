@@ -1,4 +1,4 @@
-﻿WIN AIO BY DUY ANH - v2.1
+﻿WIN AIO BY DUY ANH - v2.1.1
 =========================
 
 CHỈ 1 FILE EXE
@@ -62,6 +62,8 @@ TIỆN ÍCH WINDOWS - mới ở v2.1
   - Xóa / hiện lại mũi tên trên biểu tượng shortcut (Explorer tự khởi động lại).
   - Nhóm MẠNG: DNS Google / Cloudflare / tự động, xóa cache DNS, xem mật khẩu Wifi đã lưu, reset mạng (cần khởi động lại).
   - Admin -> tab Cài phần mềm -> "⚖ Tự sắp xếp": chia các nhóm phần mềm cho đều, tùy chọn xếp nút A → Z.
+  - Kiểu xếp "Tự vừa màn hình" (mặc định từ v2.1.1): tool tự chia cột cho vừa 1 màn hình, không phải kéo.
+    Admin đổi thứ tự nhóm bằng ◀ ▶; muốn tự chọn số cột thì đổi Kiểu xếp sang Lưới hoặc Cột dọc.
 
 NGUỒN & Ổ USB (gộp từ Power & USB Eject)
   - TẮT MÁY NGAY: ép tắt ngay, không hỏi lại (dùng khi khẩn cấp).

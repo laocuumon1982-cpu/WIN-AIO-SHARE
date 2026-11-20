@@ -31,7 +31,7 @@ from urllib.parse import unquote, urlparse, parse_qs
 import mgr
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v2.1"
+APP_VERSION = "v2.1.1"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -408,7 +408,11 @@ class Store:
             self.commit(persist=False)
 
     def layout(self):
-        return "columns" if self.cfg.get("layout") == "columns" else "grid"
+        """fit = tự vừa màn hình (mặc định từ v2.1.1), grid = lưới thẳng hàng, columns = cột dọc."""
+        if not self.cfg.get("layout_v211"):
+            return "fit"
+        v = self.cfg.get("layout")
+        return v if v in ("fit", "grid", "columns") else "fit"
 
     def grid_from_columns(self):
         """Vị trí Lưới = thứ tự đọc từ trái sang phải, trên xuống dưới của kiểu cột dọc."""
@@ -529,7 +533,7 @@ class Store:
 
     def groups(self):
         with self.lock:
-            order = "gpos, id" if self.layout() == "grid" else "col, ord, id"
+            order = "gpos, id" if self.layout() != "columns" else "col, ord, id"
             gs = [dict(r) for r in self.db.execute("SELECT * FROM groups ORDER BY " + order)]
             apps = [dict(r) for r in self.db.execute("SELECT * FROM apps ORDER BY ord, id")]
         for g in gs:
@@ -1940,7 +1944,8 @@ class Api:
 
     def set_layout(self, mode):
         self._need_admin()
-        self._s.cfg["layout"] = "columns" if mode == "columns" else "grid"
+        self._s.cfg["layout"] = mode if mode in ("fit", "grid", "columns") else "fit"
+        self._s.cfg["layout_v211"] = True
         self._s.save_config()
         return True
 
@@ -1952,7 +1957,7 @@ class Api:
         n = st.columns()
         with st.lock:
             rows = st.db.execute("SELECT g.id, (SELECT COUNT(*) FROM apps a WHERE a.group_id=g.id) FROM groups g "
-                                 "ORDER BY " + ("gpos, id" if st.layout() == "grid" else "col, ord, id")).fetchall()
+                                 "ORDER BY " + ("gpos, id" if st.layout() != "columns" else "col, ord, id")).fetchall()
             h, ords = [0] * n, [0] * n
             for gid, cnt in rows:                    # cột dọc: nhóm kế tiếp vào cột đang thấp nhất
                 c = min(range(n), key=lambda i: (h[i], i))
@@ -2117,12 +2122,14 @@ class Api:
         self._need_admin()
         st = self._s
         n = st.columns()
-        if st.layout() == "grid":
+        if st.layout() != "columns":
             # Lưới: đổi chỗ với ô bên cạnh (trái / phải) hoặc ô ngay trên / dưới (cách n ô)
             with st.lock:
                 ids = [r[0] for r in st.db.execute("SELECT id FROM groups ORDER BY gpos, id")]
                 i = ids.index(int(gid))
-                step = {"left": -1, "right": 1, "up": -n, "down": n}.get(way, 0)
+                if st.layout() == "fit":            # tự vừa màn hình: chỉ đổi thứ tự trước / sau
+                    way = {"left": "prev", "up": "prev", "right": "next", "down": "next"}.get(way, way)
+                step = {"left": -1, "right": 1, "up": -n, "down": n, "prev": -1, "next": 1}.get(way, 0)
                 if way == "left" and i % n == 0 or way == "right" and (i % n == n - 1 or i == len(ids) - 1):
                     return False
                 j = i + step

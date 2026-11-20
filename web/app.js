@@ -109,6 +109,7 @@ function showPage(p) {
   if (p === "power") loadDisks();
   if (p === "system") { live(); loadBoot().catch(() => {}); }
   if (p === "tools") renderTools();
+  if (p === "apps" && LAYOUT === "fit" && G.length) renderGroups();
   if (p === "test") { loadBattery(); loadDisk(); renderSum(); }
   if (p === "manage") mgrShow();
   if (p === "clean") cleanShow();
@@ -155,41 +156,67 @@ function renderGroups() {
       const st = res[a.id], l = st === "run" || st === "wait" ? led("run", "sm") : st === "ok" ? led("ok", "sm") : st === "err" ? led("err", "sm") : "";
       return `<div class="arow${hit ? "" : " hide"}" data-a="${a.id}">
         <span class="chk${picked.has(a.id) ? " on" : ""}" data-act="pick"></span>
-        <button class="btn abtn" data-act="run" title="${esc((a.note ? a.note + "\n" : "") + (a.src || "Chưa có nguồn"))}">
+        <button class="btn abtn" data-act="run" title="${esc(a.name + "\n" + (a.note ? a.note + "\n" : "") + (a.src || "Chưa có nguồn"))}">
           <span class="ai">${esc(a.icon || "▫")}</span><span class="an">${esc(a.name)}</span>${l}<span class="tag ${a.kind}">${KIND[a.kind]}</span></button>
         <span class="mv adm"><button class="ed xs" data-act="aup" title="Đưa nút lên">▲</button><button class="ed xs" data-act="adown" title="Đưa nút xuống">▼</button></span>
         <button class="ed adm" data-act="edit" title="Sửa tên / nguồn">✎</button></div>`;
     }).join("");
     const anyHit = !q || g.apps.some(a => norm(a.name + " " + a.note + " " + g.name).includes(q));
-    const grid = LAYOUT === "grid", n = G.length;
+    const fit = LAYOUT === "fit", grid = LAYOUT === "grid" || fit, n = G.length;
+    const hits = g.apps.filter(a => !q || norm(a.name + " " + a.note + " " + g.name).includes(q)).length;
     const c = grid ? gi % NCOL : Math.min(g.col || 0, NCOL - 1), r = Math.floor(gi / NCOL);
     const dis = {gleft: c === 0, gright: grid ? (c === NCOL - 1 || gi === n - 1) : c === NCOL - 1,
       gup: grid && gi < NCOL, gdown: grid && gi === n - 1};
     const d = k => dis[k] ? " disabled" : "";
-    return {c, html: `<div class="gcard${anyHit ? "" : " empty-hit"}" data-g="${g.id}">
+    if (fit) Object.assign(dis, {gleft: gi === 0, gup: true, gdown: true, gright: gi === n - 1});
+    return {c, w: anyHit ? 1.7 + hits : 0, html: `<div class="gcard${anyHit ? "" : " empty-hit"}${fit ? " fitg" : ""}" data-g="${g.id}">
       <div class="ghead"><h4><span>${esc(g.name)}</span></h4><span class="gall" data-act="gpick">chọn nhóm</span>
         <button class="ed sm adm" data-act="gedit" title="Đổi tên nhóm">✎</button><button class="ed sm del adm" data-act="gdel" title="Xóa nhóm">✕</button></div>
       <div class="gmove adm"><button class="ed sm" data-act="gleft" title="${grid ? "Đổi chỗ với nhóm bên trái" : "Chuyển nhóm sang cột bên trái"}"${d("gleft")}>◀</button>
         <button class="ed sm" data-act="gup" title="${grid ? "Đổi chỗ với nhóm ở hàng trên" : "Đưa nhóm lên trên"}"${d("gup")}>▲</button>
         <button class="ed sm" data-act="gdown" title="${grid ? "Đổi chỗ với nhóm ở hàng dưới" : "Đưa nhóm xuống dưới"}"${d("gdown")}>▼</button>
         <button class="ed sm" data-act="gright" title="${grid ? "Đổi chỗ với nhóm bên phải" : "Chuyển nhóm sang cột bên phải"}"${d("gright")}>▶</button>
-        <span>${grid ? `Hàng ${r + 1} · Cột ${c + 1}` : `Cột ${c + 1}`}</span></div>
+        <span>${fit ? `Thứ tự ${gi + 1}` : grid ? `Hàng ${r + 1} · Cột ${c + 1}` : `Cột ${c + 1}`}</span></div>
       ${rows || '<div class="logl">(chưa có nút)</div>'}
       <button class="addbtn adm" data-act="add">＋ Thêm phần mềm</button></div>`};
   });
   $("groups").style.setProperty("--ncol", NCOL);
   $("groups").classList.toggle("lgrid", LAYOUT === "grid");
-  if (LAYOUT === "grid") $("groups").innerHTML = cards.map(x => x.html).join("");
+  $("groups").classList.toggle("fitgrid", LAYOUT === "fit");
+  if (LAYOUT !== "fit") $("groups").classList.remove("notag");
+  $("groups").style.zoom = "";
+  if (LAYOUT === "fit") fitGroups(cards);
+  else if (LAYOUT === "grid") $("groups").innerHTML = cards.map(x => x.html).join("");
   else {
     const cols = Array.from({length: NCOL}, () => []);
     cards.forEach(x => cols[x.c].push(x.html));
     $("groups").innerHTML = cols.map((h, i) => `<div class="gcol" data-c="${i}">${h.join("") || '<div class="colempty adm">Cột trống</div>'}</div>`).join("");
   }
   if ($("nCol")) $("nCol").value = NCOL;
-  if ($("lay")) $("lay").value = LAYOUT;
+  if ($("lay")) { $("lay").value = LAYOUT; $("nCol").parentElement.hidden = LAYOUT === "fit"; }
   $("s-total").textContent = allApps().length;
   updSel();
 }
+/* Tự vừa màn hình: xếp các nhóm kiểu "gạch" vào nhiều cột (nhóm kế tiếp vào cột đang thấp nhất),
+   tăng số cột cho tới khi không còn phải kéo; vẫn chưa vừa thì thu nhỏ cả khối (tối đa còn 70%). */
+function fitGroups(cards) {
+  const el = $("groups"), wrap = el.parentElement, W = el.clientWidth || 1000;
+  const put = n => {
+    const cols = Array.from({length: n}, () => ({h: 0, html: []}));
+    cards.forEach(x => { const c = cols.reduce((b, k) => k.h < b.h ? k : b, cols[0]); c.html.push(x.html); c.h += x.w; });
+    el.style.setProperty("--ncol", n);
+    el.classList.toggle("notag", W / n < 228);          // cột hẹp: ẩn nhãn WINGET / WEB để tên phần mềm không bị cắt
+    el.innerHTML = cols.map(c => `<div class="gcol">${c.html.join("")}</div>`).join("");
+  };
+  const lo = Math.max(2, Math.floor(W / 240)), hi = Math.max(lo, Math.floor(W / 190));
+  let n = lo;
+  for (; n <= hi; n++) { put(n); if (wrap.scrollHeight <= wrap.clientHeight + 1) return; }
+  put(hi);
+  const z = Math.max(.7, (wrap.clientHeight - 4) / wrap.scrollHeight);
+  if (z < 1) el.style.zoom = z.toFixed(3);
+}
+let fitT;
+window.addEventListener("resize", () => { clearTimeout(fitT); fitT = setTimeout(() => { if (page === "apps" && LAYOUT === "fit") renderGroups(); }, 150); });
 function updSel() {
   const ids = new Set(allApps().map(a => a.id));
   [...picked].forEach(i => { if (!ids.has(i)) picked.delete(i); });
@@ -214,7 +241,7 @@ $("bArrange").onclick = async () => {
   if (!r) return;
   await api("auto_arrange", r.a); loadGroups(); toast("Đã sắp xếp lại các nhóm");
 };
-$("lay").onchange = async () => { await api("set_layout", $("lay").value); loadGroups(); toast($("lay").value === "grid" ? "Kiểu xếp: Lưới (thẳng hàng)" : "Kiểu xếp: Cột dọc"); };
+$("lay").onchange = async () => { await api("set_layout", $("lay").value); loadGroups(); toast("Kiểu xếp: " + $("lay").selectedOptions[0].text); };
 $("nCol").onchange = async () => { await api("set_columns", +$("nCol").value); loadGroups(); toast(`Đã chia lại thành ${$("nCol").value} cột`); };
 $("bAddGroup").onclick = async () => {
   const n = await promptBox("Thêm nhóm", "Tên nhóm mới:", "NHÓM MỚI");
@@ -504,32 +531,36 @@ const TOOL_SEC = {
   "MẠNG": ["🌐", "#0891b2", "DNS, Wifi đã lưu, sửa lỗi mạng"],
   "BẢN QUYỀN (KEY CỦA BẠN)": ["🔑", "#e0262a", "Kiểm tra / nhập key Windows hợp lệ"],
 };
-let toolCols = 0;
-function renderTools(force) {
-  const w = $("tools").clientWidth || 1100, n = w >= 1080 ? 3 : w >= 700 ? 2 : 1;
-  if (!force && n === toolCols) return;
-  toolCols = n;
+function renderTools() {
+  const el = $("tools"), wrap = el.parentElement, w = el.clientWidth || 1100;
   const groups = [];
   INIT.tools.forEach(t => { let g = groups.find(x => x.name === t.group); if (!g) groups.push(g = {name: t.group, items: []}); g.items.push(t); });
-  // chia các nhóm vào n cột cho đều chiều cao (mỗi hàng 2 nút)
-  const cols = Array.from({length: n}, () => ({h: 0, html: []}));
-  groups.forEach(g => {
+  const cards = groups.map(g => {
     const [ic, color, sub] = TOOL_SEC[g.name] || ["🧰", "#6b7280", ""];
     const btns = g.items.map((t, i) => {
       const m = t.label.match(/^(\S+)\s+(.*)$/), icon = m ? m[1] : "▫", text = m ? m[2] : t.label;
       const wide = g.items.length % 2 === 1 && i === g.items.length - 1;
       return `<button class="tbtn${wide ? " wide" : ""}" data-t="${t.id}" title="${esc(text)}"><span class="ti">${esc(icon)}</span><span class="tt">${esc(text)}</span></button>`;
     }).join("");
-    const c = cols.reduce((a, b) => b.h < a.h ? b : a);
-    c.h += 2.3 + Math.ceil(g.items.length / 2);
-    c.html.push(`<div class="tcard" style="--ac:${color}"><div class="sh"><span class="si">${ic}</span><div><b>${esc(g.name)}</b><small>${esc(sub)}</small></div></div>
-      <div class="tgrid">${btns}</div></div>`);
+    return {h: 1.6 + Math.ceil(g.items.length / 2), html: `<div class="tcard" style="--ac:${color}"><div class="sh"><span class="si">${ic}</span><div><b>${esc(g.name)}</b><small>${esc(sub)}</small></div></div>
+      <div class="tgrid">${btns}</div></div>`};
   });
-  $("tools").style.setProperty("--tcols", n);
-  $("tools").innerHTML = cols.map(c => `<div class="tcol">${c.html.join("")}</div>`).join("");
+  // chia các nhóm vào n cột cho đều chiều cao; thêm cột cho tới khi vừa màn hình, vẫn chưa vừa thì thu nhỏ
+  const put = n => {
+    const cols = Array.from({length: n}, () => ({h: 0, html: []}));
+    cards.forEach(x => { const c = cols.reduce((a, b) => b.h < a.h ? b : a); c.h += x.h; c.html.push(x.html); });
+    el.style.setProperty("--tcols", n);
+    el.innerHTML = cols.map(c => `<div class="tcol">${c.html.join("")}</div>`).join("");
+  };
+  el.style.zoom = "";
+  const lo = Math.max(1, Math.floor(w / 340)), hi = Math.max(lo, Math.floor(w / 250));
+  let n = lo, ok = false;
+  for (; n <= hi && !ok; n++) { put(n); ok = wrap.scrollHeight <= wrap.clientHeight + 1; }
+  if (!ok) { put(hi); const z = Math.max(.72, (wrap.clientHeight - 4) / wrap.scrollHeight); if (z < 1) el.style.zoom = z.toFixed(3); }
   $("quick").innerHTML = INIT.quick.map((q, i) => `<button class="btn" data-q="${i}">${esc(q.label)}</button>`).join("");
 }
-window.addEventListener("resize", () => { if (page === "tools") renderTools(); });
+let toolT;
+window.addEventListener("resize", () => { clearTimeout(toolT); toolT = setTimeout(() => { if (page === "tools") renderTools(); }, 150); });
 $("quick").onclick = e => { const b = e.target.closest("[data-q]"); if (b) api("quick", INIT.quick[+b.dataset.q].target); };
 $("tools").onclick = async e => {
   const b = e.target.closest("[data-t]"); if (!b) return;

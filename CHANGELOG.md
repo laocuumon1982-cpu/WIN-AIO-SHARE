@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v2.1.1
+- Kiểu xếp "Tự vừa màn hình": nút nhỏ gọn, không phải kéo lên xuống (Cài phần mềm, Tiện ích Windows).
+
 ## v2.1
 - Trang Quản lý (khởi động, gỡ tận gốc, MS Store, Defender), Dọn dẹp (rác, phân tích ổ, CapCut, macro Excel, metadata ảnh), Sao lưu (thư mục người dùng, Zalo, Zalo nhiều tài khoản, trình duyệt); xóa mũi tên shortcut; nhóm Mạng; menu gọn; tự sắp xếp nhóm.
 

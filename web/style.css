@@ -812,3 +812,48 @@ body.dark .okbox{background:#12261b;border-color:#1f6b3c;color:#86efac}
 .zmr em{color:var(--muted);font-style:normal;font-size:11.5px;margin-left:6px}
 .ck.lo.st{flex-wrap:wrap;row-gap:2px}.ck.lo.st em{flex-basis:100%;padding-left:24px;overflow:hidden;text-overflow:ellipsis}
 .row-acts .logl.grow{flex:1;min-width:220px;margin:0}
+
+/* ===================================================================== v2.1.1: gọn, vừa 1 màn hình */
+/* ô thống kê thành 1 hàng mỏng */
+#pg-apps .stats{margin-top:8px;gap:10px}
+#pg-apps .stat{display:flex;align-items:center;gap:10px;padding:6px 12px!important;border-left-width:5px;border-radius:11px}
+#pg-apps .stat .l{padding-right:0;flex:1;font-size:10.5px}
+#pg-apps .stat .n{font-size:20px!important;margin:0;order:2}
+#pg-apps .stat .sq{display:none}
+/* thanh tiến độ mỏng */
+#pg-apps .energy{margin-top:6px;padding:5px 14px;gap:2px 12px}
+#pg-apps .energy .k,#pg-apps .energy .i{font-size:11.5px}
+#pg-apps .energy .p{font-size:12px}
+#pg-apps .energy .bar{height:11px;padding:1.5px}
+#pg-apps .selbar{margin-top:6px;padding:5px 10px}
+#pg-apps .selbar .btn{padding:4px 11px}
+#pg-apps .appwrap{margin-top:8px;min-height:120px}
+#pg-apps .crt,#pg-tools .crt{margin-top:6px}
+#pg-apps .crt .log,#pg-tools .crt .log{height:70px}
+/* nút phần mềm nhỏ gọn */
+.appgrid.fitgrid{display:grid;grid-template-columns:repeat(var(--ncol,5),minmax(0,1fr));gap:10px;align-items:start}
+.appgrid.fitgrid .gcol{gap:10px}
+.appgrid .gcard{padding:6px 8px 8px;border-radius:11px}
+.appgrid .ghead{margin-bottom:0}
+.appgrid .ghead h4{font-size:11px}
+.appgrid .ghead .gall{font-size:10.5px}
+.appgrid .arow{margin-top:4px;gap:5px}
+.appgrid .abtn{height:26px;font-size:12px;padding:0 7px;gap:6px}
+.appgrid .abtn .ai{font-size:12.5px;width:16px}
+.appgrid .tag{font-size:8px;padding:0 3px}
+.appgrid .arow .chk{width:15px;height:15px}
+.appgrid .addbtn{margin-top:5px;padding:3px}
+body.admin .appgrid.fitgrid .gmove .ed[data-act="gup"],body.admin .appgrid.fitgrid .gmove .ed[data-act="gdown"]{display:none}
+/* Tiện ích Windows gọn */
+#pg-tools .toolgrid{gap:12px}
+#pg-tools .tcol{gap:12px}
+#pg-tools .tcard{padding:8px 10px 10px;border-radius:13px}
+#pg-tools .tcard .sh{margin-bottom:7px;gap:8px}
+#pg-tools .tcard .sh .si{width:28px;height:28px;font-size:15px}
+#pg-tools .tcard .sh b{font-size:11.5px}
+#pg-tools .tcard .sh small{font-size:10.5px}
+#pg-tools .tgrid{gap:6px}
+#pg-tools .tbtn{height:34px;padding:0 8px;gap:7px;font-size:12px;border-radius:9px}
+#pg-tools .tbtn .ti{width:22px;height:22px;font-size:12.5px;border-radius:6px}
+#pg-tools .syswrap{padding-bottom:4px}
+.appgrid.notag .abtn .tag{display:none}
