@@ -1,0 +1,142 @@
+﻿=====================================================================
+           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v2.1.6)
+=====================================================================
+Tool cài Win dạo 1 file exe portable (không cần cài đặt), giao diện tiếng Việt.
+Tải: https://github.com/laocuumon1982-cpu/WIN-AIO-SHARE/releases/latest
+Mở nhanh bằng 1 dòng lệnh PowerShell (không cần USB):
+  irm https://raw.githubusercontent.com/laocuumon1982-cpu/WIN-AIO-SHARE/main/aio.ps1 | iex
+
+
+---------------------------------------------------------------------
+CHUNG
+---------------------------------------------------------------------
+- 1 file exe duy nhất, tự xin quyền Administrator.
+- Mở là phóng to toàn màn hình, vào trang Thông tin & khởi động.
+- Giao diện tự co giãn vừa 1 màn hình (không phải kéo), sáng / tối.
+- Thư mục Data (kế bên exe) chỉ tạo khi cần: lưu file tải về, sao lưu, nhật ký.
+- Nút ⟳ Cập nhật: tải bản mới từ GitHub và tự mở lại.
+- Không cần mật khẩu khi mở tool. Mật khẩu Admin (mặc định: admin) để:
+    sửa tên / biểu tượng / link nguồn từng nút, thêm / xóa nút và nhóm,
+    di chuyển nhóm và nút, đổi kiểu xếp, sao lưu / nhập danh sách nút (JSON).
+- Bảng đèn trạng thái: quyền Admin, Internet, winget, hàng đợi cài,
+  hẹn giờ tắt máy, chế độ Admin.
+- Tự kiểm tra winget, máy có winget cũ thì tự cài bản mới trong im lặng.
+- Nhật ký: lịch sử cài đặt và thao tác.
+
+
+---------------------------------------------------------------------
+HỆ THỐNG
+---------------------------------------------------------------------
+[Thông tin & khởi động]
+- Tên máy, Windows, CPU, RAM (từng khe), card màn hình, mainboard / BIOS,
+  mạng (IP, MAC, tốc độ), ổ cứng và phân vùng (dung lượng, loại SSD/HDD).
+- Theo dõi trực tiếp % CPU, % RAM, thời gian máy đã chạy.
+- Khởi động đặc biệt: vào BIOS / UEFI, vào Recovery (WinRE),
+  chọn ổ khởi động 1 lần, Safe Mode, trở về khởi động bình thường.
+- Mở nhanh: Thông tin máy, Device Manager, Disk Management, Control Panel,
+  Task Manager, Services, Registry, Group Policy, CMD Admin,
+  PowerShell Admin, Kết nối mạng, Âm thanh, DxDiag, System Properties,
+  Programs & Features, Event Viewer.
+
+[Quản lý]
+- Khởi động cùng Windows: xem danh sách, nhà phát hành, vô hiệu /
+  kích hoạt / xóa (có lưu bản sao) / mở vị trí file.
+- Gỡ phần mềm tận gốc: chạy trình gỡ (có gỡ im lặng), sau đó tìm và xóa
+  thư mục, registry còn sót.
+- Ứng dụng MS Store: chọn nhiều ứng dụng gỡ 1 lần, gỡ cho mọi tài khoản.
+- Defender & bảo mật: bảng trạng thái; bật / tắt Realtime, Cloud,
+  gửi mẫu tự động, Firewall, SmartScreen, UAC; thêm / bỏ ngoại lệ
+  (thư mục, tiến trình, đuôi file).
+
+[Nguồn & Ổ USB]  (gộp từ Power & USB Eject)
+- Tắt máy ngay (ép đóng ứng dụng), khóa máy, đổi người dùng.
+- Hẹn giờ tắt máy: sau X phút hoặc vào lúc giờ cố định, hủy hẹn.
+- Ổ đĩa ngoài: tháo an toàn ổ USB / ổ cứng gắn ngoài, ép ngắt khi bị kẹt.
+
+
+---------------------------------------------------------------------
+CÀI ĐẶT
+---------------------------------------------------------------------
+[Cài phần mềm]
+- Bấm 1 nút để cài ngay, hoặc chọn nhiều rồi "Cài mục đã chọn" (hàng đợi).
+- Thanh % tiến độ tải về, cài đặt, tổng đợt; nút Dừng.
+- Nguồn cài: winget (bản mới nhất, cài im lặng), link tải trực tiếp,
+  file trên máy, lệnh Windows, mở link web (open:), MS Office.
+- Tìm phần mềm, chọn cả nhóm, tự sắp xếp nhóm cho đều, xếp nút A → Z.
+- Danh sách mặc định:
+    KHO PHẦN MỀM     : Kho Fshare, Kho Google Drive (mở link)
+    VĂN PHÒNG - PDF  : MS Office, Foxit PDF Reader, Sumatra PDF,
+                       Notepad++, LibreOffice, WPS Office
+    BỘ GÕ TIẾNG VIỆT : UniKey, EVKey
+    NÉN - GIẢI NÉN   : WinRAR, 7-Zip
+    ĐA PHƯƠNG TIỆN   : K-Lite Codec Pack, VLC Media Player, OBS Studio
+    TRÌNH DUYỆT WEB  : Google Chrome, Firefox, Cốc Cốc, Brave
+    NHẮN TIN - HỌP   : Zalo PC, Telegram, Discord, Zoom, Viber,
+                       Microsoft Teams
+    HỖ TRỢ TỪ XA     : UltraViewer, TeamViewer, AnyDesk
+    ĐÁM MÂY          : Google Drive, OneDrive
+    THƯ VIỆN HỆ THỐNG: Visual C++ 2015-2022 x64 / x86, .NET Framework 3.5,
+                       .NET Framework 4.8.1, DirectX Runtime
+    TIỆN ÍCH         : Everything, HiBit Uninstaller, ShareX,
+                       TreeSize Free, Snappy Driver Installer
+    GIẢ LẬP ANDROID  : BlueStacks 5, LDPlayer
+    LẬP TRÌNH        : Python 3.12, VS Code, Node.js LTS, Java JDK 21, Git
+
+[MS Office]
+- Cửa sổ cài Office riêng: chọn phiên bản, bộ ứng dụng, ngôn ngữ,
+  tải từ máy chủ Microsoft và cài (Office Deployment Tool).
+
+[Tiện ích Windows]
+- THIẾT LẬP WINDOWS: hiện đuôi file, This PC ra Desktop, tắt Fast Startup,
+  tắt ngủ đông, múi giờ Việt Nam, khởi động lại Explorer,
+  xóa / hiện lại mũi tên shortcut, menu chuột phải kiểu cũ / kiểu Win 11.
+- MICROSOFT DEFENDER: tắt / bật Real-time Protection, xem trạng thái,
+  mở Windows Security.
+- WINDOWS UPDATE: tắt / bật lại, mở Windows Update.
+- MẠNG: DNS Google 8.8.8.8, DNS Cloudflare 1.1.1.1, DNS tự động,
+  xóa cache DNS, xem mật khẩu Wifi đã lưu, reset mạng (Winsock, TCP/IP).
+- DỌN DẸP: xóa file tạm, dọn thùng rác, Disk Cleanup.
+- MÁY IN: khởi động lại Spooler, xóa hàng đợi in, Máy in & thiết bị.
+- BITLOCKER: xem trạng thái, tắt BitLocker ổ C.
+- SAO LƯU - KHÔI PHỤC: sao lưu / khôi phục Wifi, sao lưu / khôi phục
+  Driver, tạo điểm khôi phục.
+- BẢN QUYỀN (KEY CỦA BẠN): xem trạng thái bản quyền, nhập key Windows,
+  mở trang Kích hoạt.
+
+
+---------------------------------------------------------------------
+DỌN DẸP & SAO LƯU
+---------------------------------------------------------------------
+[Dọn dẹp]
+- Dọn rác hệ thống có đo dung lượng trước: file tạm, bộ cài Windows Update,
+  Delivery Optimization, file dump lỗi, cache ảnh thu nhỏ,
+  cache trình duyệt, thùng rác.
+- Phân tích ổ đĩa: thư mục nào chiếm nhiều dung lượng, xem sâu từng cấp.
+- Xóa cache CapCut PC (giữ nguyên dự án).
+- Virus macro Excel: quét file lạ tự mở cùng Excel (XLSTART), cách ly,
+  đặt lại Excel không tự chạy macro.
+- Xóa metadata ảnh JPG / PNG (GPS, máy chụp, giờ chụp...).
+
+[Sao lưu]
+- Thư mục người dùng: Desktop, Tài liệu, Tải về, Ảnh, Video, Nhạc
+  (sao lưu và khôi phục, chọn ổ lưu).
+- Zalo PC: sao lưu / khôi phục tin nhắn, ảnh, file (tự tắt Zalo).
+- Zalo nhiều tài khoản: mỗi tài khoản 1 cửa sổ Zalo riêng.
+- Trình duyệt Chrome, Edge, Cốc Cốc, Brave, Firefox: dấu trang,
+  tiện ích, mật khẩu, lịch sử, cài đặt.
+
+
+---------------------------------------------------------------------
+KIỂM TRA
+---------------------------------------------------------------------
+[Test máy laptop / PC]
+- Màn hình: dải màu toàn màn hình (điểm chết, hở sáng, ám màu, sọc).
+- Màn hình cảm ứng: chạm / kéo khắp màn hình, đếm số ngón.
+- Bàn phím: phím nào nhận sáng xanh.
+- Loa: loa trái, loa phải, quét tần số nghe rè.
+- Micro: cột âm lượng, ghi âm 5 giây nghe lại.
+- Trackpad / chuột: di chuyển, click, cuộn 2 ngón, phóng to thu nhỏ.
+- Webcam: xem hình, độ phân giải, chụp thử.
+- Sức khỏe ổ cứng: SMART, dự báo hỏng, nhiệt độ, độ hao mòn SSD, giờ chạy.
+- Pin laptop: dung lượng thiết kế, dung lượng còn lại, độ chai, số lần sạc.
+- Tổng kết kết quả các bài test, sao chép báo cáo.

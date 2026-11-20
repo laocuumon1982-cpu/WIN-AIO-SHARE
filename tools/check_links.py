@@ -5,8 +5,15 @@ import requests
 
 src = pathlib.Path(__file__).resolve().parent.parent.joinpath("win_aio.py").read_text(encoding="utf-8")
 tree = ast.parse(src)
-groups = next(ast.literal_eval(n.value) for n in tree.body
-              if isinstance(n, ast.Assign) and getattr(n.targets[0], "id", "") == "DEFAULT_GROUPS")
+ns = {}
+for n in tree.body:      # chỉ chạy các dòng gán hằng chuỗi + DEFAULT_GROUPS (không import cả tool)
+    if isinstance(n, ast.Assign) and isinstance(n.targets[0], ast.Name) and (
+            n.targets[0].id == "DEFAULT_GROUPS" or isinstance(n.value, ast.Constant)):
+        try:
+            exec(compile(ast.Module([n], []), "win_aio", "exec"), ns)
+        except Exception:   # noqa: BLE001
+            pass
+groups = ns["DEFAULT_GROUPS"]
 ua = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124 Safari/537.36"}
 bad = 0
 for gname, apps in groups:
