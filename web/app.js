@@ -95,7 +95,7 @@ const PAGES = {
   tools: ["Tiện ích Windows", "Thiết lập nhanh, mạng, Defender, Windows Update, máy in, BitLocker, sao lưu Wifi / Driver"],
   history: ["Nhật ký", "Những gì tool đã cài / đã chạy"],
   settings: ["Cài đặt", "Mật khẩu Admin, thư mục tải, sao lưu danh sách nút"]};
-const KIND = {web: "WEB", winget: "WINGET", file: "FILE", cmd: "LỆNH", office: "OFFICE", none: "CHƯA CÓ NGUỒN"};
+const KIND = {web: "WEB", winget: "WINGET", file: "FILE", cmd: "LỆNH", office: "OFFICE", open: "LINK", none: "CHƯA CÓ NGUỒN"};
 let INIT = {}, G = [], NCOL = 4, LAYOUT = "grid", page = "system", ADMIN = false, picked = new Set(), logSeq = 0, ST = {}, HIST = [];
 
 function showPage(p) {
@@ -288,6 +288,7 @@ $("groups").onclick = async e => {
   }
   else if (act === "run") {
     if (a.kind === "office") return openOffice();
+    if (a.kind === "open") { await api("quick", a.src.slice(5).trim()); return toast("🌐 Đang mở " + a.name); }
     if (a.kind === "none") { if (ADMIN) return editApp(a, gid); return toast("Nút này chưa có nguồn. Mở Admin rồi bấm ✎ để thêm link.", "err"); }
     await api("install", [a.id]); toast("▶ " + a.name);
   }
@@ -319,7 +320,8 @@ function editApp(a, gid) {
         <code>https://...</code> link tải trực tiếp file .exe / .msi / .zip (link Google Drive dạng /file/d/... cũng được). Nếu là trang web, tool mở trang bằng trình duyệt.<br>
         <code>Soft\\Ten file.exe</code> file nằm trong thư mục tool (để chạy từ USB), hoặc đường dẫn đầy đủ <code>D:\\Setup\\app.exe</code>.<br>
         <code>winget:Google.Chrome</code> cài bản mới nhất bằng winget của Windows.<br>
-        <code>cmd:lệnh</code> chạy lệnh Windows bằng quyền Admin. <code>office:</code> mở cửa sổ cài MS Office.</div>
+        <code>cmd:lệnh</code> chạy lệnh Windows bằng quyền Admin. <code>office:</code> mở cửa sổ cài MS Office.<br>
+        <code>open:https://...</code> chỉ mở link bằng trình duyệt (kho phần mềm, trang tải...).</div>
       <label class="fl">THAM SỐ CÀI ĐẶT (không bắt buộc, VD cài im lặng: /S, /silent, /quiet)</label>
       <input id="eArgs" style="width:100%" value="${esc(a.args)}">
       <div class="row2" style="margin-top:4px;gap:14px">

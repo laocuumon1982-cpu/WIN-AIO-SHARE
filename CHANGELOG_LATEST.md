@@ -1,5 +1,6 @@
-Win AIO by Duy Anh v2.1.5
+Win AIO by Duy Anh v2.1.6
 
-- Sửa lỗi cài Zalo PC: link tải cũ của Zalo (res-download-pc-s.chat.zalo.me) đã ngừng hoạt động. Nút Zalo PC chuyển sang cài bằng winget (VNGCorp.Zalo) - luôn lấy bản mới nhất. Dữ liệu nút đã lưu từ bản cũ được tự sửa khi mở tool.
-- Báo lỗi mạng dễ hiểu hơn (không tìm thấy máy chủ / quá thời gian chờ / lỗi SSL / máy chủ báo lỗi) thay cho thông báo kỹ thuật dài.
-- Mỗi lần build, GitHub tự kiểm tra các link tải trực tiếp trong danh sách mặc định để phát hiện link chết sớm.
+- Cài phần mềm: chuyển sang cài bằng winget (luôn bản mới nhất, cài im lặng) cho UniKey, EVKey, WinRAR, Firefox tiếng Việt, Discord, Zoom, Viber, UltraViewer, TeamViewer, Google Drive, Visual C++ x64/x86, .NET Framework 4.8.1, DirectX, BlueStacks. Sửa ID winget của AnyDesk. LDPlayer chưa có trên winget nên vẫn mở trang tải.
+- Nút đã lưu từ bản cũ tự đổi sang winget nếu vẫn đúng link mặc định cũ; nút bạn đã tự sửa link thì giữ nguyên.
+- Nhóm mới KHO PHẦN MỀM: "Kho Fshare" và "Kho Google Drive" - bấm là mở thư mục phần mềm trên trình duyệt (Admin bấm ✎ để đổi link). Kiểu nguồn mới "open:https://..." chỉ mở link, không tải.
+- Test màn hình / cảm ứng: cửa sổ tool chuyển toàn màn hình thật, che cả thanh tiêu đề và taskbar; Esc / Đóng là trở lại như cũ.

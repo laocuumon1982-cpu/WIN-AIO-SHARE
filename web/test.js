@@ -66,12 +66,16 @@ function openView(id, title, html, hint, opts = {}) {
     <div class="tvb">${html}</div>`;
   v.hidden = false;
   const close = () => { if (tvClose) { const f = tvClose; tvClose = null; f(); } v.hidden = true; v.innerHTML = "";
-    document.removeEventListener("keydown", esc_); if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); };
+    document.removeEventListener("keydown", esc_); if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    if (opts.full && window.pywebview) api("win_full", false); };
   const esc_ = e => { if (e.key === "Escape" && !opts.keepEsc) { e.preventDefault(); close(); } };
   document.addEventListener("keydown", esc_);
   v.onclick = e => { const b = e.target.closest("[data-v]"); if (!b) return;
     if (b.dataset.v === "close") close(); else { const r = b.dataset.v === "pass" ? "ok" : "err"; if (TRES[id] !== r) setRes(id, r); close(); } };
-  if (opts.full) v.requestFullscreen && v.requestFullscreen().catch(() => {});
+  if (opts.full) {      // trong tool: cả cửa sổ toàn màn hình (che thanh tiêu đề + taskbar); trình duyệt: Fullscreen API
+    if (window.pywebview) api("win_full", true);
+    else v.requestFullscreen && v.requestFullscreen().catch(() => {});
+  }
   return close;
 }
 function judge(id, close) {                        // sau bài test toàn màn hình: hỏi Đạt / Lỗi

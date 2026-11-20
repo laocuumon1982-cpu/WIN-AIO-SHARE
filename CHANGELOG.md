@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v2.1.6
+- 15 phần mềm chuyển sang winget, sửa ID AnyDesk; nhóm Kho phần mềm (Fshare, Google Drive); test màn hình toàn màn hình thật.
+
 ## v2.1.5
 - Sửa lỗi cài Zalo PC (link cũ chết) -> cài bằng winget; báo lỗi mạng dễ hiểu; tự kiểm tra link tải khi build.
 

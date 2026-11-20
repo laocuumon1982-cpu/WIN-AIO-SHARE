@@ -31,7 +31,7 @@ from urllib.parse import unquote, urlparse, parse_qs
 import mgr
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v2.1.5"
+APP_VERSION = "v2.1.6"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -64,7 +64,31 @@ DEAD_LINKS = [
 ]
 
 
+# Nguồn mặc định của bản cũ -> winget (chỉ đổi nút còn đúng link mặc định cũ, nút bạn đã sửa thì giữ nguyên)
+OLD_DEFAULT_SRC = {
+    "https://www.unikey.org/assets/release/unikey46RC2-230919-win64.zip": "winget:UniKey.UniKey",
+    "https://github.com/lamquangminh/EVKey/releases": "winget:lamquangminh.EVKey",
+    "https://www.rarlab.com/rar/winrar-x64-701.exe": "winget:RARLab.WinRAR",
+    "https://download.mozilla.org/?product=firefox-latest&os=win64&lang=vi": "winget:Mozilla.Firefox.vi",
+    "https://discord.com/api/download?platform=win": "winget:Discord.Discord",
+    "https://zoom.us/client/latest/ZoomInstaller.exe": "winget:Zoom.Zoom",
+    "https://download.viber.com/desktop/windows/ViberSetup.exe": "winget:Rakuten.Viber",
+    "https://www.ultraviewer.net/vi/UltraViewer_setup_6.6_vi.exe": "winget:DucFabulous.UltraViewer",
+    "https://download.teamviewer.com/download/TeamViewer_Setup.exe": "winget:TeamViewer.TeamViewer",
+    "https://dl.google.com/drive-file-stream/GoogleDriveSetup.exe": "winget:Google.GoogleDrive",
+    "https://aka.ms/vs/17/release/vc_redist.x64.exe": "winget:Microsoft.VCRedist.2015+.x64",
+    "https://aka.ms/vs/17/release/vc_redist.x86.exe": "winget:Microsoft.VCRedist.2015+.x86",
+    "https://download.microsoft.com/download/f/3/a/f3a6af84-da23-40a5-8d1c-49cc10c8e76f/NDP48-x86-x64-AllOS-ENU.exe": "winget:Microsoft.DotNet.Framework.DeveloperPack_4",
+    "https://download.microsoft.com/download/1/7/1/1718CCC4-6315-4D8E-9543-8E28A4E18C4C/dxwebsetup.exe": "winget:Microsoft.DirectX",
+    "https://www.bluestacks.com/download.html": "winget:BlueStack.BlueStacks",
+    "winget:AnyDeskSoftwareGmbH.AnyDesk": "winget:AnyDesk.AnyDesk"
+}
+
+
 def fix_src(src):
+    new = OLD_DEFAULT_SRC.get((src or "").strip())
+    if new:
+        return new
     for rx, new in DEAD_LINKS:
         if rx.match((src or "").strip()):
             return new
@@ -92,7 +116,13 @@ def nice_err(e):
 
 
 # ---------------------------------------------------------------- danh sách mặc định (sửa được trong tool)
+KHO_FSHARE = "open:https://www.fshare.vn/folder/BESIWSY4GNO7"
+KHO_GDRIVE = "open:https://drive.google.com/drive/u/3/folders/173Ouz2LQQcrVr9SbirV68wgJvXP2Svz2"
 DEFAULT_GROUPS = [
+    ("KHO PHẦN MỀM", [
+        ("🗄️", "Kho Fshare", KHO_FSHARE, "", "Mở thư mục phần mềm trên Fshare"),
+        ("🗂️", "Kho Google Drive", KHO_GDRIVE, "", "Mở thư mục phần mềm trên Google Drive"),
+    ]),
     ("VĂN PHÒNG - PDF", [
         ("🏢", "MS Office", "office:", "", "Cài Office 2016 / 2019 / 2021 / 2024 / 365 chính chủ từ Microsoft (Online hoặc Offline)"),
         ("📄", "Foxit PDF Reader", "winget:Foxit.FoxitReader", "", ""),
@@ -102,11 +132,11 @@ DEFAULT_GROUPS = [
         ("📝", "WPS Office", "winget:Kingsoft.WPSOffice", "", ""),
     ]),
     ("BỘ GÕ TIẾNG VIỆT", [
-        ("⌨️", "UniKey", "https://www.unikey.org/assets/release/unikey46RC2-230919-win64.zip", "", "Bản portable, giải nén rồi chạy"),
-        ("⌨️", "EVKey", "https://github.com/lamquangminh/EVKey/releases", "", "Mở trang tải EVKey"),
+        ("⌨️", "UniKey", "winget:UniKey.UniKey", "", ""),
+        ("⌨️", "EVKey", "winget:lamquangminh.EVKey", "", ""),
     ]),
     ("NÉN - GIẢI NÉN", [
-        ("📦", "WinRAR", "https://www.rarlab.com/rar/winrar-x64-701.exe", "/S", ""),
+        ("📦", "WinRAR", "winget:RARLab.WinRAR", "", ""),
         ("📦", "7-Zip", "winget:7zip.7zip", "", ""),
     ]),
     ("ĐA PHƯƠNG TIỆN", [
@@ -116,33 +146,33 @@ DEFAULT_GROUPS = [
     ]),
     ("TRÌNH DUYỆT WEB", [
         ("🌐", "Google Chrome", "winget:Google.Chrome", "", ""),
-        ("🦊", "Firefox", "https://download.mozilla.org/?product=firefox-latest&os=win64&lang=vi", "", ""),
+        ("🦊", "Firefox", "winget:Mozilla.Firefox.vi", "", ""),
         ("🍀", "Cốc Cốc", "winget:CocCoc.CocCoc", "", ""),
         ("🦁", "Brave", "winget:Brave.Brave", "", ""),
     ]),
     ("NHẮN TIN - HỌP", [
         ("💬", "Zalo PC", "winget:VNGCorp.Zalo", "", ""),
         ("✈️", "Telegram", "winget:Telegram.TelegramDesktop", "", ""),
-        ("🎮", "Discord", "https://discord.com/api/download?platform=win", "", ""),
-        ("📹", "Zoom", "https://zoom.us/client/latest/ZoomInstaller.exe", "", ""),
-        ("📞", "Viber", "https://download.viber.com/desktop/windows/ViberSetup.exe", "", ""),
+        ("🎮", "Discord", "winget:Discord.Discord", "", ""),
+        ("📹", "Zoom", "winget:Zoom.Zoom", "", ""),
+        ("📞", "Viber", "winget:Rakuten.Viber", "", ""),
         ("👥", "Microsoft Teams", "winget:Microsoft.Teams", "", ""),
     ]),
     ("HỖ TRỢ TỪ XA", [
-        ("🖥️", "UltraViewer", "https://www.ultraviewer.net/vi/UltraViewer_setup_6.6_vi.exe", "", ""),
-        ("🖥️", "TeamViewer", "https://download.teamviewer.com/download/TeamViewer_Setup.exe", "", ""),
-        ("🖥️", "AnyDesk", "winget:AnyDeskSoftwareGmbH.AnyDesk", "", ""),
+        ("🖥️", "UltraViewer", "winget:DucFabulous.UltraViewer", "", ""),
+        ("🖥️", "TeamViewer", "winget:TeamViewer.TeamViewer", "", ""),
+        ("🖥️", "AnyDesk", "winget:AnyDesk.AnyDesk", "", ""),
     ]),
     ("ĐÁM MÂY", [
-        ("☁️", "Google Drive", "https://dl.google.com/drive-file-stream/GoogleDriveSetup.exe", "", ""),
+        ("☁️", "Google Drive", "winget:Google.GoogleDrive", "", ""),
         ("☁️", "OneDrive", "winget:Microsoft.OneDrive", "", ""),
     ]),
     ("THƯ VIỆN HỆ THỐNG", [
-        ("⚙️", "Visual C++ 2015-2022 x64", "https://aka.ms/vs/17/release/vc_redist.x64.exe", "/install /quiet /norestart", ""),
-        ("⚙️", "Visual C++ 2015-2022 x86", "https://aka.ms/vs/17/release/vc_redist.x86.exe", "/install /quiet /norestart", ""),
+        ("⚙️", "Visual C++ 2015-2022 x64", "winget:Microsoft.VCRedist.2015+.x64", "", ""),
+        ("⚙️", "Visual C++ 2015-2022 x86", "winget:Microsoft.VCRedist.2015+.x86", "", ""),
         ("⚙️", ".NET Framework 3.5", "cmd:DISM /Online /Enable-Feature /FeatureName:NetFx3 /All /NoRestart", "", "Bật tính năng có sẵn của Windows (cần mạng)"),
-        ("⚙️", ".NET Framework 4.8", "https://download.microsoft.com/download/f/3/a/f3a6af84-da23-40a5-8d1c-49cc10c8e76f/NDP48-x86-x64-AllOS-ENU.exe", "", ""),
-        ("🎮", "DirectX Runtime", "https://download.microsoft.com/download/1/7/1/1718CCC4-6315-4D8E-9543-8E28A4E18C4C/dxwebsetup.exe", "", ""),
+        ("⚙️", ".NET Framework 4.8.1", "winget:Microsoft.DotNet.Framework.DeveloperPack_4", "", ""),
+        ("🎮", "DirectX Runtime", "winget:Microsoft.DirectX", "", ""),
     ]),
     ("TIỆN ÍCH", [
         ("🔎", "Everything", "winget:voidtools.Everything", "", "Tìm file siêu nhanh"),
@@ -152,7 +182,7 @@ DEFAULT_GROUPS = [
         ("🛠️", "Snappy Driver Installer", "winget:GlennDelahoy.SnappyDriverInstallerOrigin", "", ""),
     ]),
     ("GIẢ LẬP ANDROID", [
-        ("📱", "BlueStacks 5", "https://www.bluestacks.com/download.html", "", "Mở trang tải"),
+        ("📱", "BlueStacks 5", "winget:BlueStack.BlueStacks", "", ""),
         ("🎮", "LDPlayer", "https://www.ldplayer.net/", "", "Mở trang tải"),
     ]),
     ("LẬP TRÌNH", [
@@ -346,6 +376,8 @@ def src_kind(src):
         return "cmd"
     if s.lower().startswith("office:"):
         return "office"
+    if s.lower().startswith("open:"):
+        return "open"
     if re.match(r"^https?://", s, re.I):
         return "web"
     return "file"
@@ -482,6 +514,18 @@ class Store:
         """Dữ liệu từ bản cũ: thêm nút mới của phiên bản này (chỉ 1 lần, không đụng nút đã sửa)."""
         done = set(self.cfg.get("migrated") or [])
         self.fix_dead_links()
+        if "kho" not in done:
+            if not self.db.execute("SELECT 1 FROM apps WHERE src LIKE 'open:%fshare.vn%' OR src LIKE 'open:%drive.google.com%'").fetchone():
+                self.db.execute("UPDATE groups SET gpos=COALESCE(gpos,0)+1")
+                self.db.execute("UPDATE groups SET ord=ord+1 WHERE col=0")
+                gid = self.db.execute("INSERT INTO groups(name, ord, col, gpos) VALUES(?,?,?,?)", ("KHO PHẦN MỀM", 0, 0, 0)).lastrowid
+                for i, (icon, name, src, args, note) in enumerate(DEFAULT_GROUPS[0][1]):
+                    self.db.execute("INSERT INTO apps(group_id, icon, name, src, args, note, ord) VALUES(?,?,?,?,?,?,?)",
+                                    (gid, icon, name, src, args, note, i))
+                self.commit(persist=False)
+            done.add("kho")
+            self.cfg["migrated"] = sorted(done)
+            self.save_config(persist=False)
         if "office" not in done:
             if not self.db.execute("SELECT 1 FROM apps WHERE src LIKE 'office:%'").fetchone():
                 g = (self.db.execute("SELECT id FROM groups WHERE name LIKE '%VĂN PHÒNG%' ORDER BY ord LIMIT 1").fetchone()
@@ -500,8 +544,8 @@ class Store:
             n = 0
             for aid, src in self.db.execute("SELECT id, src FROM apps").fetchall():
                 new = fix_src(src)
-                if new != src:
-                    self.db.execute("UPDATE apps SET src=? WHERE id=?", (new, aid))
+                if new != src:            # đổi sang winget -> bỏ tham số cài cũ (/S, /quiet...) vì winget tự cài im lặng
+                    self.db.execute("UPDATE apps SET src=?, args='' WHERE id=?", (new, aid))
                     n += 1
             if n:
                 self.commit(persist=self.on_disk)
@@ -905,13 +949,17 @@ Remove-Item $d -Recurse -Force; 'OK'
         self.log("Hàng đợi đã xong." if not self.stop_flag.is_set() else "Đã dừng hàng đợi.")
 
     def _install(self, a):
-        a = dict(a, src=fix_src(a["src"]))
+        if fix_src(a["src"]) != a["src"]:
+            a = dict(a, src=fix_src(a["src"]), args="")
         kind, src = src_kind(a["src"]), a["src"].strip()
         args = (a.get("args") or "").strip()
         if kind == "none":
             return "err", "Nút chưa có nguồn (bật Admin rồi bấm ✎ để thêm link)"
         if kind == "office":
             return "err", "Nút MS Office mở cửa sổ cài Office riêng (bấm trực tiếp vào nút)."
+        if kind == "open":
+            open_target(src.split(":", 1)[1].strip())
+            return "web", "đã mở bằng trình duyệt"
         if kind == "winget":
             return self._winget(src.split(":", 1)[1].strip(), args)
         if kind == "cmd":
@@ -2255,7 +2303,8 @@ class Api:
                 p = p if p.is_absolute() else BASE / p
                 return f"File trên máy: {'CÓ' if p.exists() else 'KHÔNG THẤY'} ({p})"
             return {"winget": "Cài bằng winget (Windows tự tải bản mới nhất).", "cmd": "Chạy lệnh Windows.",
-                    "none": "Chưa nhập nguồn."}[kind]
+                    "open": "Mở link bằng trình duyệt (không tải, không cài).", "office": "Mở cửa sổ cài MS Office.",
+                    "none": "Chưa nhập nguồn."}.get(kind, "")
         if FAKE:
             return "File tải được: setup.exe (40.0 MB)"
         try:
@@ -2472,6 +2521,19 @@ class Api:
 
     def pick_file(self):
         return self._dialog("file")
+
+    def win_full(self, on):
+        """Bật / tắt toàn màn hình thật cho cửa sổ (che cả thanh tiêu đề và taskbar) - dùng cho test màn hình, cảm ứng."""
+        on = bool(on)
+        w = self._app.win if self._app else None
+        if not w or getattr(self, "_full", False) == on:
+            return False
+        try:
+            w.toggle_fullscreen()
+            self._full = on
+            return True
+        except Exception:                   # noqa: BLE001
+            return False
 
     def pick_folder(self):
         return self._dialog("folder")
