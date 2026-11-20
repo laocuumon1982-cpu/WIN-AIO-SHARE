@@ -32,6 +32,12 @@ jobs:
           Get-ChildItem T
           if (Test-Path T/selftest.txt) { Get-Content T/selftest.txt -Encoding utf8 } else { Write-Host "KHONG CO selftest.txt"; exit 1 }
           if (Select-String -Path T/selftest.txt -Pattern '^ERROR' -Quiet) { exit 1 }
+      - name: Kiem tra mo lai exe sau khi ban cu thoat (giong nut Cap nhat)
+        shell: pwsh
+        run: |
+          for ($i = 0; $i -lt 30 -and -not (Test-Path T/ping.txt); $i++) { Start-Sleep 2 }
+          if (Test-Path T/ping.txt) { Get-Content T/ping.txt } else {
+            Write-Host "KHONG CO ping.txt - exe mo lai bi loi"; Get-Process | Where-Object { $_.Path -like '*Win AIO*' } | Format-Table Id, Path; exit 1 }
       - uses: actions/upload-artifact@v4
         with:
           name: Win-AIO-by-Duy-Anh

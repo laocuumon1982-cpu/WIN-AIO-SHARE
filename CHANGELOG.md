@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v2.0.2
+- Sửa lỗi "invalid originating onefile parent process" sau khi tự cập nhật.
+
 ## v2.0
 - Khởi động đặc biệt (BIOS, chọn ổ khởi động 1 lần, Safe Mode, Recovery); test sức khỏe ổ cứng (SMART).
 

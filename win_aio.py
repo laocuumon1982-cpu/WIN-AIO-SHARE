@@ -29,7 +29,7 @@ from pathlib import Path
 from urllib.parse import unquote, urlparse, parse_qs
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v2.0.1"
+APP_VERSION = "v2.0.2"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -247,6 +247,16 @@ def is_admin_windows():
         return False
 
 
+def clean_env():
+    """Môi trường cho tiến trình mở lại chính tool (cập nhật, xin quyền Admin).
+    Bỏ biến nội bộ của PyInstaller và bật PYINSTALLER_RESET_ENVIRONMENT để exe mới chạy như một bản độc lập.
+    Thiếu bước này, exe mới tưởng mình là tiến trình con của bản cũ (đã thoát) và báo lỗi
+    "Security validation failure: invalid originating onefile parent process (PID not found)"."""
+    env = {k: v for k, v in os.environ.items() if not k.upper().startswith(("_PYI_", "_MEI"))}
+    env["PYINSTALLER_RESET_ENVIRONMENT"] = "1"
+    return env
+
+
 def relaunch_as_admin():
     """Chạy lại tool bằng quyền Administrator (cài phần mềm, sửa hệ thống cần quyền này)."""
     if getattr(sys, "frozen", False):
@@ -255,6 +265,9 @@ def relaunch_as_admin():
         exe = sys.executable.replace("python.exe", "pythonw.exe")
         args = [str(Path(__file__).resolve())] + sys.argv[1:]
     params = subprocess.list2cmdline(args)
+    os.environ.update({"PYINSTALLER_RESET_ENVIRONMENT": "1"})   # exe mở lại chạy như bản độc lập
+    for k in [k for k in os.environ if k.upper().startswith(("_PYI_", "_MEI"))]:
+        os.environ.pop(k, None)
     r = ctypes.windll.shell32.ShellExecuteW(None, "runas", exe, params, str(BASE), 1)
     return r > 32
 
@@ -2198,7 +2211,7 @@ class Api:
             f'move /y "{new}" "{exe}" >nul 2>&1 && goto ok\r\n'
             "set /a n+=1\r\nif %n% lss 40 (ping -n 2 127.0.0.1 >nul & goto m)\r\n:ok\r\n"
             f'start "" "{exe}"\r\ndel "%~f0"\r\n', encoding="utf-8")
-        subprocess.Popen(["cmd", "/c", str(bat)], creationflags=CREATE_NO_WINDOW | 0x00000200, close_fds=True)
+        subprocess.Popen(["cmd", "/c", str(bat)], creationflags=CREATE_NO_WINDOW | 0x00000200, close_fds=True, env=clean_env())
         self._e.log(f"⟳ Đã tải xong {info['latest']}, tool sẽ tự mở lại.")
         threading.Timer(0.8, lambda: self._quit_fn() if self._quit_fn else os._exit(0)).start()
         return ""
@@ -2482,6 +2495,14 @@ class App:
         except Exception as e:              # noqa: BLE001
             lines.append("ERROR: " + repr(e))
         (BASE / "selftest.txt").write_text("\n".join(lines), encoding="utf-8")
+        if getattr(sys, "frozen", False):
+            # Tái hiện đúng cách nút Cập nhật mở lại tool: chờ bản này thoát rồi mới mở exe (chế độ --ping ghi ping.txt)
+            pid, exe = os.getpid(), Path(sys.executable).resolve()
+            bat = BASE / "ping_test.bat"
+            bat.write_text("@echo off\r\n:w\r\n"
+                           f'tasklist /fi "PID eq {pid}" | find "{pid}" >nul && (ping -n 2 127.0.0.1 >nul & goto w)\r\n'
+                           f'start "" "{exe}" --ping\r\n', encoding="utf-8")
+            subprocess.Popen(["cmd", "/c", str(bat)], creationflags=CREATE_NO_WINDOW | 0x00000200, close_fds=True, env=clean_env())
         self.quit()
 
 
@@ -2509,6 +2530,9 @@ def serve(port=8765, open_browser=False):
 
 
 def main():
+    if "--ping" in sys.argv:                 # dùng khi tự kiểm tra trên GitHub: exe mở lại được, không báo lỗi
+        (BASE / "ping.txt").write_text(f"ok {APP_VERSION} pid={os.getpid()}", encoding="utf-8")
+        return
     if "--serve" in sys.argv:
         serve(int(os.environ.get("WINAIO_PORT", "8765")))
         return
