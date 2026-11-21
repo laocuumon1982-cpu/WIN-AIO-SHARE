@@ -1,5 +1,5 @@
 ﻿=====================================================================
-           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v2.3.2)
+           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v2.4)
 =====================================================================
 Tool cài Win dạo 1 file exe portable (không cần cài đặt), giao diện tiếng Việt.
 Tải: https://github.com/laocuumon1982-cpu/WIN-AIO-SHARE/releases/latest
@@ -139,6 +139,16 @@ DỌN DẸP & SAO LƯU
 - Zalo nhiều tài khoản: mỗi tài khoản 1 cửa sổ Zalo riêng.
 - Trình duyệt Chrome, Edge, Cốc Cốc, Brave, Firefox: dấu trang,
   tiện ích, mật khẩu, lịch sử, cài đặt.
+
+
+---------------------------------------------------------------------
+KHÁC
+---------------------------------------------------------------------
+[Web] (v2.4)
+- Nút mở trang web hay dùng, chia nhóm: Google, YouTube, Facebook, Zalo Web, Gmail,
+  Google Drive, Fshare, Claude, Speedtest, xem IP, Office Online, tài khoản Microsoft...
+- Admin thêm link mới (biểu tượng, tên, địa chỉ, nhóm), sửa, xóa, đổi chỗ.
+- Danh sách web đi kèm file sao lưu danh sách nút (JSON).
 
 
 ---------------------------------------------------------------------

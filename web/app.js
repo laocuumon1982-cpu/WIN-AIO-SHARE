@@ -94,6 +94,7 @@ const PAGES = {
   test: ["Test máy", "Kiểm tra màn hình, cảm ứng, bàn phím, loa, micro, trackpad, webcam, pin laptop"],
   iso: ["Kho ISO Win", "Chọn bản Windows rồi bấm Tải - tool tự lấy link gốc của Microsoft · Kiểm tra SHA-256 file ISO"],
   tools: ["Tiện ích Windows", "Thiết lập nhanh, mạng, Defender, Windows Update, máy in, BitLocker, sao lưu Wifi / Driver"],
+  web: ["Web", "Trang web hay dùng - bấm để mở · Admin bấm ✎ để sửa, ＋ để thêm link"],
   history: ["Nhật ký", "Những gì tool đã cài / đã chạy"],
   settings: ["Cài đặt", "Mật khẩu Admin, thư mục tải, sao lưu danh sách nút"]};
 const KIND = {web: "WEB", winget: "WINGET", file: "FILE", cmd: "LỆNH", office: "OFFICE", open: "LINK", github: "GITHUB", none: "CHƯA CÓ NGUỒN"};
@@ -116,6 +117,7 @@ function showPage(p) {
   if (p === "clean") cleanShow();
   if (p === "backup") backShow();
   if (p === "iso") isoShow();
+  if (p === "web") webShow();
   if (p === "settings" && ADMIN) renderSettings();
 }
 document.querySelectorAll(".nav").forEach(n => n.onclick = () => showPage(n.dataset.p));

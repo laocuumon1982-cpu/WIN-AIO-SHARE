@@ -441,3 +441,47 @@ function isoShow() {
     $("isoCopy").onclick = () => { copyLocal(x.sha256); toast("Đã chép mã SHA-256"); };
   };
 }
+
+/* =============================================================== WEB (nút mở trang web hay dùng) */
+let WEB = [];
+async function webShow() {
+  WEB = await api("web_list");
+  const W = $("webwrap"), groups = [...new Set(WEB.map(w => w.grp || "HAY DÙNG"))];
+  const colors = ["#0f8fd8", "#16a34a", "#d97706", "#7c3aed", "#e0262a", "#0891b2"];
+  W.innerHTML = (groups.length ? groups : ["HAY DÙNG"]).map((g, gi) => `<div class="tcard isosec" style="--ac:${colors[gi % colors.length]}">
+      <div class="sh"><span class="si">🌐</span><div><b>${esc(g)}</b><small>${WEB.filter(w => (w.grp || "HAY DÙNG") === g).length} trang</small></div>
+        <span class="sp"></span><button class="btn sm adm" data-addg="${esc(g)}">＋ Thêm link</button></div>
+      <div class="webgrid">${WEB.filter(w => (w.grp || "HAY DÙNG") === g).map(w => `<div class="webi" data-id="${w.id}">
+        <button class="tbtn webb" data-open="${w.id}" title="${esc(w.url)}"><span class="ti">${esc(w.icon || "🌐")}</span>
+          <span class="tt"><b>${esc(w.name)}</b><small>${esc(w.url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, ""))}</small></span></button>
+        <span class="webed adm"><button class="ed xs" data-mv="-1" title="Lên trước">◀</button><button class="ed xs" data-mv="1" title="Ra sau">▶</button>
+          <button class="ed xs" data-ed="1" title="Sửa">✎</button></span></div>`).join("") || '<div class="logl">(chưa có link)</div>'}</div></div>`).join("")
+    + `<div class="row-acts adm"><span class="sp"></span><button class="btn green" data-addg="">＋ Thêm nhóm / link mới</button></div>
+       <div class="logl nadm">Bật Admin (🔒 góc trên) để thêm, sửa, xóa link.</div>`;
+  W.onclick = async e => {
+    const o = e.target.closest("[data-open]"), a = e.target.closest("[data-addg]"), mv = e.target.closest("[data-mv]"), ed = e.target.closest("[data-ed]");
+    if (o) { const w = WEB.find(x => x.id === +o.dataset.open); if (w && w.url) { api("quick", w.url); toast("🌐 Đang mở " + w.name); } else toast("Link này chưa có địa chỉ - Admin bấm ✎ để thêm", "err"); return; }
+    if (a) return webEdit({grp: a.dataset.addg});
+    const id = +(e.target.closest(".webi") || {dataset: {}}).dataset.id;
+    if (mv) { if (!(await api("web_move", id, +mv.dataset.mv))) toast("Hết chỗ để di chuyển", "err"); return webShow(); }
+    if (ed) return webEdit(WEB.find(x => x.id === id));
+  };
+}
+async function webEdit(w) {
+  w = w || {};
+  const groups = [...new Set(WEB.map(x => x.grp))];
+  const r = await dialog({title: w.id ? "Sửa link web" : "Thêm link web", width: 560, body: `
+      <div class="frm"><label>Biểu tượng <input id="wIc" value="${esc(w.icon || "🌐")}" style="width:80px"></label>
+      <label>Tên nút <input id="wNm" value="${esc(w.name || "")}" placeholder="VD: Ngân hàng"></label>
+      <label>Địa chỉ web <input id="wUrl" value="${esc(w.url || "")}" placeholder="https://..."></label>
+      <label>Nhóm <input id="wGr" list="wGrL" value="${esc(w.grp || "HAY DÙNG")}" placeholder="HAY DÙNG"><datalist id="wGrL">${groups.map(g => `<option value="${esc(g)}">`).join("")}</datalist></label>
+      <div class="logl">Gõ tên nhóm mới để tạo nhóm mới. Biểu tượng là emoji (Win + . để chọn).</div><div class="err"></div></div>`,
+    left: w.id ? '<button class="btn sm out" id="wDel">🗑 Xóa</button>' : "",
+    buttons: [{text: "Hủy", value: null}, {text: "💾 Lưu", cls: "red", def: true, click: c => {
+      const url = c.q("#wUrl").value.trim(); if (!url) { c.err && c.err("Nhập địa chỉ web"); return false; }
+      return {id: w.id, icon: c.q("#wIc").value, name: c.q("#wNm").value, url, grp: c.q("#wGr").value}; }}],
+    onOpen: c => { const d = c.q("#wDel"); if (d) d.onclick = async () => {
+      if (await confirmBox("Xóa link", `Xóa "${w.name}"?`, "🗑 Xóa")) { await api("web_delete", w.id); c.close(null); toast("Đã xóa"); webShow(); } }; }});
+  if (!r) return;
+  await api("web_save", r); toast("Đã lưu link"); webShow();
+}

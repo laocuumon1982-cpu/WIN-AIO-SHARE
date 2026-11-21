@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v2.4
+- Tab Web: nút mở trang web hay dùng, Admin thêm / sửa / xóa / đổi chỗ.
+
 ## v2.3.2
 - Kho ISO Win: thêm lại các nút mở trang massgrave.dev theo từng bản Windows.
 

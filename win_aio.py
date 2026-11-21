@@ -32,7 +32,7 @@ from urllib.parse import unquote, urlparse, parse_qs
 import mgr
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v2.3.2"
+APP_VERSION = "v2.4"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -158,6 +158,22 @@ ISO_MG_PAGES = [
     ("💠", "Windows 8", "windows_8_links", ""),
     ("🪟", "Windows 7", "windows_7_links", ""),
     ("📋", "Danh sách đầy đủ", "genuine-installation-media", "Windows, Office + mã kiểm tra"),
+]
+# Tab Web: nút mở trang web hay dùng (Admin sửa / thêm / xóa)
+DEFAULT_WEB = [
+    ("HAY DÙNG", "🔎", "Google", "https://www.google.com"),
+    ("HAY DÙNG", "▶️", "YouTube", "https://www.youtube.com"),
+    ("HAY DÙNG", "📘", "Facebook", "https://www.facebook.com"),
+    ("HAY DÙNG", "💬", "Zalo Web", "https://chat.zalo.me"),
+    ("HAY DÙNG", "✉️", "Gmail", "https://mail.google.com"),
+    ("HAY DÙNG", "🗂️", "Google Drive", "https://drive.google.com"),
+    ("HAY DÙNG", "🗄️", "Fshare", "https://www.fshare.vn"),
+    ("HAY DÙNG", "🤖", "Claude", "https://claude.ai"),
+    ("CÔNG CỤ", "🚀", "Speedtest", "https://www.speedtest.net"),
+    ("CÔNG CỤ", "🌐", "Xem IP của tôi", "https://whatismyipaddress.com"),
+    ("CÔNG CỤ", "🏢", "Office Online", "https://www.office.com"),
+    ("CÔNG CỤ", "🔑", "Tài khoản Microsoft", "https://account.microsoft.com"),
+    ("CÔNG CỤ", "📦", "Win AIO trên GitHub", "https://github.com/laocuumon1982-cpu/WIN-AIO-SHARE"),
 ]
 DEFAULT_PW = "HP360"          # mật khẩu Admin mặc định
 KHO_FSHARE = "open:https://www.fshare.vn/folder/BESIWSY4GNO7"
@@ -530,6 +546,7 @@ class Store:
         self.db.row_factory = sqlite3.Row
         self.db.executescript("""
             CREATE TABLE IF NOT EXISTS groups(id INTEGER PRIMARY KEY, name TEXT, ord INTEGER, col INTEGER, gpos INTEGER);
+            CREATE TABLE IF NOT EXISTS weblinks(id INTEGER PRIMARY KEY, grp TEXT, icon TEXT, name TEXT, url TEXT, ord INTEGER);
             CREATE TABLE IF NOT EXISTS winget_info(pkg TEXT PRIMARY KEY, ok INTEGER, ver TEXT, url TEXT, pname TEXT, checked REAL);
             CREATE TABLE IF NOT EXISTS apps(id INTEGER PRIMARY KEY, group_id INTEGER, icon TEXT, name TEXT,
                 src TEXT, args TEXT, note TEXT, ord INTEGER);
@@ -607,6 +624,14 @@ class Store:
                             "('Bản portable, giải nén rồi chạy', 'Mở trang tải EVKey', 'Mở trang tải')")
             self.commit(persist=False)
             done.add("notes217")
+            self.cfg["migrated"] = sorted(done)
+            self.save_config(persist=False)
+        if "web" not in done:
+            if not self.db.execute("SELECT 1 FROM weblinks").fetchone():
+                for i, (g, ic, n, u) in enumerate(DEFAULT_WEB):
+                    self.db.execute("INSERT INTO weblinks(grp, icon, name, url, ord) VALUES(?,?,?,?,?)", (g, ic, n, u, i))
+                self.commit(persist=False)
+            done.add("web")
             self.cfg["migrated"] = sorted(done)
             self.save_config(persist=False)
         if "v223" not in done:
@@ -729,10 +754,20 @@ class Store:
         out = []
         for g in self.groups():
             out.append({"name": g["name"], "col": g.get("col"), "pos": g.get("gpos"), "apps": [{k: a[k] for k in ("icon", "name", "src", "args", "note")} for a in g["apps"]]})
-        return {"app": APP_TITLE, "version": APP_VERSION, "exported": now(), "groups": out}
+        web = [{k: w[k] for k in ("grp", "icon", "name", "url")} for w in self.web_list()]
+        return {"app": APP_TITLE, "version": APP_VERSION, "exported": now(), "groups": out, "web": web}
+
+    def web_list(self):
+        with self.lock:
+            return [dict(r) for r in self.db.execute("SELECT * FROM weblinks ORDER BY ord, id")]
 
     def import_data(self, data):
         with self.lock:
+            if isinstance(data.get("web"), list):
+                self.db.execute("DELETE FROM weblinks")
+                for i, w in enumerate(data["web"]):
+                    self.db.execute("INSERT INTO weblinks(grp, icon, name, url, ord) VALUES(?,?,?,?,?)",
+                                    (str(w.get("grp", "")), str(w.get("icon", "")), str(w.get("name", "")), str(w.get("url", "")), i))
             self.db.execute("DELETE FROM apps")
             self.db.execute("DELETE FROM groups")
             for gi, g in enumerate(data.get("groups") or []):
@@ -2593,6 +2628,55 @@ class Api:
         self._need_admin()
         self._s.cfg.pop("fit_n", None)
         self._s.save_config(persist=self._s.on_disk)
+        return True
+
+    # ---- tab Web
+    def web_list(self):
+        return self._s.web_list()
+
+    def web_save(self, w):
+        self._need_admin()
+        st = self._s
+        url = (w.get("url") or "").strip()
+        if url and not re.match(r"^[a-z][a-z0-9+.-]*:", url, re.I):
+            url = "https://" + url
+        name = (w.get("name") or "").strip() or re.sub(r"^https?://(www\.)?", "", url).split("/")[0] or "Trang web"
+        grp = (w.get("grp") or "").strip().upper() or "HAY DÙNG"
+        icon = (w.get("icon") or "").strip() or "🌐"
+        with st.lock:
+            if w.get("id"):
+                st.db.execute("UPDATE weblinks SET grp=?, icon=?, name=?, url=? WHERE id=?", (grp, icon, name, url, int(w["id"])))
+            else:
+                o = st.db.execute("SELECT COALESCE(MAX(ord),-1)+1 FROM weblinks").fetchone()[0]
+                st.db.execute("INSERT INTO weblinks(grp, icon, name, url, ord) VALUES(?,?,?,?,?)", (grp, icon, name, url, o))
+            st.commit()
+        return True
+
+    def web_delete(self, wid):
+        self._need_admin()
+        with self._s.lock:
+            self._s.db.execute("DELETE FROM weblinks WHERE id=?", (int(wid),))
+            self._s.commit()
+        return True
+
+    def web_move(self, wid, delta):
+        """Đổi chỗ với nút trước / sau trong cùng nhóm."""
+        self._need_admin()
+        st = self._s
+        with st.lock:
+            rows = st.db.execute("SELECT id, grp FROM weblinks ORDER BY ord, id").fetchall()
+            ids = [r[0] for r in rows]
+            grp = dict(rows).get(int(wid))
+            same = [r[0] for r in rows if r[1] == grp]
+            k = same.index(int(wid))
+            j = k + int(delta)
+            if not 0 <= j < len(same):
+                return False
+            a, b = ids.index(same[k]), ids.index(same[j])
+            ids[a], ids[b] = ids[b], ids[a]
+            for i, x in enumerate(ids):
+                st.db.execute("UPDATE weblinks SET ord=? WHERE id=?", (i, x))
+            st.commit()
         return True
 
     def swap_groups(self, a, b):
