@@ -1,5 +1,5 @@
 ﻿=====================================================================
-           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v2.1.7)
+           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v2.1.8)
 =====================================================================
 Tool cài Win dạo 1 file exe portable (không cần cài đặt), giao diện tiếng Việt.
 Tải: https://github.com/laocuumon1982-cpu/WIN-AIO-SHARE/releases/latest
@@ -15,7 +15,7 @@ CHUNG
 - Giao diện tự co giãn vừa 1 màn hình (không phải kéo), sáng / tối.
 - Thư mục Data (kế bên exe) chỉ tạo khi cần: lưu file tải về, sao lưu, nhật ký.
 - Nút ⟳ Cập nhật: tải bản mới từ GitHub và tự mở lại.
-- Không cần mật khẩu khi mở tool. Mật khẩu Admin (mặc định: admin) để:
+- Không cần mật khẩu khi mở tool. Mật khẩu Admin (mặc định: HP360) để:
     sửa tên / biểu tượng / link nguồn từng nút, thêm / xóa nút và nhóm,
     di chuyển nhóm và nút, đổi kiểu xếp, sao lưu / nhập danh sách nút (JSON).
 - Bảng đèn trạng thái: quyền Admin, Internet, winget, hàng đợi cài,
@@ -80,7 +80,8 @@ CÀI ĐẶT
     THƯ VIỆN HỆ THỐNG: Visual C++ 2015-2022 x64 / x86, .NET Framework 3.5,
                        .NET Framework 4.8.1, DirectX Runtime
     TIỆN ÍCH         : Everything, HiBit Uninstaller, ShareX,
-                       TreeSize Free, Snappy Driver Installer
+                       TreeSize Free, Snappy Driver Installer,
+                       YouTube Downloader Pro
     GIẢ LẬP ANDROID  : BlueStacks 5, LDPlayer
     LẬP TRÌNH        : Python 3.12, VS Code, Node.js LTS, Java JDK 21, Git
 

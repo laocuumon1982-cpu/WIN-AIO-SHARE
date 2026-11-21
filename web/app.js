@@ -133,7 +133,7 @@ async function unlock() {
   const ok = await dialog({title: "Mở khóa Admin", width: 440,
     body: `<div class="msg">Nhập mật khẩu Admin để sửa tên nút, đổi link nguồn, thêm / xóa phần mềm.</div>
       <input id="pw" type="password" style="width:100%;margin-top:10px" placeholder="Mật khẩu Admin">
-      ${INIT.default_pw ? '<div class="pwwarn">Mật khẩu mặc định là <b>admin</b>. Nên đổi trong Cài đặt sau khi mở khóa.</div>' : ""}
+      ${INIT.default_pw ? '<div class="pwwarn">Mật khẩu mặc định là <b>HP360</b>. Nên đổi trong Cài đặt sau khi mở khóa.</div>' : ""}
       <div class="err"></div>`,
     buttons: [{text: "Hủy", value: false}, {text: "🔑 Mở khóa", cls: "red", def: true, click: async c => {
       if (await api("unlock", c.q("#pw").value)) return true;

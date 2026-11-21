@@ -1,4 +1,4 @@
-﻿WIN AIO BY DUY ANH - v2.1.7
+﻿WIN AIO BY DUY ANH - v2.1.8
 =========================
 
 CHỈ 1 FILE EXE
@@ -17,7 +17,7 @@ MỞ TOOL BẰNG 1 DÒNG LỆNH (không cần USB)
   - Lệnh tự tải bản mới nhất về %LOCALAPPDATA%\WinAIO rồi mở tool (bấm Yes ở hộp UAC). Thư mục Data cũng nằm ở đó.
     Chạy lại lần sau: đã có bản mới nhất thì mở luôn, không tải lại.
 
-WINGET NHANH & TỰ KIỂM TRA (v2.1.7)
+WINGET NHANH & TỰ KIỂM TRA (v2.1.8)
   - Mở tool: tự chỉnh winget tải trực tiếp (nhanh hơn), làm mới kho winget, kiểm tra từng nút WINGET.
   - Rê chuột lên nút WINGET để xem bản mới nhất trong kho. Nhãn đỏ "ID LỖI" = gói không còn trong kho:
     tool đã thử tự tìm ID mới theo tên nút mà không được -> bật Admin, bấm ✎ để sửa ID hoặc đổi sang link tải.
@@ -103,7 +103,7 @@ MS OFFICE (nút trong nhóm VĂN PHÒNG - PDF)
   - "🗑 Gỡ Office cũ": gỡ toàn bộ Office trên máy. "🔗 Ghim Desktop", "🔍 Bản quyền", "🔑 Nhập key Office" (key của bạn).
 
 CHẾ ĐỘ ADMIN (sửa nút)
-  - Bấm "🔒 Admin" -> nhập mật khẩu. MẬT KHẨU MẶC ĐỊNH: admin  (đổi trong tab Cài đặt).
+  - Bấm "🔒 Admin" -> nhập mật khẩu. MẬT KHẨU MẶC ĐỊNH: HP360 (viết hoa HP)  (đổi trong tab Cài đặt).
   - Cạnh mỗi nút hiện nút vàng ✎: sửa tên, biểu tượng, đổi NGUỒN APP, tham số cài, ghi chú, chuyển nhóm, lên / xuống, xóa.
   - Mỗi nhóm có "＋ Thêm phần mềm"; thanh Admin có "＋ Thêm nhóm" và "Số cột" (2-6).
   - "Kiểu xếp" trên thanh Admin: Lưới (thẳng hàng, mặc định) hoặc Cột dọc.
@@ -125,5 +125,5 @@ DỮ LIỆU (thư mục Data)
   winaio.db     danh sách nhóm + nút + nhật ký (SQLite)
   config.json   cài đặt nhỏ, sửa tay được (thư mục tải, giữ file cài, giao diện, mật khẩu đã mã hóa)
   Downloads     file cài đặt đã tải       Backup   sao lưu Wifi, Driver, bản xuất danh sách nút
-  Quên mật khẩu Admin: tắt tool, mở config.json, xóa trắng admin_salt và admin_hash -> mật khẩu về "admin".
+  Quên mật khẩu Admin: tắt tool, mở config.json, xóa trắng admin_salt và admin_hash -> mật khẩu về "HP360".
   Chép danh sách nút sang máy khác: Cài đặt -> Xuất ra file JSON; bên kia chép file vào Data\apps.json rồi mở tool.

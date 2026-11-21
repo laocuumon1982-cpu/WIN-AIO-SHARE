@@ -12,7 +12,7 @@ irm https://raw.githubusercontent.com/laocuumon1982-cpu/WIN-AIO-SHARE/main/aio.p
 
 Lệnh tự tải bản mới nhất về `%LOCALAPPDATA%\WinAIO` rồi mở tool (bấm Yes ở hộp UAC). Chạy lại lần sau chỉ tải khi có bản mới.
 
-- Mở tool không cần mật khẩu. Nút **🔒 Admin** (mật khẩu mặc định `admin`) mở chế độ sửa nút: đổi tên, đổi link nguồn app, thêm / xóa nút và nhóm.
+- Mở tool không cần mật khẩu. Nút **🔒 Admin** (mật khẩu mặc định `HP360`) mở chế độ sửa nút: đổi tên, đổi link nguồn app, thêm / xóa nút và nhóm.
 - Thư mục `Data` kế bên exe chỉ được tạo khi tải app, sửa nút hoặc đổi cài đặt. Bên trong: `winaio.db` (danh sách nút + nhật ký), `config.json` (cài đặt), `Downloads`, `Backup`.
 - Bỏ file cài offline vào thư mục `Soft` kế bên exe, rồi đặt nguồn nút dạng `Soft\ten file.exe`.
 

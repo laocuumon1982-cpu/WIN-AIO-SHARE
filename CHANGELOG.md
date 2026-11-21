@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v2.1.8
+- Mật khẩu Admin mặc định HP360; thêm YouTube Downloader Pro; dọn ghi chú cũ.
+
 ## v2.1.7
 - winget tải nhanh hơn (wininet, chỉ kho winget); mở tool tự kiểm tra / tự sửa ID winget, nhãn ID LỖI; tải lỗi tự làm mới kho và thử lại.
 

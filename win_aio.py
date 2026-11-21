@@ -32,7 +32,7 @@ from urllib.parse import unquote, urlparse, parse_qs
 import mgr
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v2.1.7"
+APP_VERSION = "v2.1.8"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -121,6 +121,7 @@ def nice_err(e):
 
 
 # ---------------------------------------------------------------- danh sách mặc định (sửa được trong tool)
+DEFAULT_PW = "HP360"          # mật khẩu Admin mặc định
 KHO_FSHARE = "open:https://www.fshare.vn/folder/BESIWSY4GNO7"
 KHO_GDRIVE = "open:https://drive.google.com/drive/u/3/folders/173Ouz2LQQcrVr9SbirV68wgJvXP2Svz2"
 DEFAULT_GROUPS = [
@@ -185,6 +186,7 @@ DEFAULT_GROUPS = [
         ("📸", "ShareX", "winget:ShareX.ShareX", "", "Chụp màn hình"),
         ("📊", "TreeSize Free", "winget:JAMSoftware.TreeSize.Free", "", ""),
         ("🛠️", "Snappy Driver Installer", "winget:GlennDelahoy.SnappyDriverInstallerOrigin", "", ""),
+        ("📦", "YouTube Downloader Pro", "https://github.com/duckmartians/YouTube_Downloader/releases/download/v4.0.0/YouTube_Downloader_v4.0.0_windows.zip", "", "Bản portable, giải nén rồi chạy"),
     ]),
     ("GIẢ LẬP ANDROID", [
         ("📱", "BlueStacks 5", "winget:BlueStack.BlueStacks", "", ""),
@@ -445,7 +447,10 @@ class Store:
         self.cfg.update(load_json(CONFIG_FILE, {}))
         if not self.cfg.get("admin_hash"):
             self.cfg["admin_salt"] = secrets.token_hex(8)
-            self.cfg["admin_hash"] = hash_pw("admin", self.cfg["admin_salt"])
+            self.cfg["admin_hash"] = hash_pw(DEFAULT_PW, self.cfg["admin_salt"])
+        elif self.cfg["admin_hash"] == hash_pw("admin", self.cfg.get("admin_salt", "")):
+            self.cfg["admin_hash"] = hash_pw(DEFAULT_PW, self.cfg["admin_salt"])   # mật khẩu mặc định cũ "admin" -> HP360
+            self._pw_migrated = True
         if self.on_disk:
             DATA.mkdir(parents=True, exist_ok=True)
         self.db = sqlite3.connect(str(DB_FILE) if self.on_disk else ":memory:", check_same_thread=False)
@@ -520,6 +525,15 @@ class Store:
         """Dữ liệu từ bản cũ: thêm nút mới của phiên bản này (chỉ 1 lần, không đụng nút đã sửa)."""
         done = set(self.cfg.get("migrated") or [])
         self.fix_dead_links()
+        if getattr(self, "_pw_migrated", False):
+            self.save_config(persist=False)
+        if "notes217" not in done:
+            self.db.execute("UPDATE apps SET note='' WHERE src LIKE 'winget:%' AND note IN "
+                            "('Bản portable, giải nén rồi chạy', 'Mở trang tải EVKey', 'Mở trang tải')")
+            self.commit(persist=False)
+            done.add("notes217")
+            self.cfg["migrated"] = sorted(done)
+            self.save_config(persist=False)
         if "kho" not in done:
             if not self.db.execute("SELECT 1 FROM apps WHERE src LIKE 'open:%fshare.vn%' OR src LIKE 'open:%drive.google.com%'").fetchone():
                 self.db.execute("UPDATE groups SET gpos=COALESCE(gpos,0)+1")
@@ -2183,7 +2197,7 @@ class Api:
         return {"title": APP_TITLE, "version": APP_VERSION, "repo": REPO, "browser": getattr(self, "_browser", False), "theme": self._s.cfg.get("theme", "light"),
                 "tools": [{"id": t[0], "group": t[1], "label": t[2], "confirm": t[5], "kind": t[3], "fn": t[4]} for t in TOOLS],
                 "quick": [{"label": q[0], "target": q[1]} for q in QUICK], "is_win": IS_WIN or FAKE,
-                "default_pw": self._s.cfg.get("admin_hash") == hash_pw("admin", self._s.cfg.get("admin_salt", ""))}
+                "default_pw": self._s.cfg.get("admin_hash") == hash_pw(DEFAULT_PW, self._s.cfg.get("admin_salt", ""))}
 
     def groups(self):
         return {"columns": self._s.columns(), "layout": self._s.layout(), "groups": self._s.groups()}
