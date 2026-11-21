@@ -1,28 +1,20 @@
-# Kiểm tra ID winget có tồn tại không (chạy trên GitHub Actions)
+# Đo tốc độ winget: mặc định (Delivery Optimization) vs wininet; và thời gian winget show
 $ErrorActionPreference = 'Continue'
-if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
-    Write-Host "Runner chua co winget - cai qua Microsoft.WinGet.Client"
-    Install-PackageProvider -Name NuGet -Force | Out-Null
-    Install-Module -Name Microsoft.WinGet.Client -Force -Repository PSGallery | Out-Null
-    Repair-WinGetPackageManager -Latest -Force -AllUsers
-}
 winget --version
-winget source update --disable-interactivity | Out-Null
-$ids = @(
-  'UniKey.UniKey','PhamKimLong.UniKey','LongPham.UniKey','EVKey.EVKey','LamQuangMinh.EVKey','lamquangminh.EVKey',
-  'RARLab.WinRAR','Mozilla.Firefox','Mozilla.Firefox.vi','Discord.Discord','Zoom.Zoom','Rakuten.Viber','Viber.Viber',
-  'DucFabulous.UltraViewer','UltraViewer.UltraViewer','TeamViewer.TeamViewer','Google.GoogleDrive',
-  'Microsoft.VCRedist.2015+.x64','Microsoft.VCRedist.2015+.x86','Microsoft.DotNet.Framework.DeveloperPack_4',
-  'Microsoft.DotNet.Framework.DeveloperPack.4.8','Microsoft.DirectX','BlueStack.BlueStacks','BlueStacks.BlueStacks',
-  'XUANZHI.LDPlayer','XuanZhi.LDPlayer','LDPlayer.LDPlayer','VNGCorp.Zalo'
-)
-$src = Get-Content win_aio.py -Raw -Encoding UTF8
-$ids += ([regex]::Matches($src, '"winget:([^"]+)"') | ForEach-Object { $_.Groups[1].Value }) | Sort-Object -Unique
-foreach ($q in 'AnyDesk','LDPlayer','EVKey') { Write-Host "== search $q"; winget search $q --accept-source-agreements --disable-interactivity 2>&1 | Select-Object -Last 8 | ForEach-Object { Write-Host "S  $_" } }
-$ids = @('AnyDesk.AnyDesk','AnyDesk.AnyDesk.MSI') + $ids
-foreach ($id in $ids) {
-    $o = winget show --id $id --exact --accept-source-agreements --disable-interactivity 2>&1 | Out-String
-    $v = ([regex]::Match($o, '(?m)^\s*(Version|Phi.n b.n):\s*(.+)$')).Groups[2].Value.Trim()
-    $n = ([regex]::Match($o, '(?m)^Found (.+?) \[')).Groups[1].Value
-    if ($LASTEXITCODE -eq 0) { Write-Host "CO    $id  | $n | $v" } else { Write-Host "KHONG $id" }
-}
+$exp = winget settings export | ConvertFrom-Json
+$f = $exp.userSettingsFile; Write-Host "settings: $f"
+function T($label, [scriptblock]$b) { $s = [Diagnostics.Stopwatch]::StartNew(); & $b | Out-Null; Write-Host ("{0,-40} {1,6:N1} s" -f $label, $s.Elapsed.TotalSeconds) }
+T 'source update' { winget source update --name winget --disable-interactivity }
+T 'show VLC (source winget)' { winget show --id VideoLAN.VLC -e --source winget --accept-source-agreements --disable-interactivity }
+T 'show VLC (moi nguon)' { winget show --id VideoLAN.VLC -e --accept-source-agreements --disable-interactivity }
+$o = winget show --id VideoLAN.VLC -e --source winget --accept-source-agreements --disable-interactivity | Out-String
+Write-Host ($o -split "`n" | Select-String 'Version|Installer Url|Installer Type')
+Set-Content $f '{ "network": { "downloader": "do" } }'
+T 'download VLC - Delivery Optimization' { winget download --id VideoLAN.VLC -e --source winget -d "$env:TEMP\d1" --accept-package-agreements --accept-source-agreements --disable-interactivity }
+Set-Content $f '{ "network": { "downloader": "wininet" } }'
+T 'download VLC - wininet' { winget download --id VideoLAN.VLC -e --source winget -d "$env:TEMP\d2" --accept-package-agreements --accept-source-agreements --disable-interactivity }
+Set-Content $f '{ "network": { "downloader": "do" } }'
+T 'download Firefox - Delivery Optimization' { winget download --id Mozilla.Firefox -e --source winget -d "$env:TEMP\d3" --accept-package-agreements --accept-source-agreements --disable-interactivity }
+Set-Content $f '{ "network": { "downloader": "wininet" } }'
+T 'download Firefox - wininet' { winget download --id Mozilla.Firefox -e --source winget -d "$env:TEMP\d4" --accept-package-agreements --accept-source-agreements --disable-interactivity }
+Get-ChildItem "$env:TEMP\d1","$env:TEMP\d2" -Recurse -File | ForEach-Object { Write-Host ("{0} {1:N1} MB" -f $_.Name, ($_.Length/1MB)) }
