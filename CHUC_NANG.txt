@@ -1,5 +1,5 @@
 ﻿=====================================================================
-           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v2.2.2)
+           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v2.3)
 =====================================================================
 Tool cài Win dạo 1 file exe portable (không cần cài đặt), giao diện tiếng Việt.
 Tải: https://github.com/laocuumon1982-cpu/WIN-AIO-SHARE/releases/latest
@@ -71,7 +71,7 @@ CÀI ĐẶT
     KHO PHẦN MỀM     : Kho Fshare, Kho Google Drive (mở link)
     TỰ THÊM          : IDM (chính hãng, dùng thử), Adobe Acrobat Reader
     VĂN PHÒNG - PDF  : MS Office, Foxit PDF Reader, Sumatra PDF,
-                       Notepad++, LibreOffice, WPS Office
+                       Notepad++, LibreOffice, WPS Office, ONLYOFFICE
     ARTCRAFT OFFICE PORTABLE: WordCraft (thay Word), GridCraft (thay Excel),
                        DeckCraft (thay PowerPoint) - luôn bản mới nhất GitHub
     BỘ GÕ TIẾNG VIỆT : UniKey, EVKey
@@ -93,6 +93,14 @@ CÀI ĐẶT
 [MS Office]
 - Cửa sổ cài Office riêng: chọn phiên bản, bộ ứng dụng, ngôn ngữ,
   tải từ máy chủ Microsoft và cài (Office Deployment Tool).
+
+[Kho ISO Win] (v2.3)
+- Mở trang tải ISO của massgrave.dev: Windows 11, Windows 10, Windows 10/11 LTSC,
+  Windows ARM64, Windows Server, Windows 8.1, 8, 7, danh sách đầy đủ + mã SHA-256.
+  (Link file trên các trang này đổi hằng tháng nên tool mở trang để luôn có bản mới.)
+- Nguồn chính chủ Microsoft: ISO Windows 11, ISO Windows 10, Media Creation Tool,
+  Evaluation Center (LTSC / Server dùng thử), Windows Insider ISO.
+- Kiểm tra SHA-256 file ISO (có %), dán mã công bố để so trùng khớp hay không.
 
 [Tiện ích Windows]
 - THIẾT LẬP WINDOWS: hiện đuôi file, This PC ra Desktop, tắt Fast Startup,

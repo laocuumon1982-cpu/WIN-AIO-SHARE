@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v2.3
+- Tab Kho ISO Win (massgrave.dev + Microsoft), kiểm tra SHA-256 ISO; thêm ONLYOFFICE.
+
 ## v2.2.2
 - Danh sách mặc định theo cách đã sắp (5 cột); nhóm Tự thêm (IDM, Adobe Reader); xóa nguồn link crack.
 

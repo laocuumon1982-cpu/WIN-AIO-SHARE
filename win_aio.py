@@ -32,7 +32,7 @@ from urllib.parse import unquote, urlparse, parse_qs
 import mgr
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v2.2.2"
+APP_VERSION = "v2.3"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -67,6 +67,7 @@ ARTCRAFT = ("ARTCRAFT OFFICE PORTABLE", [
     ("📊", "GridCraft (thay Excel)", r"github:storytold/gridcraft|windows-x64-portable\.zip$", "", "ArtCraft - bảng tính, bản portable"),
     ("📽️", "DeckCraft (thay PowerPoint)", r"github:storytold/deckcraft|windows-x64-portable\.zip$", "", "ArtCraft - trình chiếu, bản portable"),
 ])
+ONLYOFFICE = ("📝", "ONLYOFFICE", "winget:ONLYOFFICE.DesktopEditors", "", "Bộ văn phòng miễn phí, mở tốt file Word / Excel / PowerPoint")
 WHATSAPP = ("🟢", "WhatsApp", "winget:9NKSQGP7F2NH", "", "Cài từ Microsoft Store")
 
 # Link cũ đã chết -> nguồn mới (tự sửa trong dữ liệu đã lưu và lúc cài)
@@ -145,6 +146,28 @@ def nice_err(e):
 
 
 # ---------------------------------------------------------------- danh sách mặc định (sửa được trong tool)
+# Kho ISO Windows: mở trang (link file trên các trang này đổi hằng tháng nên tool mở trang để luôn có link mới nhất)
+ISO_MG = "https://massgrave.dev/"
+ISO_SOURCES = [
+    ("massgrave.dev", "Danh sách ISO của massgrave.dev - file lưu ở máy chủ bên thứ ba, nên kiểm tra SHA-256 sau khi tải", [
+        ("🪟", "Windows 11", ISO_MG + "windows_11_links", "Bản mới nhất, x64"),
+        ("🪟", "Windows 10", ISO_MG + "windows_10_links", "22H2, x64 / x86"),
+        ("🏢", "Windows 10 / 11 LTSC", ISO_MG + "windows_ltsc_links", "Enterprise LTSC (IoT, LTSC)"),
+        ("📱", "Windows ARM64", ISO_MG + "windows_arm_links", "Cho máy chip ARM (Snapdragon)"),
+        ("🖥️", "Windows Server", ISO_MG + "windows-server-links", "2016 · 2019 · 2022 · 2025"),
+        ("💠", "Windows 8.1", ISO_MG + "windows_8.1_links", ""),
+        ("💠", "Windows 8", ISO_MG + "windows_8_links", ""),
+        ("🪟", "Windows 7", ISO_MG + "windows_7_links", ""),
+        ("📋", "Danh sách đầy đủ + SHA-256", ISO_MG + "genuine-installation-media", "Windows, Office, cách kiểm tra file"),
+    ]),
+    ("Microsoft (chính chủ)", "Tải trực tiếp từ Microsoft - luôn đúng file gốc", [
+        ("🪟", "Windows 11 ISO", "https://www.microsoft.com/software-download/windows11", "Trang tải ISO Windows 11"),
+        ("🪟", "Windows 10 ISO", "https://www.microsoft.com/software-download/windows10ISO", "Mở bằng trình duyệt đổi sang chế độ điện thoại để thấy ISO"),
+        ("💿", "Media Creation Tool Win 11", "https://go.microsoft.com/fwlink/?linkid=2156295", "Công cụ tạo USB / ISO Windows 11"),
+        ("🧪", "Evaluation Center", "https://www.microsoft.com/evalcenter", "LTSC, Server bản dùng thử của Microsoft"),
+        ("🔬", "Windows Insider ISO", "https://www.microsoft.com/software-download/windowsinsiderpreviewiso", "Cần đăng nhập tài khoản Insider"),
+    ]),
+]
 DEFAULT_PW = "HP360"          # mật khẩu Admin mặc định
 KHO_FSHARE = "open:https://www.fshare.vn/folder/BESIWSY4GNO7"
 KHO_GDRIVE = "open:https://drive.google.com/drive/u/3/folders/173Ouz2LQQcrVr9SbirV68wgJvXP2Svz2"
@@ -175,6 +198,7 @@ DEFAULT_GROUPS = [     # (tên nhóm, cột, [nút...]) - thứ tự & cột the
         ("📝", "Notepad++", "winget:Notepad++.Notepad++", "", ""),
         ("📝", "LibreOffice", "winget:TheDocumentFoundation.LibreOffice", "", ""),
         ("📝", "WPS Office", "winget:Kingsoft.WPSOffice", "", ""),
+        ONLYOFFICE,
     ]),
     ("ARTCRAFT OFFICE", 1, ARTCRAFT[1]),
     ("BỘ GÕ TIẾNG VIỆT", 1, [
@@ -592,6 +616,17 @@ class Store:
                             "('Bản portable, giải nén rồi chạy', 'Mở trang tải EVKey', 'Mở trang tải')")
             self.commit(persist=False)
             done.add("notes217")
+            self.cfg["migrated"] = sorted(done)
+            self.save_config(persist=False)
+        if "v223" not in done:
+            if not self.db.execute("SELECT 1 FROM apps WHERE src=?", (ONLYOFFICE[2],)).fetchone():
+                g = self.db.execute("SELECT id FROM groups WHERE name LIKE 'VĂN PHÒNG%' ORDER BY id LIMIT 1").fetchone()
+                if g:
+                    o = self.db.execute("SELECT COALESCE(MAX(ord),0)+1 FROM apps WHERE group_id=?", (g[0],)).fetchone()[0]
+                    self.db.execute("INSERT INTO apps(group_id, icon, name, src, args, note, ord) VALUES(?,?,?,?,?,?,?)",
+                                    (g[0],) + ONLYOFFICE + (o,))
+                    self.commit(persist=False)
+            done.add("v223")
             self.cfg["migrated"] = sorted(done)
             self.save_config(persist=False)
         if "v219" not in done:
@@ -2282,6 +2317,7 @@ class Api:
         return {"title": APP_TITLE, "version": APP_VERSION, "repo": REPO, "browser": getattr(self, "_browser", False), "theme": self._s.cfg.get("theme", "light"),
                 "tools": [{"id": t[0], "group": t[1], "label": t[2], "confirm": t[5], "kind": t[3], "fn": t[4]} for t in TOOLS],
                 "quick": [{"label": q[0], "target": q[1]} for q in QUICK], "is_win": IS_WIN or FAKE,
+                "iso": [{"name": n, "sub": d, "items": [{"icon": i[0], "name": i[1], "url": i[2], "note": i[3]} for i in it]} for n, d, it in ISO_SOURCES],
                 "default_pw": self._s.cfg.get("admin_hash") == hash_pw(DEFAULT_PW, self._s.cfg.get("admin_salt", ""))}
 
     def groups(self):
@@ -2817,7 +2853,7 @@ class Api:
               "defender_status", "defender_set", "defender_excl", "capcut_info", "xlstart_scan", "xlstart_quarantine", "excel_safe_macro",
               "backup_info", "zalo_info", "zalo_open", "zalo_profile_delete", "browsers_info", "job_status", "job_stop"}
     M_JOB = {"uninstall_run", "appx_remove", "clean_scan", "clean_run", "folder_sizes", "capcut_clean", "metadata_strip", "backup_user",
-             "restore_user", "zalo_backup", "zalo_restore", "browser_backup", "browser_restore"}
+             "restore_user", "zalo_backup", "zalo_restore", "browser_backup", "browser_restore", "sha256_file"}
 
     def m(self, name, *args):
         if name not in self.M_SYNC:
@@ -2883,6 +2919,10 @@ class Api:
 
     def pick_folder(self):
         return self._dialog("folder")
+
+    def pick_file_abs(self):
+        r = self._dialog("file")
+        return str(mgr.absp(r)) if r else r
 
     def pick_folder_abs(self):
         r = self._dialog("folder")

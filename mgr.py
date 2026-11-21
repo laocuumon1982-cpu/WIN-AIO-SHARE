@@ -1247,3 +1247,31 @@ def browser_restore(j, src, close):
         copy_tree(src / b, dst, j, base_pct=int(i * 100 / len(sel)), span=int(100 / len(sel)))
     note = "" if meta.get("user") == os.environ.get("USERNAME") else " Mật khẩu đã lưu chỉ dùng được khi khôi phục trên cùng tài khoản Windows đã sao lưu."
     return {"text": f"Đã khôi phục {len(sel)} trình duyệt. Dữ liệu cũ được đổi tên thành ...truoc_khoi_phuc_....{note}"}
+
+
+# ================================================================ SHA-256 file ISO
+def sha256_file(j, path):
+    """Tính SHA-256 của file (ISO vài GB) có % tiến độ - để so với mã công bố, biết file tải về đúng bản gốc."""
+    import hashlib
+    p = absp(path)
+    if fake():
+        for i in range(0, 101, 10):
+            j["pct"], j["text"] = i, f"Đang đọc {p.name}..."
+            time.sleep(0.12)
+        return {"path": str(p), "name": p.name, "size": 5_400_000_000,
+                "sha256": "A1B2C3D4E5F6" * 5 + "ABCD", "text": "Đã tính xong"}
+    if not p.is_file():
+        raise RuntimeError(f"Không thấy file: {p}")
+    size, done, h = p.stat().st_size, 0, hashlib.sha256()
+    with open(p, "rb") as f:
+        while True:
+            if j.get("stop"):
+                raise RuntimeError("Đã dừng")
+            b = f.read(8 * 1024 * 1024)
+            if not b:
+                break
+            h.update(b)
+            done += len(b)
+            j["pct"] = int(done * 100 / max(1, size))
+            j["text"] = f"Đang đọc {p.name}: {human(done)} / {human(size)}"
+    return {"path": str(p), "name": p.name, "size": size, "sha256": h.hexdigest().upper(), "text": "Đã tính xong"}

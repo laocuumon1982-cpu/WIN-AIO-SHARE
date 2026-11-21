@@ -378,3 +378,32 @@ async function brLoad() {
     if (!(await confirmBox("Khôi phục trình duyệt", "Thay hồ sơ trình duyệt trên máy bằng bản sao lưu này?\nHồ sơ hiện tại được giữ lại (đổi tên), không bị xóa.", "♻ Khôi phục", false))) return;
     const r = await runJob("browser_restore", "Khôi phục trình duyệt", [p, $("brClose").checked]); if (r.ok) toast(r.result.text); brLoad(); };
 }
+
+/* =============================================================== KHO ISO WIN */
+function isoShow() {
+  const W = $("isowrap");
+  if (W.dataset.ok) return;
+  W.dataset.ok = 1;
+  const colors = ["#0f8fd8", "#16a34a"];
+  W.innerHTML = `<div class="isonote">💡 Link file ISO trên các trang này đổi theo từng tháng, nên tool <b>mở trang</b> để bạn luôn lấy được bản mới nhất.
+      Tải xong nên bấm <b>Kiểm tra SHA-256</b> và so với mã công bố trên trang để chắc file đúng bản gốc. Cài Windows xong cần key bản quyền của bạn để kích hoạt.</div>
+    ${(INIT.iso || []).map((sec, si) => `<div class="tcard isosec" style="--ac:${colors[si % 2]}"><div class="sh"><span class="si">${si ? "🏛️" : "💿"}</span><div><b>${esc(sec.name.toUpperCase())}</b><small>${esc(sec.sub)}</small></div></div>
+      <div class="isogrid">${sec.items.map(it => `<button class="tbtn isob" data-url="${esc(it.url)}" title="${esc(it.url)}"><span class="ti">${esc(it.icon)}</span>
+        <span class="tt"><b>${esc(it.name)}</b>${it.note ? `<small>${esc(it.note)}</small>` : ""}</span></button>`).join("")}</div></div>`).join("")}
+    <div class="tcard isosec" style="--ac:#d97706"><div class="sh"><span class="si">🔐</span><div><b>KIỂM TRA FILE ISO (SHA-256)</b><small>Tính mã SHA-256 rồi so với mã trên trang tải - trùng là file nguyên gốc, không bị sửa</small></div></div>
+      <div class="row2"><input id="isoFile" placeholder="Đường dẫn file .iso"><button class="btn sm" id="isoPick">📂 Chọn file</button><button class="btn red shine" id="isoHash">🔐 Kiểm tra SHA-256</button></div>
+      <div class="row2" style="margin-top:8px"><input id="isoExpect" placeholder="Dán mã SHA-256 công bố trên trang tải để so (không bắt buộc)"></div>
+      <div id="isoRes"></div></div>`;
+  W.querySelectorAll("[data-url]").forEach(b => b.onclick = () => { api("quick", b.dataset.url); toast("🌐 Đang mở " + b.querySelector("b").textContent); });
+  $("isoPick").onclick = async () => { const p = await api("pick_file_abs"); if (p) $("isoFile").value = p; };
+  $("isoHash").onclick = async () => {
+    const p = $("isoFile").value.trim(); if (!p) return toast("Chọn file ISO trước", "err");
+    const r = await runJob("sha256_file", "Kiểm tra SHA-256", [p]);
+    if (!r.ok) return;
+    const x = r.result, exp = $("isoExpect").value.trim().toUpperCase().replace(/\s+/g, "");
+    const cmp = !exp ? "" : exp === x.sha256 ? '<div class="okbox">✔ TRÙNG KHỚP - file đúng bản gốc.</div>' : '<div class="warnbox">✖ KHÔNG KHỚP - file bị lỗi khi tải hoặc không phải bản gốc. Nên tải lại.</div>';
+    $("isoRes").innerHTML = `<div class="kv" style="margin-top:10px"><div class="k">File</div><div class="v">${esc(x.name)} · ${hs(x.size)}</div>
+      <div class="k">SHA-256</div><div class="v"><code class="hash">${esc(x.sha256)}</code> <button class="btn sm" id="isoCopy">📋 Chép</button></div></div>${cmp}`;
+    $("isoCopy").onclick = () => { copyLocal(x.sha256); toast("Đã chép mã SHA-256"); };
+  };
+}

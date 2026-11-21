@@ -92,6 +92,7 @@ const PAGES = {
   apps: ["Cài phần mềm", "Bấm 1 nút để cài ngay, hoặc chọn nhiều mục rồi bấm ▶ Cài mục đã chọn"],
   power: ["Nguồn & Ổ USB", "Tắt máy khẩn cấp · Khóa máy · Hẹn giờ tắt · Tháo ổ USB an toàn"],
   test: ["Test máy", "Kiểm tra màn hình, cảm ứng, bàn phím, loa, micro, trackpad, webcam, pin laptop"],
+  iso: ["Kho ISO Win", "Tải bộ cài Windows (ISO) từ massgrave.dev hoặc Microsoft · Kiểm tra SHA-256 file ISO"],
   tools: ["Tiện ích Windows", "Thiết lập nhanh, mạng, Defender, Windows Update, máy in, BitLocker, sao lưu Wifi / Driver"],
   history: ["Nhật ký", "Những gì tool đã cài / đã chạy"],
   settings: ["Cài đặt", "Mật khẩu Admin, thư mục tải, sao lưu danh sách nút"]};
@@ -114,6 +115,7 @@ function showPage(p) {
   if (p === "manage") mgrShow();
   if (p === "clean") cleanShow();
   if (p === "backup") backShow();
+  if (p === "iso") isoShow();
   if (p === "settings" && ADMIN) renderSettings();
 }
 document.querySelectorAll(".nav").forEach(n => n.onclick = () => showPage(n.dataset.p));
