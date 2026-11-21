@@ -1,5 +1,5 @@
 ﻿=====================================================================
-           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v2.1.9)
+           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v2.2)
 =====================================================================
 Tool cài Win dạo 1 file exe portable (không cần cài đặt), giao diện tiếng Việt.
 Tải: https://github.com/laocuumon1982-cpu/WIN-AIO-SHARE/releases/latest
@@ -17,7 +17,8 @@ CHUNG
 - Nút ⟳ Cập nhật: tải bản mới từ GitHub và tự mở lại.
 - Không cần mật khẩu khi mở tool. Mật khẩu Admin (mặc định: HP360) để:
     sửa tên / biểu tượng / link nguồn từng nút, thêm / xóa nút và nhóm,
-    di chuyển nhóm và nút, đổi kiểu xếp, sao lưu / nhập danh sách nút (JSON).
+    kéo thả nhóm và nút để sắp xếp (chuyển nút sang nhóm khác), đổi kiểu xếp,
+    sao lưu / nhập danh sách nút (JSON).
 - Bảng đèn trạng thái: quyền Admin, Internet, winget, hàng đợi cài,
   hẹn giờ tắt máy, chế độ Admin.
 - Tự kiểm tra winget, máy có winget cũ thì tự cài bản mới trong im lặng.

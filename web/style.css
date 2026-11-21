@@ -967,3 +967,19 @@ body.admin .appgrid.fitgrid .gmove .ed[data-act="gup"],body.admin .appgrid.fitgr
 .appgrid .tag.bad,.appgrid.notag .abtn .tag.bad{display:inline-block;color:#fff;background:#e0262a;border-color:#e0262a}
 .tag.github{color:#24292f}
 body.dark .tag.github{color:#e6edf3}
+
+/* v2.2: kéo thả (Admin) */
+body.admin .ghead[draggable="true"]{cursor:grab}
+body.admin .arow[draggable="true"]{cursor:grab}
+.ghead .grip{font-style:normal;color:var(--muted);margin-right:5px;font-size:13px;letter-spacing:-1px}
+.dragging{opacity:.35;outline:2px dashed var(--red);outline-offset:2px}
+.gcard.drop-b{box-shadow:-5px 0 0 0 var(--red),var(--shadow,0 0 0 transparent)}
+.gcard.drop-a{box-shadow:5px 0 0 0 var(--red),var(--shadow,0 0 0 transparent)}
+.appgrid:not(.lgrid):not(.fitgrid) .gcard.drop-b{box-shadow:0 -5px 0 0 var(--red)}
+.appgrid:not(.lgrid):not(.fitgrid) .gcard.drop-a{box-shadow:0 5px 0 0 var(--red)}
+.gcard.drop-in,.gcol.drop-in{outline:2px dashed #16a34a;outline-offset:3px;background-color:rgba(22,163,74,.06)}
+.arow.drop-b{box-shadow:0 -3px 0 0 #16a34a}
+.arow.drop-a{box-shadow:0 3px 0 0 #16a34a}
+body.dnd-group .gcard *{pointer-events:none}
+body.dnd-group .gcard{pointer-events:auto}
+body.admin .appgrid:not(.lgrid):not(.fitgrid) .gcol{min-height:140px;padding-bottom:48px;align-self:stretch}

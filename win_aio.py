@@ -32,7 +32,7 @@ from urllib.parse import unquote, urlparse, parse_qs
 import mgr
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v2.1.9"
+APP_VERSION = "v2.2"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -2494,6 +2494,59 @@ class Api:
             for ci, ids in enumerate(cols):
                 for k, x in enumerate(ids):
                     st.db.execute("UPDATE groups SET col=?, ord=? WHERE id=?", (ci, k, x))
+            st.commit()
+        return True
+
+    def drop_group(self, gid, target=None, after=False, col=None):
+        """Kéo thả nhóm: đặt nhóm gid ngay trước / sau nhóm target (kiểu Lưới / Tự vừa màn hình: theo thứ tự;
+        kiểu Cột dọc: vào cột của target). target rỗng + col: đưa xuống cuối cột col."""
+        self._need_admin()
+        st = self._s
+        gid = int(gid)
+        target = int(target) if target not in (None, "", 0) else None
+        if target == gid:
+            return False
+        with st.lock:
+            if st.layout() != "columns":
+                ids = [r[0] for r in st.db.execute("SELECT id FROM groups ORDER BY gpos, id")]
+                ids.remove(gid)
+                k = ids.index(target) + (1 if after else 0) if target in ids else len(ids)
+                ids.insert(k, gid)
+                for i, x in enumerate(ids):
+                    st.db.execute("UPDATE groups SET gpos=? WHERE id=?", (i, x))
+            else:
+                n = st.columns()
+                cols = [[] for _ in range(n)]
+                for g_, c_ in st.db.execute("SELECT id, col FROM groups ORDER BY col, ord, id").fetchall():
+                    cols[min(int(c_ or 0), n - 1)].append(g_)
+                for c_ in cols:
+                    if gid in c_:
+                        c_.remove(gid)
+                if target is not None:
+                    c = next((i for i, c_ in enumerate(cols) if target in c_), 0)
+                    cols[c].insert(cols[c].index(target) + (1 if after else 0), gid)
+                else:
+                    cols[max(0, min(n - 1, int(col or 0)))].append(gid)
+                for ci, c_ in enumerate(cols):
+                    for k, x in enumerate(c_):
+                        st.db.execute("UPDATE groups SET col=?, ord=? WHERE id=?", (ci, k, x))
+            st.commit()
+        return True
+
+    def drop_app(self, aid, gid, before=None):
+        """Kéo thả nút: đưa nút aid vào nhóm gid, đứng trước nút before (rỗng = cuối nhóm)."""
+        self._need_admin()
+        st = self._s
+        aid, gid = int(aid), int(gid)
+        before = int(before) if before not in (None, "", 0) else None
+        if before == aid:
+            return False
+        with st.lock:
+            st.db.execute("UPDATE apps SET group_id=? WHERE id=?", (gid, aid))
+            ids = [r[0] for r in st.db.execute("SELECT id FROM apps WHERE group_id=? AND id<>? ORDER BY ord, id", (gid, aid))]
+            ids.insert(ids.index(before) if before in ids else len(ids), aid)
+            for k, x in enumerate(ids):
+                st.db.execute("UPDATE apps SET ord=? WHERE id=?", (k, x))
             st.commit()
         return True
 

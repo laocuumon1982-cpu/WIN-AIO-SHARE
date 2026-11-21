@@ -155,7 +155,7 @@ function renderGroups() {
       const hit = !q || norm(a.name + " " + a.note + " " + g.name).includes(q);
       const wbad = a.wg && !a.wg.ok, wver = a.wg && a.wg.ok && a.wg.ver ? `\nwinget: bản mới nhất ${a.wg.ver}` : "";
       const st = res[a.id], l = st === "run" || st === "wait" ? led("run", "sm") : st === "ok" ? led("ok", "sm") : st === "err" ? led("err", "sm") : "";
-      return `<div class="arow${hit ? "" : " hide"}" data-a="${a.id}">
+      return `<div class="arow${hit ? "" : " hide"}" data-a="${a.id}"${ADMIN ? ' draggable="true"' : ""}>
         <span class="chk${picked.has(a.id) ? " on" : ""}" data-act="pick"></span>
         <button class="btn abtn" data-act="run" title="${esc(a.name + "\n" + (a.note ? a.note + "\n" : "") + (a.src || "Chưa có nguồn") + wver + (wbad ? "\n⚠ ID winget này không còn trong kho - Admin bấm ✎ để sửa" : ""))}">
           <span class="ai">${esc(a.icon || "▫")}</span><span class="an">${esc(a.name)}</span>${l}<span class="tag ${wbad ? "bad" : a.kind}">${wbad ? "ID LỖI" : KIND[a.kind]}</span></button>
@@ -171,7 +171,7 @@ function renderGroups() {
     const d = k => dis[k] ? " disabled" : "";
     if (fit) Object.assign(dis, {gleft: gi === 0, gup: true, gdown: true, gright: gi === n - 1});
     return {c, w: anyHit ? 1.7 + hits : 0, html: `<div class="gcard${anyHit ? "" : " empty-hit"}${fit ? " fitg" : ""}" data-g="${g.id}">
-      <div class="ghead"><h4><span>${esc(g.name)}</span></h4><span class="gall" data-act="gpick">chọn nhóm</span>
+      <div class="ghead"${ADMIN ? ' draggable="true" title="Kéo để đổi chỗ nhóm"' : ""}><h4>${ADMIN ? '<i class="grip">⠿</i>' : ""}<span>${esc(g.name)}</span></h4><span class="gall" data-act="gpick">chọn nhóm</span>
         <button class="ed sm adm" data-act="gedit" title="Đổi tên nhóm">✎</button><button class="ed sm del adm" data-act="gdel" title="Xóa nhóm">✕</button></div>
       <div class="gmove adm"><button class="ed sm" data-act="gleft" title="${grid ? "Đổi chỗ với nhóm bên trái" : "Chuyển nhóm sang cột bên trái"}"${d("gleft")}>◀</button>
         <button class="ed sm" data-act="gup" title="${grid ? "Đổi chỗ với nhóm ở hàng trên" : "Đưa nhóm lên trên"}"${d("gup")}>▲</button>
@@ -249,6 +249,64 @@ function fitSide() {
 }
 let fitST;
 window.addEventListener("resize", () => { clearTimeout(fitST); fitST = setTimeout(() => { fitSide(); if (page === "system") fitSys(); }, 160); });
+/* ---------- Admin: kéo thả nhóm (bấm giữ tên nhóm) và kéo thả nút phần mềm ---------- */
+let DRAG = null;
+function clearDrop() { document.querySelectorAll(".drop-b,.drop-a,.drop-in").forEach(e => e.classList.remove("drop-b", "drop-a", "drop-in")); }
+(function initDrag() {
+  const box = $("groups");
+  box.addEventListener("dragstart", e => {
+    if (!ADMIN) return e.preventDefault();
+    const row = e.target.closest(".arow"), head = e.target.closest(".ghead");
+    if (row) DRAG = {t: "app", id: +row.dataset.a, el: row};
+    else if (head) { const g = head.closest(".gcard"); DRAG = {t: "group", id: +g.dataset.g, el: g}; }
+    else return;
+    e.dataTransfer.effectAllowed = "move";
+    try { e.dataTransfer.setData("text/plain", DRAG.t + ":" + DRAG.id); } catch (x) { /* bỏ qua */ }
+    setTimeout(() => DRAG && DRAG.el.classList.add("dragging"), 0);
+    document.body.classList.add("dnd-" + DRAG.t);
+  });
+  box.addEventListener("dragend", () => {
+    if (DRAG) DRAG.el.classList.remove("dragging");
+    document.body.classList.remove("dnd-app", "dnd-group"); clearDrop(); DRAG = null;
+  });
+  const spot = e => {   // tìm chỗ thả + trước / sau
+    if (!DRAG) return null;
+    if (DRAG.t === "app") {
+      const row = e.target.closest(".arow"), card = e.target.closest(".gcard");
+      if (row && row !== DRAG.el) {
+        const r = row.getBoundingClientRect(), after = e.clientY > r.top + r.height / 2;
+        return {el: row, cls: after ? "drop-a" : "drop-b", gid: +card.dataset.g,
+          before: after ? (row.nextElementSibling && row.nextElementSibling.classList.contains("arow") ? +row.nextElementSibling.dataset.a : null) : +row.dataset.a};
+      }
+      if (card && !row) return {el: card, cls: "drop-in", gid: +card.dataset.g, before: null};
+      return null;
+    }
+    const card = e.target.closest(".gcard");
+    if (card && card !== DRAG.el) {
+      const r = card.getBoundingClientRect();
+      const after = LAYOUT === "columns" ? e.clientY > r.top + r.height / 2 : (e.clientX > r.left + r.width / 2 || e.clientY > r.top + r.height * .75);
+      return {el: card, cls: after ? "drop-a" : "drop-b", target: +card.dataset.g, after};
+    }
+    const col = e.target.closest(".gcol[data-c]");
+    if (col && LAYOUT === "columns") return {el: col, cls: "drop-in", target: null, col: +col.dataset.c};
+    return null;
+  };
+  box.addEventListener("dragover", e => {
+    const s = spot(e); clearDrop();
+    if (!s) return;
+    e.preventDefault(); e.dataTransfer.dropEffect = "move"; s.el.classList.add(s.cls);
+  });
+  box.addEventListener("drop", async e => {
+    const s = spot(e), d = DRAG; clearDrop();
+    if (!s || !d) return;
+    e.preventDefault();
+    try {
+      if (d.t === "app") await api("drop_app", d.id, s.gid, s.before);
+      else await api("drop_group", d.id, s.target, !!s.after, s.col ?? null);
+      await loadGroups(); toast(d.t === "app" ? "Đã chuyển nút" : "Đã đổi chỗ nhóm");
+    } catch (x) { toast(String(x), "err"); }
+  });
+})();
 function updSel() {
   const ids = new Set(allApps().map(a => a.id));
   [...picked].forEach(i => { if (!ids.has(i)) picked.delete(i); });

@@ -1,6 +1,5 @@
-Win AIO by Duy Anh v2.1.9
+Win AIO by Duy Anh v2.2
 
-- Nhóm mới ARTCRAFT OFFICE PORTABLE: WordCraft (thay Word), GridCraft (thay Excel), DeckCraft (thay PowerPoint) - bộ văn phòng miễn phí mã nguồn mở, bản portable, luôn tải bản mới nhất trên GitHub.
-- Thêm WhatsApp (cài từ Microsoft Store qua winget), CIT Voice Studio, Subtitle Translator.
-- Kiểu nguồn mới "github:chủ/repo|mẫu-tên-file": mỗi lần cài tự hỏi GitHub bản mới nhất nên link không bao giờ cũ. YouTube Downloader Pro, CIT Voice Studio, Subtitle Translator đã chuyển sang kiểu này (nút còn đúng link cũ được tự đổi).
-- winget hỗ trợ ID Microsoft Store (12 ký tự, VD 9NKSQGP7F2NH).
+- Cài phần mềm (Admin): kéo thả để sắp xếp. Bấm giữ tên nhóm (biểu tượng ⠿) kéo sang chỗ khác để đổi chỗ nhóm - thả nửa trái / nửa phải nhóm đích để đặt trước / sau; kiểu Cột dọc thả xuống chỗ trống của cột để đưa vào cột đó.
+- Kéo thả từng nút phần mềm: đổi thứ tự trong nhóm hoặc chuyển sang nhóm khác (thả lên nhóm để đưa xuống cuối nhóm).
+- Vạch đỏ / xanh cho biết chỗ sẽ thả. Các nút ◀ ▲ ▼ ▶ cũ vẫn dùng được.
