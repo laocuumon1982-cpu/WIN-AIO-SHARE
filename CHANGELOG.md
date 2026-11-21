@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v2.2.1
+- Tự vừa màn hình: nút ◀ ▲ ▼ ▶ di chuyển nhóm đủ 4 hướng, chính xác; giữ nguyên cách chia cột đã sắp.
+
 ## v2.2
 - Kéo thả nhóm và nút phần mềm trong tab Cài phần mềm (Admin).
 

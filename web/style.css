@@ -843,7 +843,6 @@ body.dark .okbox{background:#12261b;border-color:#1f6b3c;color:#86efac}
 .appgrid .tag{font-size:8px;padding:0 3px}
 .appgrid .arow .chk{width:15px;height:15px}
 .appgrid .addbtn{margin-top:5px;padding:3px}
-body.admin .appgrid.fitgrid .gmove .ed[data-act="gup"],body.admin .appgrid.fitgrid .gmove .ed[data-act="gdown"]{display:none}
 /* Tiện ích Windows gọn */
 #pg-tools .toolgrid{gap:12px}
 #pg-tools .tcol{gap:12px}
@@ -975,11 +974,13 @@ body.admin .arow[draggable="true"]{cursor:grab}
 .dragging{opacity:.35;outline:2px dashed var(--red);outline-offset:2px}
 .gcard.drop-b{box-shadow:-5px 0 0 0 var(--red),var(--shadow,0 0 0 transparent)}
 .gcard.drop-a{box-shadow:5px 0 0 0 var(--red),var(--shadow,0 0 0 transparent)}
-.appgrid:not(.lgrid):not(.fitgrid) .gcard.drop-b{box-shadow:0 -5px 0 0 var(--red)}
-.appgrid:not(.lgrid):not(.fitgrid) .gcard.drop-a{box-shadow:0 5px 0 0 var(--red)}
+.appgrid:not(.lgrid) .gcard.drop-b{box-shadow:0 -5px 0 0 var(--red)}
+.appgrid:not(.lgrid) .gcard.drop-a{box-shadow:0 5px 0 0 var(--red)}
 .gcard.drop-in,.gcol.drop-in{outline:2px dashed #16a34a;outline-offset:3px;background-color:rgba(22,163,74,.06)}
 .arow.drop-b{box-shadow:0 -3px 0 0 #16a34a}
 .arow.drop-a{box-shadow:0 3px 0 0 #16a34a}
 body.dnd-group .gcard *{pointer-events:none}
 body.dnd-group .gcard{pointer-events:auto}
-body.admin .appgrid:not(.lgrid):not(.fitgrid) .gcol{min-height:140px;padding-bottom:48px;align-self:stretch}
+body.admin .appgrid:not(.lgrid) .gcol{min-height:140px;padding-bottom:48px;align-self:stretch}
+.gcard.flash{animation:gflash .9s ease}
+@keyframes gflash{0%,60%{box-shadow:0 0 0 3px var(--red)}100%{box-shadow:none}}

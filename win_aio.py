@@ -32,7 +32,7 @@ from urllib.parse import unquote, urlparse, parse_qs
 import mgr
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v2.2"
+APP_VERSION = "v2.2.1"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -550,6 +550,8 @@ class Store:
 
     def columns(self):
         try:
+            if self.layout() == "fit" and self.cfg.get("fit_n"):
+                return max(1, min(10, int(self.cfg["fit_n"])))
             return max(2, min(6, int(self.cfg.get("columns", 4))))
         except (TypeError, ValueError):
             return 4
@@ -712,7 +714,7 @@ class Store:
 
     def groups(self):
         with self.lock:
-            order = "gpos, id" if self.layout() != "columns" else "col, ord, id"
+            order = "gpos, id" if self.layout() == "grid" else "col, ord, id"
             gs = [dict(r) for r in self.db.execute("SELECT * FROM groups ORDER BY " + order)]
             apps = [dict(r) for r in self.db.execute("SELECT * FROM apps ORDER BY ord, id")]
             wi = {r["pkg"].lower(): dict(r) for r in self.db.execute("SELECT * FROM winget_info")}
@@ -2273,7 +2275,8 @@ class Api:
                 "default_pw": self._s.cfg.get("admin_hash") == hash_pw(DEFAULT_PW, self._s.cfg.get("admin_salt", ""))}
 
     def groups(self):
-        return {"columns": self._s.columns(), "layout": self._s.layout(), "groups": self._s.groups()}
+        return {"columns": self._s.columns(), "layout": self._s.layout(), "groups": self._s.groups(),
+                "fit_n": self._s.cfg.get("fit_n") if self._s.layout() == "fit" else None}
 
     def set_layout(self, mode):
         self._need_admin()
@@ -2290,7 +2293,7 @@ class Api:
         n = st.columns()
         with st.lock:
             rows = st.db.execute("SELECT g.id, (SELECT COUNT(*) FROM apps a WHERE a.group_id=g.id) FROM groups g "
-                                 "ORDER BY " + ("gpos, id" if st.layout() != "columns" else "col, ord, id")).fetchall()
+                                 "ORDER BY " + ("gpos, id" if st.layout() == "grid" else "col, ord, id")).fetchall()
             h, ords = [0] * n, [0] * n
             for gid, cnt in rows:                    # cột dọc: nhóm kế tiếp vào cột đang thấp nhất
                 c = min(range(n), key=lambda i: (h[i], i))
@@ -2456,7 +2459,7 @@ class Api:
         self._need_admin()
         st = self._s
         n = st.columns()
-        if st.layout() != "columns":
+        if st.layout() == "grid":
             # Lưới: đổi chỗ với ô bên cạnh (trái / phải) hoặc ô ngay trên / dưới (cách n ô)
             with st.lock:
                 ids = [r[0] for r in st.db.execute("SELECT id FROM groups ORDER BY gpos, id")]
@@ -2485,6 +2488,8 @@ class Api:
             i = cols[c].index(int(gid))
             if way in ("up", "down", -1, 1):
                 j = max(0, min(len(cols[c]) - 1, i + (-1 if way in ("up", -1) else 1)))
+                if j == i:
+                    return False
                 cols[c].insert(j, cols[c].pop(i))
             else:
                 c2 = c + (-1 if way == "left" else 1)
@@ -2507,7 +2512,7 @@ class Api:
         if target == gid:
             return False
         with st.lock:
-            if st.layout() != "columns":
+            if st.layout() == "grid":
                 ids = [r[0] for r in st.db.execute("SELECT id FROM groups ORDER BY gpos, id")]
                 ids.remove(gid)
                 k = ids.index(target) + (1 if after else 0) if target in ids else len(ids)
@@ -2530,6 +2535,39 @@ class Api:
                 for ci, c_ in enumerate(cols):
                     for k, x in enumerate(c_):
                         st.db.execute("UPDATE groups SET col=?, ord=? WHERE id=?", (ci, k, x))
+            st.commit()
+        return True
+
+    def fit_save(self, cols):
+        """Kiểu Tự vừa màn hình: lưu cách chia nhóm vào cột (tool tự tính lần đầu) -> lần sau giữ nguyên,
+        nút ◀ ▲ ▼ ▶ / kéo thả di chuyển chính xác. cols = [[id nhóm cột 1...], [cột 2...], ...]."""
+        st = self._s
+        with st.lock:
+            for ci, ids in enumerate(cols):
+                for k, x in enumerate(ids):
+                    st.db.execute("UPDATE groups SET col=?, ord=? WHERE id=?", (ci, k, int(x)))
+            st.cfg["fit_n"] = len(cols)
+            st.commit()
+        st.save_config(persist=st.on_disk)
+        return True
+
+    def fit_reset(self):
+        self._need_admin()
+        self._s.cfg.pop("fit_n", None)
+        self._s.save_config(persist=self._s.on_disk)
+        return True
+
+    def swap_groups(self, a, b):
+        """Đổi chỗ 2 nhóm (thứ tự và cột)."""
+        self._need_admin()
+        st = self._s
+        with st.lock:
+            ra = st.db.execute("SELECT gpos, col, ord FROM groups WHERE id=?", (int(a),)).fetchone()
+            rb = st.db.execute("SELECT gpos, col, ord FROM groups WHERE id=?", (int(b),)).fetchone()
+            if not ra or not rb:
+                return False
+            st.db.execute("UPDATE groups SET gpos=?, col=?, ord=? WHERE id=?", (rb[0], rb[1], rb[2], int(a)))
+            st.db.execute("UPDATE groups SET gpos=?, col=?, ord=? WHERE id=?", (ra[0], ra[1], ra[2], int(b)))
             st.commit()
         return True
 

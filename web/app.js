@@ -145,7 +145,8 @@ $("bLock").onclick = async () => { if (ADMIN) { await api("lock_admin"); setAdmi
 $("lkOpen").onclick = unlock;
 
 /* ---------------------------------------------------------------- Cài phần mềm */
-async function loadGroups() { const r = await api("groups"); G = r.groups; NCOL = r.columns; LAYOUT = r.layout || "grid"; renderGroups(); }
+let FIT_N = 0;
+async function loadGroups() { const r = await api("groups"); G = r.groups; NCOL = r.columns; LAYOUT = r.layout || "grid"; FIT_N = r.fit_n || 0; renderGroups(); }
 function allApps() { return G.flatMap(g => g.apps); }
 function renderGroups() {
   const q = norm($("q").value.trim());
@@ -165,19 +166,20 @@ function renderGroups() {
     const anyHit = !q || g.apps.some(a => norm(a.name + " " + a.note + " " + g.name).includes(q));
     const fit = LAYOUT === "fit", grid = LAYOUT === "grid" || fit, n = G.length;
     const hits = g.apps.filter(a => !q || norm(a.name + " " + a.note + " " + g.name).includes(q)).length;
-    const c = grid ? gi % NCOL : Math.min(g.col || 0, NCOL - 1), r = Math.floor(gi / NCOL);
-    const dis = {gleft: c === 0, gright: grid ? (c === NCOL - 1 || gi === n - 1) : c === NCOL - 1,
-      gup: grid && gi < NCOL, gdown: grid && gi === n - 1};
+    const lgrid = LAYOUT === "grid";
+    const c = lgrid ? gi % NCOL : Math.min(g.col || 0, NCOL - 1), r = Math.floor(gi / NCOL);
+    const dis = {gleft: c === 0, gright: lgrid ? (c === NCOL - 1 || gi === n - 1) : c === NCOL - 1,
+      gup: lgrid && gi < NCOL, gdown: lgrid && gi === n - 1};
     const d = k => dis[k] ? " disabled" : "";
-    if (fit) Object.assign(dis, {gleft: gi === 0, gup: true, gdown: true, gright: gi === n - 1});
-    return {c, w: anyHit ? 1.7 + hits : 0, html: `<div class="gcard${anyHit ? "" : " empty-hit"}${fit ? " fitg" : ""}" data-g="${g.id}">
+
+    return {c, gid: g.id, w: anyHit ? 1.7 + hits : 0, html: `<div class="gcard${anyHit ? "" : " empty-hit"}${fit ? " fitg" : ""}" data-g="${g.id}">
       <div class="ghead"${ADMIN ? ' draggable="true" title="Kéo để đổi chỗ nhóm"' : ""}><h4>${ADMIN ? '<i class="grip">⠿</i>' : ""}<span>${esc(g.name)}</span></h4><span class="gall" data-act="gpick">chọn nhóm</span>
         <button class="ed sm adm" data-act="gedit" title="Đổi tên nhóm">✎</button><button class="ed sm del adm" data-act="gdel" title="Xóa nhóm">✕</button></div>
-      <div class="gmove adm"><button class="ed sm" data-act="gleft" title="${grid ? "Đổi chỗ với nhóm bên trái" : "Chuyển nhóm sang cột bên trái"}"${d("gleft")}>◀</button>
-        <button class="ed sm" data-act="gup" title="${grid ? "Đổi chỗ với nhóm ở hàng trên" : "Đưa nhóm lên trên"}"${d("gup")}>▲</button>
-        <button class="ed sm" data-act="gdown" title="${grid ? "Đổi chỗ với nhóm ở hàng dưới" : "Đưa nhóm xuống dưới"}"${d("gdown")}>▼</button>
-        <button class="ed sm" data-act="gright" title="${grid ? "Đổi chỗ với nhóm bên phải" : "Chuyển nhóm sang cột bên phải"}"${d("gright")}>▶</button>
-        <span>${fit ? `Thứ tự ${gi + 1}` : grid ? `Hàng ${r + 1} · Cột ${c + 1}` : `Cột ${c + 1}`}</span></div>
+      <div class="gmove adm"><button class="ed sm" data-act="gleft" title="${lgrid ? "Đổi chỗ với nhóm bên trái" : "Chuyển nhóm sang cột bên trái"}"${d("gleft")}>◀</button>
+        <button class="ed sm" data-act="gup" title="${lgrid ? "Đổi chỗ với nhóm ở hàng trên" : "Đưa nhóm lên trên"}"${d("gup")}>▲</button>
+        <button class="ed sm" data-act="gdown" title="${lgrid ? "Đổi chỗ với nhóm ở hàng dưới" : "Đưa nhóm xuống dưới"}"${d("gdown")}>▼</button>
+        <button class="ed sm" data-act="gright" title="${lgrid ? "Đổi chỗ với nhóm bên phải" : "Chuyển nhóm sang cột bên phải"}"${d("gright")}>▶</button>
+        <span>${lgrid ? `Hàng ${r + 1} · Cột ${c + 1}` : `Cột ${c + 1}`}</span></div>
       ${rows || '<div class="logl">(chưa có nút)</div>'}
       <button class="addbtn adm" data-act="add">＋ Thêm phần mềm</button></div>`};
   });
@@ -202,13 +204,28 @@ function renderGroups() {
    tăng số cột cho tới khi không còn phải kéo; vẫn chưa vừa thì thu nhỏ cả khối (tối đa còn 70%). */
 function fitGroups(cards) {
   const el = $("groups"), wrap = el.parentElement, W = el.clientWidth || 1000;
-  const put = n => {
-    const cols = Array.from({length: n}, () => ({h: 0, html: []}));
-    cards.forEach(x => { const c = cols.reduce((b, k) => k.h < b.h ? k : b, cols[0]); c.html.push(x.html); c.h += x.w; });
-    el.style.setProperty("--ncol", n);
-    el.innerHTML = cols.map(c => `<div class="gcol">${c.html.join("")}</div>`).join("");
+  const draw = cols => {
+    el.style.setProperty("--ncol", cols.length);
+    el.innerHTML = cols.map((c, i) => `<div class="gcol" data-c="${i}">${c.map(x => x.html).join("") || '<div class="colempty adm">Cột trống</div>'}</div>`).join("");
   };
-  const n = bestFit(el, put, Math.max(2, Math.floor(W / 420)), Math.max(2, Math.floor(W / 165)), W, 220, .66, 1.35);
+  const greedy = n => {
+    const cols = Array.from({length: n}, () => ({h: 0, items: []}));
+    cards.forEach(x => { const c = cols.reduce((b, k) => k.h < b.h ? k : b, cols[0]); c.items.push(x); c.h += x.w; });
+    return cols.map(c => c.items);
+  };
+  let n = FIT_N;
+  if (n && W / n >= 150 && el.offsetParent) {          // đã chốt cách chia cột -> giữ nguyên, chỉ co giãn cho vừa
+    const cols = Array.from({length: n}, () => []);
+    cards.forEach(x => cols[Math.min(x.c, n - 1)].push(x));
+    draw(cols); fitBox(el, .6, 1.35);
+  } else {
+    n = bestFit(el, k => draw(greedy(k)), Math.max(2, Math.floor(W / 420)), Math.max(2, Math.floor(W / 165)), W, 220, .66, 1.35);
+    if (el.offsetParent && cards.length) {             // lưu lại để lần sau / nút di chuyển dùng đúng cột này
+      const cols = greedy(n).map(c => c.map(x => x.gid));
+      FIT_N = n;
+      api("fit_save", cols).then(() => loadGroups()).catch(() => {});
+    }
+  }
   el.classList.toggle("notag", W / n / (+el.style.zoom || 1) < 270);   // cột hẹp: ẩn nhãn WINGET / WEB để tên không bị cắt
 }
 /* Thử từng số cột: mỗi số cột tìm cỡ (zoom) lớn nhất vừa khung, chọn cách cho nút to nhất
@@ -284,11 +301,11 @@ function clearDrop() { document.querySelectorAll(".drop-b,.drop-a,.drop-in").for
     const card = e.target.closest(".gcard");
     if (card && card !== DRAG.el) {
       const r = card.getBoundingClientRect();
-      const after = LAYOUT === "columns" ? e.clientY > r.top + r.height / 2 : (e.clientX > r.left + r.width / 2 || e.clientY > r.top + r.height * .75);
+      const after = LAYOUT !== "grid" ? e.clientY > r.top + r.height / 2 : (e.clientX > r.left + r.width / 2 || e.clientY > r.top + r.height * .75);
       return {el: card, cls: after ? "drop-a" : "drop-b", target: +card.dataset.g, after};
     }
     const col = e.target.closest(".gcol[data-c]");
-    if (col && LAYOUT === "columns") return {el: col, cls: "drop-in", target: null, col: +col.dataset.c};
+    if (col && LAYOUT !== "grid") return {el: col, cls: "drop-in", target: null, col: +col.dataset.c};
     return null;
   };
   box.addEventListener("dragover", e => {
@@ -329,7 +346,9 @@ $("bArrange").onclick = async () => {
       <label class="ck" style="margin-top:10px"><input type="checkbox" id="arA"> Xếp các nút trong mỗi nhóm theo tên A → Z</label>`,
     buttons: [{text: "Hủy", value: null}, {text: "⚖ Sắp xếp", cls: "red", def: true, click: c => ({a: c.q("#arA").checked})}]});
   if (!r) return;
-  await api("auto_arrange", r.a); loadGroups(); toast("Đã sắp xếp lại các nhóm");
+  await api("auto_arrange", r.a);
+  if (LAYOUT === "fit") { await api("fit_reset"); FIT_N = 0; }
+  loadGroups(); toast("Đã sắp xếp lại các nhóm");
 };
 $("lay").onchange = async () => { await api("set_layout", $("lay").value); loadGroups(); toast("Kiểu xếp: " + $("lay").selectedOptions[0].text); };
 $("nCol").onchange = async () => { await api("set_columns", +$("nCol").value); loadGroups(); toast(`Đã chia lại thành ${$("nCol").value} cột`); };
@@ -357,7 +376,12 @@ $("groups").onclick = async e => {
   else if (act === "edit") editApp(a, gid);
   else if (act === "add") editApp(null, gid);
   else if (act === "gedit") { const n = await promptBox("Đổi tên nhóm", "Tên nhóm:", g.name); if (n !== null) { await api("save_group", gid, n); loadGroups(); } }
-  else if (["gup", "gdown", "gleft", "gright"].includes(act)) { await api("move_group", gid, act.slice(1)); loadGroups(); }
+  else if (["gup", "gdown", "gleft", "gright"].includes(act)) {
+    if (!(await api("move_group", gid, act.slice(1)))) return toast("Không di chuyển được về phía đó", "err");
+    await loadGroups();
+    const el = document.querySelector(`.gcard[data-g="${gid}"]`);
+    if (el) { el.classList.add("flash"); setTimeout(() => el.classList.remove("flash"), 900); }
+  }
   else if (act === "aup" || act === "adown") { await api("move_app", a.id, act === "aup" ? -1 : 1); loadGroups(); }
   else if (act === "gdel") {
     if (await confirmBox("Xóa nhóm", `Xóa nhóm "${g.name}" cùng ${g.apps.length} nút bên trong?`, "🗑 Xóa nhóm")) { await api("delete_group", gid); loadGroups(); }

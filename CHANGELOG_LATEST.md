@@ -1,5 +1,5 @@
-Win AIO by Duy Anh v2.2
+Win AIO by Duy Anh v2.2.1
 
-- Cài phần mềm (Admin): kéo thả để sắp xếp. Bấm giữ tên nhóm (biểu tượng ⠿) kéo sang chỗ khác để đổi chỗ nhóm - thả nửa trái / nửa phải nhóm đích để đặt trước / sau; kiểu Cột dọc thả xuống chỗ trống của cột để đưa vào cột đó.
-- Kéo thả từng nút phần mềm: đổi thứ tự trong nhóm hoặc chuyển sang nhóm khác (thả lên nhóm để đưa xuống cuối nhóm).
-- Vạch đỏ / xanh cho biết chỗ sẽ thả. Các nút ◀ ▲ ▼ ▶ cũ vẫn dùng được.
+- Kiểu xếp "Tự vừa màn hình": nút di chuyển nhóm ◀ ▲ ▼ ▶ dùng được đủ 4 hướng và chính xác - ▲ ▼ đưa nhóm lên / xuống trong cột, ◀ ▶ đưa nhóm sang cột bên trái / phải (giữ hàng). Nhóm vừa di chuyển nhấp nháy để dễ thấy.
+- Tool tự chia nhóm vào cột lần đầu rồi lưu lại, các lần sau giữ nguyên chỗ bạn đã sắp (chỉ co giãn cỡ chữ cho vừa màn hình). Kéo thả nhóm cũng theo cột: thả nửa trên / nửa dưới nhóm đích, hoặc thả xuống chỗ trống của cột.
+- "⚖ Tự sắp xếp" ở kiểu này: chia lại các nhóm cho đều từ đầu.
