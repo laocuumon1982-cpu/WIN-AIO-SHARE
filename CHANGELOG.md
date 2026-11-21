@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v2.3.1
+- Kho ISO Win: chọn bản rồi tải thẳng trong tool (link gốc Microsoft, có %, tải tiếp), lấy link cho IDM.
+
 ## v2.3
 - Tab Kho ISO Win (massgrave.dev + Microsoft), kiểm tra SHA-256 ISO; thêm ONLYOFFICE.
 

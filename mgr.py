@@ -1275,3 +1275,99 @@ def sha256_file(j, path):
             j["pct"] = int(done * 100 / max(1, size))
             j["text"] = f"Đang đọc {p.name}: {human(done)} / {human(size)}"
     return {"path": str(p), "name": p.name, "size": size, "sha256": h.hexdigest().upper(), "text": "Đã tính xong"}
+
+
+# ================================================================ Tải ISO Windows chính chủ (link Microsoft, lấy ngầm qua Fido)
+ISO_LANGS = ["English", "English International", "Arabic", "Brazilian Portuguese", "Bulgarian", "Chinese (Simplified)",
+             "Chinese (Traditional)", "Croatian", "Czech", "Danish", "Dutch", "Estonian", "Finnish", "French",
+             "French Canadian", "German", "Greek", "Hebrew", "Hungarian", "Italian", "Japanese", "Korean", "Latvian",
+             "Lithuanian", "Norwegian", "Polish", "Portuguese", "Romanian", "Russian", "Serbian Latin", "Slovak",
+             "Slovenian", "Spanish", "Spanish (Mexico)", "Swedish", "Thai", "Turkish", "Ukrainian"]
+FIDO_URL = "https://raw.githubusercontent.com/pbatard/Fido/master/Fido.ps1"
+
+
+def _fido(j):
+    """Fido (pbatard, dùng chung với Rufus): hỏi trang tải chính thức của Microsoft để lấy link ISO thật (hết hạn sau 24 giờ)."""
+    import requests
+    d = data_dir("Tools")
+    f = d / "Fido.ps1"
+    if not f.exists() or time.time() - f.stat().st_mtime > 3 * 86400:
+        j["text"] = "Đang tải bộ lấy link Microsoft (Fido)..."
+        r = requests.get(FIDO_URL, timeout=30, headers={"User-Agent": "WinAIO"})
+        r.raise_for_status()
+        f.write_bytes(r.content)
+    return f
+
+
+def iso_url(j, win, lang, arch):
+    if fake():
+        time.sleep(1.2)
+        n = "Win11_25H2_English_x64.iso" if win == "11" else "Win10_22H2_English_x64v1.iso"
+        return f"https://software.download.prss.microsoft.com/dbazure/{n}?t=demo", n
+    f = _fido(j)
+    j["text"] = "Đang hỏi Microsoft link tải ISO..."
+    cmd = ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(f), "-Win", f"Windows {win}", "-Rel", "Latest",
+           "-Ed", "Home/Pro/Edu", "-Lang", lang, "-Arch", arch, "-PlatformArch", "x64", "-GetUrl"]
+    code, out = H["run"](cmd, timeout=180)
+    urls = re.findall(r"https://\S+\.iso\S*", out or "")
+    if not urls:
+        low = (out or "").lower()
+        if "banned" in low:
+            raise RuntimeError("Microsoft tạm chặn IP này vì tải ISO quá nhiều lần (hoặc đang dùng VPN / proxy). Tắt VPN, đợi vài giờ rồi thử lại.")
+        tail = " ".join((out or "").split())[-300:]
+        raise RuntimeError("Không lấy được link từ Microsoft. " + (tail or f"mã {code}"))
+    url = urls[-1]
+    name = re.sub(r"[?#].*$", "", url.rsplit("/", 1)[-1])
+    return url, name
+
+
+def iso_download(j, win, lang, arch, dest):
+    """Lấy link ISO chính chủ của Microsoft rồi tải về (có %, tốc độ, tải tiếp nếu bị ngắt)."""
+    url, name = iso_url(j, win, lang, arch)
+    if dest == "__link__":                 # chỉ lấy link (để dán vào IDM)
+        return {"url": url, "name": name, "text": "Đã lấy link"}
+    out = absp(dest or data_dir("ISO"))
+    out.mkdir(parents=True, exist_ok=True)
+    path, part = out / name, out / (name + ".tai")
+    j["url"] = url
+    if fake():
+        tot = 5_800_000_000
+        for i in range(0, 101, 4):
+            if j.get("stop"):
+                raise RuntimeError("Đã dừng (lần sau tải tiếp từ chỗ dừng)")
+            j["pct"], j["text"] = i, f"{name}: {human(tot * i // 100)} / {human(tot)} · 85.0 MB/s"
+            time.sleep(0.06)
+        return {"path": str(path), "dest": str(out), "name": name, "size": tot, "url": url, "text": f"Đã tải xong {name}"}
+    import requests
+    have = part.stat().st_size if part.exists() else 0
+    hdr = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+    if have:
+        hdr["Range"] = f"bytes={have}-"
+    with requests.get(url, headers=hdr, stream=True, timeout=30) as r:
+        if r.status_code == 416:          # đã tải đủ
+            r.close()
+        else:
+            r.raise_for_status()
+            if have and r.status_code != 206:
+                have = 0                  # máy chủ không cho tải tiếp -> tải lại từ đầu
+            tot = have + int(r.headers.get("Content-Length") or 0)
+            done, t0, last = have, time.time(), 0
+            free = shutil.disk_usage(out).free
+            if tot - have > free:
+                raise RuntimeError(f"Ổ đĩa không đủ chỗ: cần {human(tot - have)}, còn trống {human(free)}. Chọn ổ khác.")
+            with open(part, "ab" if have else "wb") as fh:
+                for chunk in r.iter_content(4 * 1024 * 1024):
+                    if j.get("stop"):
+                        raise RuntimeError("Đã dừng (lần sau bấm tải là tải tiếp từ chỗ dừng)")
+                    fh.write(chunk)
+                    done += len(chunk)
+                    if time.time() - last > 0.4:
+                        last = time.time()
+                        sp = (done - have) / max(0.1, time.time() - t0)
+                        j["pct"] = int(done * 100 / max(1, tot))
+                        j["text"] = f"{name}: {human(done)} / {human(tot)} · {human(sp)}/s"
+    if path.exists():
+        path.unlink()
+    part.rename(path)
+    H["history"](name, url, "Xong", "Tải ISO Windows")
+    return {"path": str(path), "dest": str(out), "name": name, "size": path.stat().st_size, "url": url, "text": f"Đã tải xong {name}"}

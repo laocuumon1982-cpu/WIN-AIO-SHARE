@@ -384,17 +384,46 @@ function isoShow() {
   const W = $("isowrap");
   if (W.dataset.ok) return;
   W.dataset.ok = 1;
-  const colors = ["#0f8fd8", "#16a34a"];
-  W.innerHTML = `<div class="isonote">💡 Link file ISO trên các trang này đổi theo từng tháng, nên tool <b>mở trang</b> để bạn luôn lấy được bản mới nhất.
-      Tải xong nên bấm <b>Kiểm tra SHA-256</b> và so với mã công bố trên trang để chắc file đúng bản gốc. Cài Windows xong cần key bản quyền của bạn để kích hoạt.</div>
-    ${(INIT.iso || []).map((sec, si) => `<div class="tcard isosec" style="--ac:${colors[si % 2]}"><div class="sh"><span class="si">${si ? "🏛️" : "💿"}</span><div><b>${esc(sec.name.toUpperCase())}</b><small>${esc(sec.sub)}</small></div></div>
-      <div class="isogrid">${sec.items.map(it => `<button class="tbtn isob" data-url="${esc(it.url)}" title="${esc(it.url)}"><span class="ti">${esc(it.icon)}</span>
-        <span class="tt"><b>${esc(it.name)}</b>${it.note ? `<small>${esc(it.note)}</small>` : ""}</span></button>`).join("")}</div></div>`).join("")}
-    <div class="tcard isosec" style="--ac:#d97706"><div class="sh"><span class="si">🔐</span><div><b>KIỂM TRA FILE ISO (SHA-256)</b><small>Tính mã SHA-256 rồi so với mã trên trang tải - trùng là file nguyên gốc, không bị sửa</small></div></div>
+  const langs = (INIT.iso_langs || ["English"]).map(l => `<option>${esc(l)}</option>`).join("");
+  const VER = [["11", "Windows 11", "Bản mới nhất · Home / Pro / Education", "🪟"], ["10", "Windows 10", "22H2 · Home / Pro / Education", "🪟"]];
+  W.innerHTML = `<div class="tcard isosec" style="--ac:#0f8fd8"><div class="sh"><span class="si">💿</span><div><b>TẢI ISO WINDOWS</b>
+        <small>Chọn bản cần tải rồi bấm Tải - tool tự lấy link gốc của Microsoft và tải về, không phải mở web</small></div></div>
+      <div class="isover">${VER.map((v, i) => `<label class="isov${i ? "" : " on"}"><input type="radio" name="isoW" value="${v[0]}"${i ? "" : " checked"}>
+        <span class="ti">${v[3]}</span><span><b>${v[1]}</b><small>${v[2]}</small></span></label>`).join("")}</div>
+      <div class="isoopt">
+        <label>Ngôn ngữ <select id="isoLang">${langs}</select></label>
+        <label>Kiến trúc <select id="isoArch"><option value="x64">64-bit (x64)</option></select></label>
+        <label class="grow">Lưu vào <span class="row2"><input id="isoDest" placeholder="Data\\ISO (kế bên tool)"><button class="btn sm" id="isoDPick">📂</button></span></label>
+      </div>
+      <div class="row-acts"><span class="logl grow">File ISO khoảng 5 - 7 GB. Đang tải bị ngắt / bấm Dừng thì lần sau bấm Tải là tải tiếp từ chỗ dừng.
+        Windows tiếng Việt: chọn English rồi cài gói ngôn ngữ Tiếng Việt trong Cài đặt.</span>
+        <button class="btn" id="isoLink">🔗 Chỉ lấy link (dán vào IDM)</button><button class="btn red shine" id="isoGo">⬇ Tải ISO</button></div>
+      <div id="isoDone"></div></div>
+    <div class="tcard isosec" style="--ac:#d97706"><div class="sh"><span class="si">🔐</span><div><b>KIỂM TRA FILE ISO (SHA-256)</b><small>Tính mã SHA-256 rồi so với mã công bố - trùng là file nguyên gốc, không bị sửa</small></div></div>
       <div class="row2"><input id="isoFile" placeholder="Đường dẫn file .iso"><button class="btn sm" id="isoPick">📂 Chọn file</button><button class="btn red shine" id="isoHash">🔐 Kiểm tra SHA-256</button></div>
-      <div class="row2" style="margin-top:8px"><input id="isoExpect" placeholder="Dán mã SHA-256 công bố trên trang tải để so (không bắt buộc)"></div>
+      <div class="row2" style="margin-top:8px"><input id="isoExpect" placeholder="Dán mã SHA-256 công bố để so (không bắt buộc)"></div>
       <div id="isoRes"></div></div>`;
-  W.querySelectorAll("[data-url]").forEach(b => b.onclick = () => { api("quick", b.dataset.url); toast("🌐 Đang mở " + b.querySelector("b").textContent); });
+  const ver = () => W.querySelector('input[name="isoW"]:checked').value;
+  const setArch = () => { $("isoArch").innerHTML = ver() === "10" ? '<option value="x64">64-bit (x64)</option><option value="x86">32-bit (x86)</option>' : '<option value="x64">64-bit (x64)</option>'; };
+  W.querySelectorAll('input[name="isoW"]').forEach(r => r.onchange = () => { W.querySelectorAll(".isov").forEach(l => l.classList.toggle("on", l.contains(W.querySelector('input[name="isoW"]:checked')))); setArch(); });
+  $("isoDPick").onclick = async () => { const p = await api("pick_folder_abs"); if (p) $("isoDest").value = p; };
+  const args = () => [ver(), $("isoLang").value, $("isoArch").value, $("isoDest").value.trim()];
+  $("isoGo").onclick = async () => {
+    const a = args(), r = await runJob("iso_download", `Tải Windows ${a[0]} · ${a[1]} · ${a[2]}`, a);
+    if (!r.ok) return;
+    const x = r.result;
+    $("isoDone").innerHTML = `<div class="okbox">✔ ${esc(x.text)} (${hs(x.size)}) <button class="btn sm" data-of="${esc(x.dest)}">📂 Mở thư mục</button>
+      <button class="btn sm" id="isoChk">🔐 Kiểm tra SHA-256</button></div>`;
+    $("isoDone").querySelector("[data-of]").onclick = e => api("open_folder", e.target.dataset.of);
+    $("isoChk").onclick = () => { $("isoFile").value = x.path; $("isoHash").click(); };
+  };
+  $("isoLink").onclick = async () => {
+    const a = args(); a[3] = "__link__";
+    const r = await runJob("iso_download", `Lấy link Windows ${a[0]} · ${a[1]}`, a);
+    if (!r.ok) return;
+    copyLocal(r.result.url);
+    $("isoDone").innerHTML = `<div class="okbox">✔ Đã chép link ${esc(r.result.name)} - dán vào IDM / trình duyệt (link dùng được 24 giờ).</div>`;
+  };
   $("isoPick").onclick = async () => { const p = await api("pick_file_abs"); if (p) $("isoFile").value = p; };
   $("isoHash").onclick = async () => {
     const p = $("isoFile").value.trim(); if (!p) return toast("Chọn file ISO trước", "err");
