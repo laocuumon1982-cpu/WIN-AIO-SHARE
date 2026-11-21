@@ -9,4 +9,6 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: ./tools/winget_probe.ps1
