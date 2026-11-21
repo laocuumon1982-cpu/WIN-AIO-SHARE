@@ -1,6 +1,5 @@
-Win AIO by Duy Anh v2.1.6
+Win AIO by Duy Anh v2.1.7
 
-- Cài phần mềm: chuyển sang cài bằng winget (luôn bản mới nhất, cài im lặng) cho UniKey, EVKey, WinRAR, Firefox tiếng Việt, Discord, Zoom, Viber, UltraViewer, TeamViewer, Google Drive, Visual C++ x64/x86, .NET Framework 4.8.1, DirectX, BlueStacks. Sửa ID winget của AnyDesk. LDPlayer chưa có trên winget nên vẫn mở trang tải.
-- Nút đã lưu từ bản cũ tự đổi sang winget nếu vẫn đúng link mặc định cũ; nút bạn đã tự sửa link thì giữ nguyên.
-- Nhóm mới KHO PHẦN MỀM: "Kho Fshare" và "Kho Google Drive" - bấm là mở thư mục phần mềm trên trình duyệt (Admin bấm ✎ để đổi link). Kiểu nguồn mới "open:https://..." chỉ mở link, không tải.
-- Test màn hình / cảm ứng: cửa sổ tool chuyển toàn màn hình thật, che cả thanh tiêu đề và taskbar; Esc / Đóng là trở lại như cũ.
+- winget tải nhanh hơn: tool tự chỉnh winget tải trực tiếp (wininet) thay cho Delivery Optimization hay chậm; chỉ tìm trong kho winget (bỏ qua kho Microsoft Store chậm); không làm mới danh mục mỗi lần cài.
+- Mở tool là tự làm mới kho winget và kiểm tra từng nút WINGET: gói còn không, bản mới nhất là bao nhiêu (rê chuột lên nút để xem). ID nào không còn thì tự tìm ID mới theo tên nút và sửa luôn; không tìm được thì nút hiện nhãn đỏ "ID LỖI" để Admin sửa.
+- Cài bằng winget mà tải lỗi / link của hãng vừa đổi: tự làm mới kho rồi thử lại 1 lần.

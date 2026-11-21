@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v2.1.7
+- winget tải nhanh hơn (wininet, chỉ kho winget); mở tool tự kiểm tra / tự sửa ID winget, nhãn ID LỖI; tải lỗi tự làm mới kho và thử lại.
+
 ## v2.1.6
 - 15 phần mềm chuyển sang winget, sửa ID AnyDesk; nhóm Kho phần mềm (Fshare, Google Drive); test màn hình toàn màn hình thật.
 

@@ -1,4 +1,4 @@
-﻿WIN AIO BY DUY ANH - v2.1.6
+﻿WIN AIO BY DUY ANH - v2.1.7
 =========================
 
 CHỈ 1 FILE EXE
@@ -16,6 +16,12 @@ MỞ TOOL BẰNG 1 DÒNG LỆNH (không cần USB)
       powershell irm https://raw.githubusercontent.com/laocuumon1982-cpu/WIN-AIO-SHARE/main/aio.ps1 | iex
   - Lệnh tự tải bản mới nhất về %LOCALAPPDATA%\WinAIO rồi mở tool (bấm Yes ở hộp UAC). Thư mục Data cũng nằm ở đó.
     Chạy lại lần sau: đã có bản mới nhất thì mở luôn, không tải lại.
+
+WINGET NHANH & TỰ KIỂM TRA (v2.1.7)
+  - Mở tool: tự chỉnh winget tải trực tiếp (nhanh hơn), làm mới kho winget, kiểm tra từng nút WINGET.
+  - Rê chuột lên nút WINGET để xem bản mới nhất trong kho. Nhãn đỏ "ID LỖI" = gói không còn trong kho:
+    tool đã thử tự tìm ID mới theo tên nút mà không được -> bật Admin, bấm ✎ để sửa ID hoặc đổi sang link tải.
+  - Muốn giữ cấu hình winget gốc: sửa config.json, thêm "winget_fast": false.
 
 WINGET TỰ CẬP NHẬT
   - Mở tool sẽ so bản winget trên máy với bản mới nhất của Microsoft. Bản cũ / chưa có -> tự cài bản mới, chạy ngầm.

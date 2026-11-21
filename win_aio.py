@@ -16,6 +16,7 @@ import json
 import math
 import os
 import re
+import unicodedata
 import secrets
 import shlex
 import shutil
@@ -31,7 +32,7 @@ from urllib.parse import unquote, urlparse, parse_qs
 import mgr
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v2.1.6"
+APP_VERSION = "v2.1.7"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -83,6 +84,10 @@ OLD_DEFAULT_SRC = {
     "https://www.bluestacks.com/download.html": "winget:BlueStack.BlueStacks",
     "winget:AnyDeskSoftwareGmbH.AnyDesk": "winget:AnyDesk.AnyDesk"
 }
+
+
+def norm_name(t):
+    return re.sub(r"[^a-z0-9]+", "", unicodedata.normalize("NFKD", (t or "").lower()).encode("ascii", "ignore").decode())
 
 
 def fix_src(src):
@@ -447,6 +452,7 @@ class Store:
         self.db.row_factory = sqlite3.Row
         self.db.executescript("""
             CREATE TABLE IF NOT EXISTS groups(id INTEGER PRIMARY KEY, name TEXT, ord INTEGER, col INTEGER, gpos INTEGER);
+            CREATE TABLE IF NOT EXISTS winget_info(pkg TEXT PRIMARY KEY, ok INTEGER, ver TEXT, url TEXT, pname TEXT, checked REAL);
             CREATE TABLE IF NOT EXISTS apps(id INTEGER PRIMARY KEY, group_id INTEGER, icon TEXT, name TEXT,
                 src TEXT, args TEXT, note TEXT, ord INTEGER);
             CREATE TABLE IF NOT EXISTS history(id INTEGER PRIMARY KEY, ts TEXT, name TEXT, src TEXT,
@@ -626,9 +632,30 @@ class Store:
             order = "gpos, id" if self.layout() != "columns" else "col, ord, id"
             gs = [dict(r) for r in self.db.execute("SELECT * FROM groups ORDER BY " + order)]
             apps = [dict(r) for r in self.db.execute("SELECT * FROM apps ORDER BY ord, id")]
+            wi = {r["pkg"].lower(): dict(r) for r in self.db.execute("SELECT * FROM winget_info")}
         for g in gs:
-            g["apps"] = [dict(a, kind=src_kind(a["src"])) for a in apps if a["group_id"] == g["id"]]
+            g["apps"] = []
+            for a in apps:
+                if a["group_id"] != g["id"]:
+                    continue
+                a = dict(a, kind=src_kind(a["src"]))
+                if a["kind"] == "winget":
+                    w = wi.get(a["src"].split(":", 1)[1].strip().lower())
+                    if w:
+                        a["wg"] = {"ok": w["ok"], "ver": w["ver"] or ""}
+                g["apps"].append(a)
         return gs
+
+    def wg_get(self, pkg):
+        with self.lock:
+            r = self.db.execute("SELECT * FROM winget_info WHERE pkg=? COLLATE NOCASE", (pkg,)).fetchone()
+        return dict(r) if r else None
+
+    def wg_put(self, pkg, ok, ver="", url="", pname=""):
+        with self.lock:
+            self.db.execute("INSERT OR REPLACE INTO winget_info(pkg, ok, ver, url, pname, checked) VALUES(?,?,?,?,?,?)",
+                            (pkg, int(ok), ver, url, pname, time.time()))
+            self.commit(persist=self.on_disk)
 
     def app(self, aid):
         with self.lock:
@@ -857,6 +884,119 @@ $net=@(Get-NetAdapter -Physical | Where-Object Status -eq 'Up' | ForEach-Object 
             self.log(f"Bỏ qua kiểm tra winget: {e}", "dim")
         finally:
             self.wg_ready.set()
+            if self.checks.get("winget") and "--selftest" not in sys.argv:
+                threading.Thread(target=self.winget_maintain, daemon=True).start()
+
+    # ------------------------------------------------ winget nhanh hơn + tự kiểm tra ID
+    WG_SETTINGS = Path(os.environ.get("LOCALAPPDATA", ".")) / "Packages" / "Microsoft.DesktopAppInstaller_8wekyb3d8bbwe" / "LocalState" / "settings.json"
+
+    def winget_tune(self):
+        """winget mặc định tải qua Delivery Optimization (hay chậm, nhất là máy mới cài) và tự làm mới kho mỗi 5 phút
+        (lần cài nào cũng phải chờ tải lại danh mục). Đổi: tải trực tiếp (wininet), làm mới kho 6 giờ / lần -
+        tool tự làm mới kho mỗi lần mở nên danh mục vẫn luôn mới."""
+        if FAKE or not IS_WIN or self.st.cfg.get("winget_fast", True) is False:
+            return False
+        f = self.WG_SETTINGS
+        try:
+            data = {}
+            if f.exists():
+                raw = f.read_text(encoding="utf-8-sig", errors="ignore")
+                try:
+                    data = json.loads(re.sub(r"(?m)^\s*//.*$", "", raw) or "{}")
+                except Exception:           # noqa: BLE001
+                    shutil.copy2(f, f.with_suffix(".json.winaio.bak"))
+                    data = {}
+            net = data.setdefault("network", {})
+            src = data.setdefault("source", {})
+            if net.get("downloader") == "wininet" and src.get("autoUpdateIntervalInMinutes") == 360:
+                return False
+            net["downloader"] = "wininet"
+            src["autoUpdateIntervalInMinutes"] = 360
+            f.parent.mkdir(parents=True, exist_ok=True)
+            f.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+            self.log("⚡ Đã chỉnh winget tải trực tiếp (nhanh hơn Delivery Optimization).", "ok")
+            return True
+        except Exception as e:              # noqa: BLE001
+            self.log(f"Không chỉnh được cấu hình winget: {e}", "dim")
+            return False
+
+    def _wg_run(self, args, timeout=60):
+        cmd = ["winget"] + args + ["--accept-source-agreements", "--disable-interactivity"]
+        code, out = run_hidden(cmd, timeout=timeout)
+        if (code & 0xFFFFFFFF) == 0x8A150002:          # winget cũ không hiểu --disable-interactivity
+            code, out = run_hidden(cmd[:-1], timeout=timeout)
+        return code, out
+
+    @staticmethod
+    def _wg_parse_show(out):
+        ver = re.search(r"(?m)^\s*Version:\s*(\S+)", out)
+        url = re.search(r"(?m)^\s*Installer Url:\s*(\S+)", out)
+        name = re.search(r"(?m)^Found (.+?) \[", out)
+        return (ver.group(1) if ver else ""), (url.group(1) if url else ""), (name.group(1).strip() if name else "")
+
+    def winget_check(self, pkg, force=False):
+        """Hỏi kho winget gói này còn không, bản mới nhất, link tải. Lưu cache 12 giờ."""
+        w = self.st.wg_get(pkg)
+        if w and not force and time.time() - (w["checked"] or 0) < 12 * 3600:
+            return w
+        if FAKE:
+            ok = not pkg.lower().startswith("sai.")
+            self.st.wg_put(pkg, ok, "1.2.3" if ok else "", "https://example.com/setup.exe" if ok else "", pkg.split(".")[-1])
+            return self.st.wg_get(pkg)
+        code, out = self._wg_run(["show", "--id", pkg, "-e", "--source", "winget"])
+        ver, url, name = self._wg_parse_show(out)
+        if code == 0 or ver:
+            self.st.wg_put(pkg, True, ver, url, name)
+        elif (code & 0xFFFFFFFF) in (0x8A150014, 0x8A15000B) or "No package found" in out:
+            self.st.wg_put(pkg, False)
+        else:
+            return w                        # lỗi mạng... giữ kết quả cũ
+        return self.st.wg_get(pkg)
+
+    def _wg_find_new_id(self, name):
+        """ID cũ không còn: tìm theo tên nút, chỉ nhận khi đúng 1 gói trùng tên."""
+        if FAKE:
+            return None
+        code, out = self._wg_run(["search", "--name", name, "--source", "winget"])
+        hits = []
+        for line in out.splitlines():
+            m = re.match(r"^(.+?)\s{2,}(\S+\.\S+)\s{2,}\S+", line.strip())
+            if m and norm_name(m.group(1)) == norm_name(name):
+                hits.append(m.group(2))
+        hits = list(dict.fromkeys(hits))
+        return hits[0] if len(hits) == 1 else None
+
+    def winget_maintain(self):
+        """Mở tool: chỉnh winget cho nhanh, làm mới kho, kiểm tra từng nút WINGET (ID còn không, bản mới nhất),
+        ID hỏng thì thử tự tìm ID mới theo tên nút."""
+        try:
+            self.winget_tune()
+            if not FAKE:
+                self._wg_run(["source", "update", "--name", "winget"], timeout=180)
+            apps = [a for g in self.st.groups() for a in g["apps"] if a["kind"] == "winget"]
+            bad, fixed = [], []
+            for a in apps:
+                pkg = a["src"].split(":", 1)[1].strip()
+                w = self.winget_check(pkg)
+                if not w or w["ok"]:
+                    continue
+                new = self._wg_find_new_id(a["name"])
+                if new and (self.winget_check(new) or {}).get("ok"):
+                    with self.st.lock:
+                        self.st.db.execute("UPDATE apps SET src=? WHERE id=?", ("winget:" + new, a["id"]))
+                        self.st.commit(persist=self.st.on_disk)
+                    fixed.append(f"{a['name']}: {pkg} → {new}")
+                else:
+                    bad.append(f"{a['name']} ({pkg})")
+            for f in fixed:
+                self.log(f"🔧 Đã tự sửa ID winget {f}", "ok")
+            if bad:
+                self.log("⚠ ID winget không còn trong kho: " + ", ".join(bad) + " - bật Admin, bấm ✎ để sửa.", "warn")
+            else:
+                self.log(f"✔ Đã kiểm tra {len(apps)} nút WINGET: tất cả còn dùng được.", "dim")
+            self.wg_checked = time.time()
+        except Exception as e:              # noqa: BLE001
+            self.log(f"Bỏ qua kiểm tra nút winget: {e}", "dim")
 
     def _winget_install_latest(self):
         if FAKE:
@@ -1030,7 +1170,10 @@ Remove-Item $d -Recurse -Force; 'OK'
         code = p.wait()
         return code, "\n".join(lines)
 
+    WG_RETRY = {0x8A150008, 0x8A150011, 0x8A150014, 0x80190194, 0x80072EE7, 0x80072EFD}
     WINGET_ERR = {
+        0x8A150008: "Tải bộ cài thất bại (mạng chập chờn hoặc link của hãng đã đổi).",
+        0x8A150011: "File tải về không khớp mã kiểm tra (hãng vừa thay bộ cài, kho winget chưa cập nhật kịp).",
         0x8A150002: "Lệnh có tham số mà bản winget trên máy này không hiểu (winget cũ). Nên cập nhật App Installer trong Microsoft Store.",
         0x8A150014: "Không tìm thấy gói này trong kho winget (sai ID hoặc ID đã đổi). Bật Admin, bấm ✎ để sửa ID / đổi sang link tải.",
     }
@@ -1044,7 +1187,8 @@ Remove-Item $d -Recurse -Force; 'OK'
             self.cur.update(phase="Chờ cập nhật winget xong", pct=-1)
             self.wg_ready.wait(900)
         self.cur.update(phase="winget đang cài", pct=-1)
-        base = ["winget", "install", "--id", pkg, "-e", "--silent", "--accept-package-agreements", "--accept-source-agreements"]
+        base = ["winget", "install", "--id", pkg, "-e", "--source", "winget", "--silent",
+                "--accept-package-agreements", "--accept-source-agreements"]
         extra = shlex.split(args) if args else []
         # winget bản cũ (Windows mới cài) không có --disable-interactivity -> báo 0x8A150002; chạy lại không có tham số đó
         cur = self.cur
@@ -1075,11 +1219,18 @@ Remove-Item $d -Recurse -Force; 'OK'
             time.sleep(2.5)
             code, out = 0, "Successfully installed"
         else:
-            for cmd in (base + ["--disable-interactivity"] + extra, base + extra):
-                code, out = self._stream(cmd, on_line)
-                if (code & 0xFFFFFFFF) != 0x8A150002:
-                    break
-                self.log("winget trên máy này là bản cũ, chạy lại lệnh không có --disable-interactivity...", "warn")
+            for attempt in (1, 2):
+                for cmd in (base + ["--disable-interactivity"] + extra, base + extra):
+                    code, out = self._stream(cmd, on_line)
+                    if (code & 0xFFFFFFFF) != 0x8A150002:
+                        break
+                    self.log("winget trên máy này là bản cũ, chạy lại lệnh không có --disable-interactivity...", "warn")
+                if attempt == 1 and (code & 0xFFFFFFFF) in self.WG_RETRY:
+                    self.log("winget tải lỗi / link trong kho đã đổi → làm mới kho winget rồi thử lại...", "warn")
+                    cur.update(phase="Làm mới kho winget", pct=-1)
+                    self._wg_run(["source", "update", "--name", "winget"], timeout=180)
+                    continue
+                break
         if est["stop"]:
             est["stop"].set()
         keep = [l for l in out.splitlines() if l.strip() and not re.match(r"^[\s\-\\|/█▒]+$", l)
@@ -2091,7 +2242,8 @@ class Api:
         return {"logs": logs, "cur": e.cur, "queue": q, "batch": [e.batch_i, e.batch_n], "results": e.results,
                 "checks": e.checks, "winget": e.winget, "admin": self._admin, "busy_tool": e.busy_tool, "sysinfo": e.sysinfo,
                 "done_today": done_today, "running": bool(e.worker and e.worker.is_alive()),
-                "shutdown_at": e.power.shutdown_at, "now": time.time(), "upd": self._upd}
+                "shutdown_at": e.power.shutdown_at, "now": time.time(), "upd": self._upd,
+                "wg_checked": getattr(e, "wg_checked", 0)}
 
     def history(self, limit=1000):
         with self._s.lock:
@@ -2705,6 +2857,16 @@ class App:
             lines.append("boot: " + json.dumps(boot_status(), ensure_ascii=False)[:800])
             lines.append("battery: " + json.dumps(battery_info(), ensure_ascii=False))
             lines.append("defender: " + json.dumps(self.eng.run_tool("def_status"), ensure_ascii=False))
+            E = self.eng
+            for nm, f in [("wg_tune", lambda: [E.winget_tune(), E.WG_SETTINGS.read_text(encoding="utf-8-sig")[:300] if E.WG_SETTINGS.exists() else "no file"]),
+                          ("wg_show_ok", lambda: E.winget_check("VideoLAN.VLC", force=True)),
+                          ("wg_show_bad", lambda: E.winget_check("Sai.KhongCoGoiNay", force=True)),
+                          ("wg_find_7zip", lambda: E._wg_find_new_id("7-Zip")),
+                          ("wg_find_vlc", lambda: E._wg_find_new_id("VLC media player"))]:
+                try:
+                    lines.append(f"{nm}: " + json.dumps(f(), ensure_ascii=False, default=str)[:600])
+                except Exception as ex:     # noqa: BLE001
+                    lines.append(f"{nm}: ERROR {ex!r}")
             for nm, f in [("startup", lambda: [(x["name"], x["on"], x["pub"]) for x in mgr.startup_list()]),
                           ("programs", lambda: [len(mgr.programs_list())] + [x["name"] for x in mgr.programs_list()[:8]]),
                           ("appx", lambda: len(mgr.appx_list())), ("mgr_defender", mgr.defender_status),

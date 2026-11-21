@@ -1,5 +1,5 @@
 ﻿=====================================================================
-           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v2.1.6)
+           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v2.1.7)
 =====================================================================
 Tool cài Win dạo 1 file exe portable (không cần cài đặt), giao diện tiếng Việt.
 Tải: https://github.com/laocuumon1982-cpu/WIN-AIO-SHARE/releases/latest
@@ -21,6 +21,8 @@ CHUNG
 - Bảng đèn trạng thái: quyền Admin, Internet, winget, hàng đợi cài,
   hẹn giờ tắt máy, chế độ Admin.
 - Tự kiểm tra winget, máy có winget cũ thì tự cài bản mới trong im lặng.
+- winget tải nhanh (tải trực tiếp); mở tool tự kiểm tra từng nút WINGET, ID hỏng
+  thì tự tìm ID mới theo tên, không được thì báo nhãn "ID LỖI".
 - Nhật ký: lịch sử cài đặt và thao tác.
 
 

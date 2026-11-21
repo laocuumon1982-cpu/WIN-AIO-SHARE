@@ -153,11 +153,12 @@ function renderGroups() {
   const cards = G.map((g, gi) => {
     const rows = g.apps.map(a => {
       const hit = !q || norm(a.name + " " + a.note + " " + g.name).includes(q);
+      const wbad = a.wg && !a.wg.ok, wver = a.wg && a.wg.ok && a.wg.ver ? `\nwinget: bản mới nhất ${a.wg.ver}` : "";
       const st = res[a.id], l = st === "run" || st === "wait" ? led("run", "sm") : st === "ok" ? led("ok", "sm") : st === "err" ? led("err", "sm") : "";
       return `<div class="arow${hit ? "" : " hide"}" data-a="${a.id}">
         <span class="chk${picked.has(a.id) ? " on" : ""}" data-act="pick"></span>
-        <button class="btn abtn" data-act="run" title="${esc(a.name + "\n" + (a.note ? a.note + "\n" : "") + (a.src || "Chưa có nguồn"))}">
-          <span class="ai">${esc(a.icon || "▫")}</span><span class="an">${esc(a.name)}</span>${l}<span class="tag ${a.kind}">${KIND[a.kind]}</span></button>
+        <button class="btn abtn" data-act="run" title="${esc(a.name + "\n" + (a.note ? a.note + "\n" : "") + (a.src || "Chưa có nguồn") + wver + (wbad ? "\n⚠ ID winget này không còn trong kho - Admin bấm ✎ để sửa" : ""))}">
+          <span class="ai">${esc(a.icon || "▫")}</span><span class="an">${esc(a.name)}</span>${l}<span class="tag ${wbad ? "bad" : a.kind}">${wbad ? "ID LỖI" : KIND[a.kind]}</span></button>
         <span class="mv adm"><button class="ed xs" data-act="aup" title="Đưa nút lên">▲</button><button class="ed xs" data-act="adown" title="Đưa nút xuống">▼</button></span>
         <button class="ed adm" data-act="edit" title="Sửa tên / nguồn">✎</button></div>`;
     }).join("");
@@ -797,11 +798,13 @@ function progOnButton(cur, d, n) {                       // vệt tiến độ +
   let x = b.querySelector(".ppct"); if (!x) { x = document.createElement("span"); x.className = "ppct"; b.appendChild(x); }
   x.textContent = (downloading ? "⬇ " : "⚙ ") + Math.max(0, v) + "%";
 }
+let WGC = 0;
 async function tick() {
   try {
     ST = await api("state", logSeq);
     if (ST.logs.length) { logSeq = ST.logs[ST.logs.length - 1][0]; addLogs(ST.logs); }
     if (ST.admin !== ADMIN) setAdmin(ST.admin);
+    if (ST.wg_checked && ST.wg_checked !== WGC) { WGC = ST.wg_checked; loadGroups(); }   // vừa kiểm tra xong các nút winget
     const cur = ST.cur, [bi, bn] = ST.batch, run = ST.running;
     let frac = 0;
     if (cur) {
