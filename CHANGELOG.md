@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v2.4.1
+- Tab Web mặc định 12 nút trống để tự gắn link.
+
 ## v2.4
 - Tab Web: nút mở trang web hay dùng, Admin thêm / sửa / xóa / đổi chỗ.
 

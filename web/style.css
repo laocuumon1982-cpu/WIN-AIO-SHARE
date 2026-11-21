@@ -1009,3 +1009,4 @@ code.hash{font-family:Consolas,monospace;font-size:12px;word-break:break-all;use
 .webed{display:flex;gap:3px;justify-content:flex-end}
 body.admin .nadm{display:none}
 .frm{display:flex;flex-direction:column;gap:9px}.frm label{display:flex;flex-direction:column;gap:3px;font-weight:700;font-size:12px;color:var(--muted)}
+.webb.wempty{opacity:.55;border-style:dashed}

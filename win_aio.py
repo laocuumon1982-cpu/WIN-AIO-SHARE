@@ -32,7 +32,7 @@ from urllib.parse import unquote, urlparse, parse_qs
 import mgr
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v2.4"
+APP_VERSION = "v2.4.1"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -160,21 +160,7 @@ ISO_MG_PAGES = [
     ("📋", "Danh sách đầy đủ", "genuine-installation-media", "Windows, Office + mã kiểm tra"),
 ]
 # Tab Web: nút mở trang web hay dùng (Admin sửa / thêm / xóa)
-DEFAULT_WEB = [
-    ("HAY DÙNG", "🔎", "Google", "https://www.google.com"),
-    ("HAY DÙNG", "▶️", "YouTube", "https://www.youtube.com"),
-    ("HAY DÙNG", "📘", "Facebook", "https://www.facebook.com"),
-    ("HAY DÙNG", "💬", "Zalo Web", "https://chat.zalo.me"),
-    ("HAY DÙNG", "✉️", "Gmail", "https://mail.google.com"),
-    ("HAY DÙNG", "🗂️", "Google Drive", "https://drive.google.com"),
-    ("HAY DÙNG", "🗄️", "Fshare", "https://www.fshare.vn"),
-    ("HAY DÙNG", "🤖", "Claude", "https://claude.ai"),
-    ("CÔNG CỤ", "🚀", "Speedtest", "https://www.speedtest.net"),
-    ("CÔNG CỤ", "🌐", "Xem IP của tôi", "https://whatismyipaddress.com"),
-    ("CÔNG CỤ", "🏢", "Office Online", "https://www.office.com"),
-    ("CÔNG CỤ", "🔑", "Tài khoản Microsoft", "https://account.microsoft.com"),
-    ("CÔNG CỤ", "📦", "Win AIO trên GitHub", "https://github.com/laocuumon1982-cpu/WIN-AIO-SHARE"),
-]
+DEFAULT_WEB = [("HAY DÙNG", "🌐", "", "")] * 12     # 12 nút trống - Admin bấm ✎ để đặt tên, gắn link
 DEFAULT_PW = "HP360"          # mật khẩu Admin mặc định
 KHO_FSHARE = "open:https://www.fshare.vn/folder/BESIWSY4GNO7"
 KHO_GDRIVE = "open:https://drive.google.com/drive/u/3/folders/173Ouz2LQQcrVr9SbirV68wgJvXP2Svz2"

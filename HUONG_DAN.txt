@@ -1,4 +1,4 @@
-﻿WIN AIO BY DUY ANH - v2.4
+﻿WIN AIO BY DUY ANH - v2.4.1
 =========================
 
 CHỈ 1 FILE EXE
@@ -17,7 +17,7 @@ MỞ TOOL BẰNG 1 DÒNG LỆNH (không cần USB)
   - Lệnh tự tải bản mới nhất về %LOCALAPPDATA%\WinAIO rồi mở tool (bấm Yes ở hộp UAC). Thư mục Data cũng nằm ở đó.
     Chạy lại lần sau: đã có bản mới nhất thì mở luôn, không tải lại.
 
-NGUỒN "github:" (v2.4) - link không bao giờ cũ
+NGUỒN "github:" (v2.4.1) - link không bao giờ cũ
   - Cú pháp: github:chủ/repo|mẫu-tên-file   VD: github:storytold/wordcraft|windows-x64-portable\.zip$
   - Mỗi lần cài, tool hỏi GitHub bản phát hành mới nhất rồi tải file có tên khớp mẫu.
   - Admin bấm ✎ -> "Kiểm tra link" để xem bản mới nhất và tên file sẽ tải.
@@ -61,8 +61,8 @@ KHO ISO WIN (v2.3.2)
   - Khung MASSGRAVE.DEV: bấm nút từng bản Windows để mở trang tải của massgrave.dev trên trình duyệt.
   - Windows tiếng Việt: tải bản English rồi cài gói ngôn ngữ Tiếng Việt. Cài xong cần key bản quyền của bạn.
 
-WEB (v2.4) - mục Khác
-  - Bấm nút để mở trang web. Bật Admin: "＋ Thêm link" (nhập biểu tượng, tên, địa chỉ, nhóm),
+WEB (v2.4.1) - mục Khác
+  - Mặc định 12 nút trống. Bấm nút để mở trang web. Bật Admin: ✎ trên nút trống để đặt tên, gắn link; "＋ Thêm link" (nhập biểu tượng, tên, địa chỉ, nhóm),
     ✎ để sửa / xóa, ◀ ▶ để đổi chỗ. Gõ tên nhóm mới là tạo nhóm mới.
 
 QUẢN LÝ (v2.1)

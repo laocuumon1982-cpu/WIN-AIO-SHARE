@@ -452,8 +452,8 @@ async function webShow() {
       <div class="sh"><span class="si">🌐</span><div><b>${esc(g)}</b><small>${WEB.filter(w => (w.grp || "HAY DÙNG") === g).length} trang</small></div>
         <span class="sp"></span><button class="btn sm adm" data-addg="${esc(g)}">＋ Thêm link</button></div>
       <div class="webgrid">${WEB.filter(w => (w.grp || "HAY DÙNG") === g).map(w => `<div class="webi" data-id="${w.id}">
-        <button class="tbtn webb" data-open="${w.id}" title="${esc(w.url)}"><span class="ti">${esc(w.icon || "🌐")}</span>
-          <span class="tt"><b>${esc(w.name)}</b><small>${esc(w.url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, ""))}</small></span></button>
+        <button class="tbtn webb${w.url ? "" : " wempty"}" data-open="${w.id}" title="${esc(w.url || "Nút trống - bật Admin, bấm ✎ để gắn link")}"><span class="ti">${esc(w.icon || "🌐")}</span>
+          <span class="tt"><b>${esc(w.name || (w.url ? w.url.replace(/^https?:\/\/(www\.)?/, "").split("/")[0] : "(trống)"))}</b><small>${w.url ? esc(w.url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")) : "chưa có link"}</small></span></button>
         <span class="webed adm"><button class="ed xs" data-mv="-1" title="Lên trước">◀</button><button class="ed xs" data-mv="1" title="Ra sau">▶</button>
           <button class="ed xs" data-ed="1" title="Sửa">✎</button></span></div>`).join("") || '<div class="logl">(chưa có link)</div>'}</div></div>`).join("")
     + `<div class="row-acts adm"><span class="sp"></span><button class="btn green" data-addg="">＋ Thêm nhóm / link mới</button></div>
