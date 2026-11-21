@@ -95,7 +95,7 @@ const PAGES = {
   tools: ["Tiện ích Windows", "Thiết lập nhanh, mạng, Defender, Windows Update, máy in, BitLocker, sao lưu Wifi / Driver"],
   history: ["Nhật ký", "Những gì tool đã cài / đã chạy"],
   settings: ["Cài đặt", "Mật khẩu Admin, thư mục tải, sao lưu danh sách nút"]};
-const KIND = {web: "WEB", winget: "WINGET", file: "FILE", cmd: "LỆNH", office: "OFFICE", open: "LINK", none: "CHƯA CÓ NGUỒN"};
+const KIND = {web: "WEB", winget: "WINGET", file: "FILE", cmd: "LỆNH", office: "OFFICE", open: "LINK", github: "GITHUB", none: "CHƯA CÓ NGUỒN"};
 let INIT = {}, G = [], NCOL = 4, LAYOUT = "grid", page = "system", ADMIN = false, picked = new Set(), logSeq = 0, ST = {}, HIST = [];
 
 function showPage(p) {
@@ -208,17 +208,20 @@ function fitGroups(cards) {
     el.style.setProperty("--ncol", n);
     el.innerHTML = cols.map(c => `<div class="gcol">${c.html.join("")}</div>`).join("");
   };
-  const n = bestFit(el, put, Math.max(2, Math.floor(W / 420)), Math.max(2, Math.floor(W / 185)), W, 235, .68, 1.35);
+  const n = bestFit(el, put, Math.max(2, Math.floor(W / 420)), Math.max(2, Math.floor(W / 165)), W, 220, .66, 1.35);
   el.classList.toggle("notag", W / n / (+el.style.zoom || 1) < 270);   // cột hẹp: ẩn nhãn WINGET / WEB để tên không bị cắt
 }
 /* Thử từng số cột: mỗi số cột tìm cỡ (zoom) lớn nhất vừa khung, chọn cách cho nút to nhất
    mà cột vẫn đủ rộng (minCol px sau khi phóng). */
 function bestFit(el, put, lo, hi, W, minCol, minZ, maxZ) {
   let best = null;
+  const wrap = el.parentElement;
   for (let n = lo; n <= hi; n++) {
     put(n); fitBox(el, minZ, maxZ);
     const z = +el.style.zoom || 1, ok = W / n / z >= minCol;
-    if (ok && (!best || z > best.z + .01)) best = {n, z};
+    const over = wrap.scrollHeight / Math.max(1, wrap.clientHeight);       // > 1: vẫn phải kéo
+    const score = over > 1.01 ? -over : z;                                 // ưu tiên vừa khung, rồi tới nút to nhất
+    if (ok && (!best || score > best.score + .01)) best = {n, score};
   }
   if (!best) best = {n: hi};
   put(best.n); fitBox(el, minZ, maxZ);
@@ -322,7 +325,9 @@ function editApp(a, gid) {
         <code>Soft\\Ten file.exe</code> file nằm trong thư mục tool (để chạy từ USB), hoặc đường dẫn đầy đủ <code>D:\\Setup\\app.exe</code>.<br>
         <code>winget:Google.Chrome</code> cài bản mới nhất bằng winget của Windows.<br>
         <code>cmd:lệnh</code> chạy lệnh Windows bằng quyền Admin. <code>office:</code> mở cửa sổ cài MS Office.<br>
-        <code>open:https://...</code> chỉ mở link bằng trình duyệt (kho phần mềm, trang tải...).</div>
+        <code>open:https://...</code> chỉ mở link bằng trình duyệt (kho phần mềm, trang tải...).<br>
+        <code>github:chủ/repo|mẫu-tên-file</code> luôn tải file mới nhất trên GitHub, VD <code>github:storytold/wordcraft|windows-x64-portable\.zip$</code>.<br>
+        <code>winget:9NKSQGP7F2NH</code> (ID 12 ký tự) cài từ Microsoft Store.</div>
       <label class="fl">THAM SỐ CÀI ĐẶT (không bắt buộc, VD cài im lặng: /S, /silent, /quiet)</label>
       <input id="eArgs" style="width:100%" value="${esc(a.args)}">
       <div class="row2" style="margin-top:4px;gap:14px">

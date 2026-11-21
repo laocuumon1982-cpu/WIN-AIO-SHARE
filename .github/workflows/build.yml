@@ -40,6 +40,8 @@ jobs:
             Write-Host "KHONG CO ping.txt - exe mo lai bi loi"; Get-Process | Where-Object { $_.Path -like '*Win AIO*' } | Format-Table Id, Path; exit 1 }
       - name: Kiem tra link tai trong danh sach mac dinh (chi bao cao)
         continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: python tools/check_links.py
       - uses: actions/upload-artifact@v4
         with:

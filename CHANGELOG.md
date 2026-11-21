@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v2.1.9
+- Nhóm ArtCraft Office Portable, WhatsApp, CIT Voice Studio, Subtitle Translator; nguồn github: luôn bản mới nhất; winget hỗ trợ ID Microsoft Store.
+
 ## v2.1.8
 - Mật khẩu Admin mặc định HP360; thêm YouTube Downloader Pro; dọn ghi chú cũ.
 

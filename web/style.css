@@ -965,3 +965,5 @@ body.admin .appgrid.fitgrid .gmove .ed[data-act="gup"],body.admin .appgrid.fitgr
 .side.tight6{zoom:.84}
 .tag.open{color:#7c3aed}
 .appgrid .tag.bad,.appgrid.notag .abtn .tag.bad{display:inline-block;color:#fff;background:#e0262a;border-color:#e0262a}
+.tag.github{color:#24292f}
+body.dark .tag.github{color:#e6edf3}

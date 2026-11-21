@@ -1,5 +1,5 @@
 ﻿=====================================================================
-           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v2.1.8)
+           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v2.1.9)
 =====================================================================
 Tool cài Win dạo 1 file exe portable (không cần cài đặt), giao diện tiếng Việt.
 Tải: https://github.com/laocuumon1982-cpu/WIN-AIO-SHARE/releases/latest
@@ -63,24 +63,28 @@ CÀI ĐẶT
 - Bấm 1 nút để cài ngay, hoặc chọn nhiều rồi "Cài mục đã chọn" (hàng đợi).
 - Thanh % tiến độ tải về, cài đặt, tổng đợt; nút Dừng.
 - Nguồn cài: winget (bản mới nhất, cài im lặng), link tải trực tiếp,
-  file trên máy, lệnh Windows, mở link web (open:), MS Office.
+  file trên máy, lệnh Windows, mở link web (open:), MS Office,
+  GitHub mới nhất (github:chủ/repo|mẫu-tên-file), Microsoft Store (winget ID 12 ký tự).
 - Tìm phần mềm, chọn cả nhóm, tự sắp xếp nhóm cho đều, xếp nút A → Z.
 - Danh sách mặc định:
     KHO PHẦN MỀM     : Kho Fshare, Kho Google Drive (mở link)
     VĂN PHÒNG - PDF  : MS Office, Foxit PDF Reader, Sumatra PDF,
                        Notepad++, LibreOffice, WPS Office
+    ARTCRAFT OFFICE PORTABLE: WordCraft (thay Word), GridCraft (thay Excel),
+                       DeckCraft (thay PowerPoint) - luôn bản mới nhất GitHub
     BỘ GÕ TIẾNG VIỆT : UniKey, EVKey
     NÉN - GIẢI NÉN   : WinRAR, 7-Zip
     ĐA PHƯƠNG TIỆN   : K-Lite Codec Pack, VLC Media Player, OBS Studio
     TRÌNH DUYỆT WEB  : Google Chrome, Firefox, Cốc Cốc, Brave
     NHẮN TIN - HỌP   : Zalo PC, Telegram, Discord, Zoom, Viber,
-                       Microsoft Teams
+                       Microsoft Teams, WhatsApp
     HỖ TRỢ TỪ XA     : UltraViewer, TeamViewer, AnyDesk
     ĐÁM MÂY          : Google Drive, OneDrive
     THƯ VIỆN HỆ THỐNG: Visual C++ 2015-2022 x64 / x86, .NET Framework 3.5,
                        .NET Framework 4.8.1, DirectX Runtime
     TIỆN ÍCH         : Everything, HiBit Uninstaller, ShareX,
                        TreeSize Free, Snappy Driver Installer,
+                       CIT Voice Studio, Subtitle Translator,
                        YouTube Downloader Pro
     GIẢ LẬP ANDROID  : BlueStacks 5, LDPlayer
     LẬP TRÌNH        : Python 3.12, VS Code, Node.js LTS, Java JDK 21, Git

@@ -32,7 +32,7 @@ from urllib.parse import unquote, urlparse, parse_qs
 import mgr
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v2.1.8"
+APP_VERSION = "v2.1.9"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -59,14 +59,27 @@ DEFAULT_CONFIG = {
     "window": {},
 }
 
+GH_CIT = r"github:Cuongyd196/cit-voice-studio|win-x86_64\.exe$"
+GH_SUBTR = r"github:rockbenben/subtitle-translator|x64_portable\.exe$"
+GH_YTDL = r"github:duckmartians/YouTube_Downloader|windows\.zip$"
+ARTCRAFT = ("ARTCRAFT OFFICE PORTABLE", [
+    ("📝", "WordCraft (thay Word)", r"github:storytold/wordcraft|windows-x64-portable\.zip$", "", "ArtCraft - soạn thảo văn bản, bản portable"),
+    ("📊", "GridCraft (thay Excel)", r"github:storytold/gridcraft|windows-x64-portable\.zip$", "", "ArtCraft - bảng tính, bản portable"),
+    ("📽️", "DeckCraft (thay PowerPoint)", r"github:storytold/deckcraft|windows-x64-portable\.zip$", "", "ArtCraft - trình chiếu, bản portable"),
+])
+WHATSAPP = ("🟢", "WhatsApp", "winget:9NKSQGP7F2NH", "", "Cài từ Microsoft Store")
+
 # Link cũ đã chết -> nguồn mới (tự sửa trong dữ liệu đã lưu và lúc cài)
 DEAD_LINKS = [
     (re.compile(r"^https?://[^/]*(res-download-pc|chat\.zalo\.me|zadn\.vn|zdn\.vn)[^ ]*/ZaloSetup[^/]*\.exe$", re.I), "winget:VNGCorp.Zalo"),
 ]
 
 
-# Nguồn mặc định của bản cũ -> winget (chỉ đổi nút còn đúng link mặc định cũ, nút bạn đã sửa thì giữ nguyên)
+# Nguồn mặc định của bản cũ -> winget / GitHub mới nhất (chỉ đổi nút còn đúng link cũ, nút bạn đã sửa thì giữ nguyên)
 OLD_DEFAULT_SRC = {
+    "https://github.com/duckmartians/YouTube_Downloader/releases/download/v4.0.0/YouTube_Downloader_v4.0.0_windows.zip": GH_YTDL,
+    "https://github.com/Cuongyd196/cit-voice-studio/releases/download/1.0.6/CIT-Voice-Studio-v1.0.6-win-x86_64.exe": GH_CIT,
+    "https://github.com/rockbenben/subtitle-translator/releases/download/v3.2.1/SubtitleTranslator_3.2.1_x64_portable.exe": GH_SUBTR,
     "https://www.unikey.org/assets/release/unikey46RC2-230919-win64.zip": "winget:UniKey.UniKey",
     "https://github.com/lamquangminh/EVKey/releases": "winget:lamquangminh.EVKey",
     "https://www.rarlab.com/rar/winrar-x64-701.exe": "winget:RARLab.WinRAR",
@@ -84,6 +97,11 @@ OLD_DEFAULT_SRC = {
     "https://www.bluestacks.com/download.html": "winget:BlueStack.BlueStacks",
     "winget:AnyDeskSoftwareGmbH.AnyDesk": "winget:AnyDesk.AnyDesk"
 }
+
+
+def wg_source(pkg):
+    """ID Microsoft Store (12 ký tự, VD 9NKSQGP7F2NH) -> kho msstore, còn lại -> kho winget."""
+    return "msstore" if re.fullmatch(r"[0-9A-Z]{12}", (pkg or "").strip()) else "winget"
 
 
 def norm_name(t):
@@ -137,6 +155,7 @@ DEFAULT_GROUPS = [
         ("📝", "LibreOffice", "winget:TheDocumentFoundation.LibreOffice", "", ""),
         ("📝", "WPS Office", "winget:Kingsoft.WPSOffice", "", ""),
     ]),
+    ARTCRAFT,
     ("BỘ GÕ TIẾNG VIỆT", [
         ("⌨️", "UniKey", "winget:UniKey.UniKey", "", ""),
         ("⌨️", "EVKey", "winget:lamquangminh.EVKey", "", ""),
@@ -162,6 +181,7 @@ DEFAULT_GROUPS = [
         ("🎮", "Discord", "winget:Discord.Discord", "", ""),
         ("📹", "Zoom", "winget:Zoom.Zoom", "", ""),
         ("📞", "Viber", "winget:Rakuten.Viber", "", ""),
+        WHATSAPP,
         ("👥", "Microsoft Teams", "winget:Microsoft.Teams", "", ""),
     ]),
     ("HỖ TRỢ TỪ XA", [
@@ -186,7 +206,9 @@ DEFAULT_GROUPS = [
         ("📸", "ShareX", "winget:ShareX.ShareX", "", "Chụp màn hình"),
         ("📊", "TreeSize Free", "winget:JAMSoftware.TreeSize.Free", "", ""),
         ("🛠️", "Snappy Driver Installer", "winget:GlennDelahoy.SnappyDriverInstallerOrigin", "", ""),
-        ("📦", "YouTube Downloader Pro", "https://github.com/duckmartians/YouTube_Downloader/releases/download/v4.0.0/YouTube_Downloader_v4.0.0_windows.zip", "", "Bản portable, giải nén rồi chạy"),
+        ("🎞️", "CIT Voice Studio", GH_CIT, "", "Luôn tải bản mới nhất trên GitHub"),
+        ("🎞️", "Subtitle Translator", GH_SUBTR, "", "Bản portable, luôn tải bản mới nhất trên GitHub"),
+        ("🎞️", "YouTube Downloader Pro", GH_YTDL, "", "Bản portable, giải nén rồi chạy"),
     ]),
     ("GIẢ LẬP ANDROID", [
         ("📱", "BlueStacks 5", "winget:BlueStack.BlueStacks", "", ""),
@@ -385,9 +407,38 @@ def src_kind(src):
         return "office"
     if s.lower().startswith("open:"):
         return "open"
+    if s.lower().startswith("github:"):
+        return "github"
     if re.match(r"^https?://", s, re.I):
         return "web"
     return "file"
+
+
+def resolve_github(src):
+    """github:chủ/repo|mẫu-tên-file  ->  (link tải file mới nhất, tên bản). Link không bao giờ cũ vì luôn hỏi bản mới nhất."""
+    body = src.split(":", 1)[1].strip()
+    repo, _, pat = body.partition("|")
+    repo = repo.strip().strip("/")
+    if FAKE:
+        return f"https://github.com/{repo}/releases/download/v9.9.9/demo-windows-x64.zip", "v9.9.9"
+    import requests
+    hdr = {"User-Agent": "WinAIO", "Accept": "application/vnd.github+json"}
+    if os.environ.get("GH_TOKEN"):
+        hdr["Authorization"] = "Bearer " + os.environ["GH_TOKEN"]
+    r = requests.get(f"https://api.github.com/repos/{repo}/releases/latest", headers=hdr, timeout=20)
+    if r.status_code == 404:
+        raise RuntimeError(f"Không thấy bản phát hành nào của {repo} trên GitHub.")
+    if r.status_code == 403:
+        raise RuntimeError("GitHub tạm chặn vì hỏi quá nhiều lần (60 lần / giờ) - đợi ít phút rồi thử lại.")
+    r.raise_for_status()
+    js = r.json()
+    assets = js.get("assets") or []
+    rx = re.compile(pat.strip() or r"\.(exe|msi|zip)$", re.I)
+    for a in assets:
+        if rx.search(a.get("name", "")):
+            return a["browser_download_url"], js.get("tag_name", "")
+    raise RuntimeError(f"Bản {js.get('tag_name', '')} của {repo} không có file khớp mẫu '{pat}'. "
+                       "Admin bấm ✎ để sửa mẫu tên file.")
 
 
 def run_hidden(cmd, shell=False, timeout=None):
@@ -532,6 +583,24 @@ class Store:
                             "('Bản portable, giải nén rồi chạy', 'Mở trang tải EVKey', 'Mở trang tải')")
             self.commit(persist=False)
             done.add("notes217")
+            self.cfg["migrated"] = sorted(done)
+            self.save_config(persist=False)
+        if "v219" not in done:
+            def has(src):
+                return self.db.execute("SELECT 1 FROM apps WHERE src=?", (src,)).fetchone()
+            if not has(WHATSAPP[2]):
+                g = self.db.execute("SELECT id FROM groups WHERE name LIKE 'NHẮN TIN%' ORDER BY id LIMIT 1").fetchone()
+                if g:
+                    o = self.db.execute("SELECT COALESCE(MAX(ord),0)+1 FROM apps WHERE group_id=?", (g[0],)).fetchone()[0]
+                    self.db.execute("INSERT INTO apps(group_id, icon, name, src, args, note, ord) VALUES(?,?,?,?,?,?,?)",
+                                    (g[0],) + WHATSAPP + (o,))
+            if not any(has(a[2]) for a in ARTCRAFT[1]):
+                pos = self.db.execute("SELECT COALESCE(MAX(gpos),0)+1, COALESCE(MAX(ord),0)+1 FROM groups").fetchone()
+                gid = self.db.execute("INSERT INTO groups(name, ord, col, gpos) VALUES(?,?,?,?)", (ARTCRAFT[0], pos[1], 0, pos[0])).lastrowid
+                for i, a in enumerate(ARTCRAFT[1]):
+                    self.db.execute("INSERT INTO apps(group_id, icon, name, src, args, note, ord) VALUES(?,?,?,?,?,?,?)", (gid,) + a + (i,))
+            self.commit(persist=False)
+            done.add("v219")
             self.cfg["migrated"] = sorted(done)
             self.save_config(persist=False)
         if "kho" not in done:
@@ -957,7 +1026,7 @@ $net=@(Get-NetAdapter -Physical | Where-Object Status -eq 'Up' | ForEach-Object 
             ok = not pkg.lower().startswith("sai.")
             self.st.wg_put(pkg, ok, "1.2.3" if ok else "", "https://example.com/setup.exe" if ok else "", pkg.split(".")[-1])
             return self.st.wg_get(pkg)
-        code, out = self._wg_run(["show", "--id", pkg, "-e", "--source", "winget"])
+        code, out = self._wg_run(["show", "--id", pkg, "-e", "--source", wg_source(pkg)])
         ver, url, name = self._wg_parse_show(out)
         if code == 0 or ver:
             self.st.wg_put(pkg, True, ver, url, name)
@@ -1129,6 +1198,10 @@ Remove-Item $d -Recurse -Force; 'OK'
             if not p.exists() and not FAKE:
                 return "err", f"Không thấy file: {p}"
             return self._run_file(p, args)
+        if kind == "github":
+            self.cur.update(phase="Hỏi GitHub bản mới nhất", pct=-1)
+            src, tag = resolve_github(src)
+            self.log(f"GitHub: bản mới nhất {tag} → {src.rsplit('/', 1)[-1]}", "dim")
         # web
         path = self._download(src)
         if path == "web":
@@ -1201,7 +1274,7 @@ Remove-Item $d -Recurse -Force; 'OK'
             self.cur.update(phase="Chờ cập nhật winget xong", pct=-1)
             self.wg_ready.wait(900)
         self.cur.update(phase="winget đang cài", pct=-1)
-        base = ["winget", "install", "--id", pkg, "-e", "--source", "winget", "--silent",
+        base = ["winget", "install", "--id", pkg, "-e", "--source", wg_source(pkg), "--silent",
                 "--accept-package-agreements", "--accept-source-agreements"]
         extra = shlex.split(args) if args else []
         # winget bản cũ (Windows mới cài) không có --disable-interactivity -> báo 0x8A150002; chạy lại không có tham số đó
@@ -2463,6 +2536,12 @@ class Api:
     def test_source(self, src):
         """Kiểm tra nhanh link: là file tải được hay trang web."""
         kind = src_kind(src)
+        if kind == "github":
+            try:
+                url, tag = resolve_github(src)
+                return f"GitHub - bản mới nhất {tag}: {url.rsplit('/', 1)[-1]}"
+            except Exception as e:          # noqa: BLE001
+                return "Lỗi: " + nice_err(e)
         if kind != "web":
             if kind == "file":
                 p = Path(os.path.expandvars(src))
@@ -2876,7 +2955,10 @@ class App:
                           ("wg_show_ok", lambda: E.winget_check("VideoLAN.VLC", force=True)),
                           ("wg_show_bad", lambda: E.winget_check("Sai.KhongCoGoiNay", force=True)),
                           ("wg_find_7zip", lambda: E._wg_find_new_id("7-Zip")),
-                          ("wg_find_vlc", lambda: E._wg_find_new_id("VLC media player"))]:
+                          ("wg_find_vlc", lambda: E._wg_find_new_id("VLC media player")),
+                          ("wg_whatsapp_msstore", lambda: E.winget_check("9NKSQGP7F2NH", force=True)),
+                          ("gh_wordcraft", lambda: resolve_github(ARTCRAFT[1][0][2])),
+                          ("gh_ytdl", lambda: resolve_github(GH_YTDL))]:
                 try:
                     lines.append(f"{nm}: " + json.dumps(f(), ensure_ascii=False, default=str)[:600])
                 except Exception as ex:     # noqa: BLE001
