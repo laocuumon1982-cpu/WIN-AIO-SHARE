@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v2.3.2
+- Kho ISO Win: thêm lại các nút mở trang massgrave.dev theo từng bản Windows.
+
 ## v2.3.1
 - Kho ISO Win: chọn bản rồi tải thẳng trong tool (link gốc Microsoft, có %, tải tiếp), lấy link cho IDM.
 

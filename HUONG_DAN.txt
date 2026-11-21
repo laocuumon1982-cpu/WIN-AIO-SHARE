@@ -1,4 +1,4 @@
-﻿WIN AIO BY DUY ANH - v2.3.1
+﻿WIN AIO BY DUY ANH - v2.3.2
 =========================
 
 CHỈ 1 FILE EXE
@@ -17,7 +17,7 @@ MỞ TOOL BẰNG 1 DÒNG LỆNH (không cần USB)
   - Lệnh tự tải bản mới nhất về %LOCALAPPDATA%\WinAIO rồi mở tool (bấm Yes ở hộp UAC). Thư mục Data cũng nằm ở đó.
     Chạy lại lần sau: đã có bản mới nhất thì mở luôn, không tải lại.
 
-NGUỒN "github:" (v2.3.1) - link không bao giờ cũ
+NGUỒN "github:" (v2.3.2) - link không bao giờ cũ
   - Cú pháp: github:chủ/repo|mẫu-tên-file   VD: github:storytold/wordcraft|windows-x64-portable\.zip$
   - Mỗi lần cài, tool hỏi GitHub bản phát hành mới nhất rồi tải file có tên khớp mẫu.
   - Admin bấm ✎ -> "Kiểm tra link" để xem bản mới nhất và tên file sẽ tải.
@@ -54,10 +54,11 @@ TEST MÁY (kiểm tra laptop / PC)
     Ổ báo HỎNG / SẮP HỎNG: sao lưu dữ liệu ngay. Ô "—" là ổ không báo chỉ số đó (ổ USB, ổ qua RAID).
   - Pin: độ chai = phần dung lượng đã mất so với lúc mới. Trên 20% là chai vừa, trên 40% nên thay pin.
 
-KHO ISO WIN (v2.3.1)
+KHO ISO WIN (v2.3.2)
   - Chọn bản Windows, ngôn ngữ, 32/64-bit, nơi lưu (mặc định Data\ISO) -> "⬇ Tải ISO". Tool tự lấy link gốc
     của Microsoft và tải về. Bị ngắt / bấm Dừng: bấm Tải lại là tải tiếp từ chỗ dừng.
   - "🔗 Chỉ lấy link": chép link để dán vào IDM. Microsoft chặn tạm nếu tải quá nhiều lần hoặc dùng VPN.
+  - Khung MASSGRAVE.DEV: bấm nút từng bản Windows để mở trang tải của massgrave.dev trên trình duyệt.
   - Windows tiếng Việt: tải bản English rồi cài gói ngôn ngữ Tiếng Việt. Cài xong cần key bản quyền của bạn.
 
 QUẢN LÝ (v2.1)

@@ -1,5 +1,5 @@
 ﻿=====================================================================
-           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v2.3.1)
+           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v2.3.2)
 =====================================================================
 Tool cài Win dạo 1 file exe portable (không cần cài đặt), giao diện tiếng Việt.
 Tải: https://github.com/laocuumon1982-cpu/WIN-AIO-SHARE/releases/latest
@@ -94,10 +94,11 @@ CÀI ĐẶT
 - Cửa sổ cài Office riêng: chọn phiên bản, bộ ứng dụng, ngôn ngữ,
   tải từ máy chủ Microsoft và cài (Office Deployment Tool).
 
-[Kho ISO Win] (v2.3.1)
+[Kho ISO Win] (v2.3.2)
 - Chọn Windows 11 / Windows 10, ngôn ngữ, 32 / 64-bit, nơi lưu -> "Tải ISO": tool tự lấy
   link gốc của Microsoft và tải trong tool (có %, tốc độ, Dừng, tải tiếp từ chỗ dừng).
 - "Chỉ lấy link" để dán vào IDM (link dùng được 24 giờ).
+- Khung massgrave.dev: nút mở trang tải Windows 11, 10, LTSC, ARM64, Server, 8.1, 8, 7, danh sách đầy đủ.
 - Kiểm tra SHA-256 file ISO (có %), dán mã công bố để so trùng khớp hay không.
 
 [Tiện ích Windows]

@@ -32,7 +32,7 @@ from urllib.parse import unquote, urlparse, parse_qs
 import mgr
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v2.3.1"
+APP_VERSION = "v2.3.2"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -146,6 +146,19 @@ def nice_err(e):
 
 
 # ---------------------------------------------------------------- danh sách mặc định (sửa được trong tool)
+# Kho ISO Win - nút mở trang tải của massgrave.dev (link file trên đó đổi hằng tháng nên mở trang để luôn có bản mới)
+ISO_MG = "https://massgrave.dev/"
+ISO_MG_PAGES = [
+    ("🪟", "Windows 11", "windows_11_links", "Bản mới nhất, x64"),
+    ("🪟", "Windows 10", "windows_10_links", "22H2, x64 / x86"),
+    ("🏢", "Windows 10 / 11 LTSC", "windows_ltsc_links", "Enterprise LTSC"),
+    ("📱", "Windows ARM64", "windows_arm_links", "Máy chip ARM (Snapdragon)"),
+    ("🖥️", "Windows Server", "windows-server-links", "2016 · 2019 · 2022 · 2025"),
+    ("💠", "Windows 8.1", "windows_8.1_links", ""),
+    ("💠", "Windows 8", "windows_8_links", ""),
+    ("🪟", "Windows 7", "windows_7_links", ""),
+    ("📋", "Danh sách đầy đủ", "genuine-installation-media", "Windows, Office + mã kiểm tra"),
+]
 DEFAULT_PW = "HP360"          # mật khẩu Admin mặc định
 KHO_FSHARE = "open:https://www.fshare.vn/folder/BESIWSY4GNO7"
 KHO_GDRIVE = "open:https://drive.google.com/drive/u/3/folders/173Ouz2LQQcrVr9SbirV68wgJvXP2Svz2"
@@ -2296,6 +2309,7 @@ class Api:
                 "tools": [{"id": t[0], "group": t[1], "label": t[2], "confirm": t[5], "kind": t[3], "fn": t[4]} for t in TOOLS],
                 "quick": [{"label": q[0], "target": q[1]} for q in QUICK], "is_win": IS_WIN or FAKE,
                 "iso_langs": mgr.ISO_LANGS,
+                "iso_mg": [{"icon": i, "name": n, "url": ISO_MG + u, "note": d} for i, n, u, d in ISO_MG_PAGES],
                 "default_pw": self._s.cfg.get("admin_hash") == hash_pw(DEFAULT_PW, self._s.cfg.get("admin_salt", ""))}
 
     def groups(self):

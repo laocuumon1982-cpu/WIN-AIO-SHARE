@@ -1,5 +1,4 @@
-Win AIO by Duy Anh v2.3.1
+Win AIO by Duy Anh v2.3.2
 
-- Kho ISO Win làm lại: không mở web nữa. Chọn Windows 11 / Windows 10, ngôn ngữ, 32 / 64-bit, nơi lưu rồi bấm "⬇ Tải ISO" - tool tự lấy link gốc của Microsoft (qua Fido, dùng chung với Rufus) và tải về ngay trong tool: có %, tốc độ, nút Dừng, tải tiếp từ chỗ dừng, báo khi ổ không đủ chỗ.
-- Nút "🔗 Chỉ lấy link" để dán vào IDM (link dùng được 24 giờ).
-- Tải xong bấm "Kiểm tra SHA-256" ngay trên thông báo.
+- Kho ISO Win thêm lại khung MASSGRAVE.DEV: mỗi bản 1 nút (Windows 11, Windows 10, Windows 10/11 LTSC, Windows ARM64, Windows Server, Windows 8.1, 8, 7) và nút Danh sách đầy đủ - bấm là mở đúng trang đó trên trình duyệt.
+- Phần tải ISO Windows 11 / 10 chính chủ trong tool và kiểm tra SHA-256 giữ nguyên.

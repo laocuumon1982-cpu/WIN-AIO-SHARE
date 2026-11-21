@@ -399,10 +399,15 @@ function isoShow() {
         Windows tiếng Việt: chọn English rồi cài gói ngôn ngữ Tiếng Việt trong Cài đặt.</span>
         <button class="btn" id="isoLink">🔗 Chỉ lấy link (dán vào IDM)</button><button class="btn red shine" id="isoGo">⬇ Tải ISO</button></div>
       <div id="isoDone"></div></div>
+    <div class="tcard isosec" style="--ac:#7c3aed"><div class="sh"><span class="si">🌐</span><div><b>MASSGRAVE.DEV</b>
+        <small>Bấm để mở trang tải của massgrave.dev - file lưu ở máy chủ bên thứ ba, tải xong nên kiểm tra SHA-256</small></div></div>
+      <div class="isogrid">${(INIT.iso_mg || []).map(it => `<button class="tbtn isob" data-url="${esc(it.url)}" title="${esc(it.url)}"><span class="ti">${esc(it.icon)}</span>
+        <span class="tt"><b>${esc(it.name)}</b>${it.note ? `<small>${esc(it.note)}</small>` : ""}</span></button>`).join("")}</div></div>
     <div class="tcard isosec" style="--ac:#d97706"><div class="sh"><span class="si">🔐</span><div><b>KIỂM TRA FILE ISO (SHA-256)</b><small>Tính mã SHA-256 rồi so với mã công bố - trùng là file nguyên gốc, không bị sửa</small></div></div>
       <div class="row2"><input id="isoFile" placeholder="Đường dẫn file .iso"><button class="btn sm" id="isoPick">📂 Chọn file</button><button class="btn red shine" id="isoHash">🔐 Kiểm tra SHA-256</button></div>
       <div class="row2" style="margin-top:8px"><input id="isoExpect" placeholder="Dán mã SHA-256 công bố để so (không bắt buộc)"></div>
       <div id="isoRes"></div></div>`;
+  W.querySelectorAll("[data-url]").forEach(b => b.onclick = () => { api("quick", b.dataset.url); toast("🌐 Đang mở " + b.querySelector("b").textContent); });
   const ver = () => W.querySelector('input[name="isoW"]:checked').value;
   const setArch = () => { $("isoArch").innerHTML = ver() === "10" ? '<option value="x64">64-bit (x64)</option><option value="x86">32-bit (x86)</option>' : '<option value="x64">64-bit (x64)</option>'; };
   W.querySelectorAll('input[name="isoW"]').forEach(r => r.onchange = () => { W.querySelectorAll(".isov").forEach(l => l.classList.toggle("on", l.contains(W.querySelector('input[name="isoW"]:checked')))); setArch(); });
