@@ -1,5 +1,5 @@
 ﻿=====================================================================
-           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v2.2.1)
+           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v2.2.2)
 =====================================================================
 Tool cài Win dạo 1 file exe portable (không cần cài đặt), giao diện tiếng Việt.
 Tải: https://github.com/laocuumon1982-cpu/WIN-AIO-SHARE/releases/latest
@@ -69,6 +69,7 @@ CÀI ĐẶT
 - Tìm phần mềm, chọn cả nhóm, tự sắp xếp nhóm cho đều, xếp nút A → Z.
 - Danh sách mặc định:
     KHO PHẦN MỀM     : Kho Fshare, Kho Google Drive (mở link)
+    TỰ THÊM          : IDM (chính hãng, dùng thử), Adobe Acrobat Reader
     VĂN PHÒNG - PDF  : MS Office, Foxit PDF Reader, Sumatra PDF,
                        Notepad++, LibreOffice, WPS Office
     ARTCRAFT OFFICE PORTABLE: WordCraft (thay Word), GridCraft (thay Excel),
@@ -77,10 +78,9 @@ CÀI ĐẶT
     NÉN - GIẢI NÉN   : WinRAR, 7-Zip
     ĐA PHƯƠNG TIỆN   : K-Lite Codec Pack, VLC Media Player, OBS Studio
     TRÌNH DUYỆT WEB  : Google Chrome, Firefox, Cốc Cốc, Brave
-    NHẮN TIN - HỌP   : Zalo PC, Telegram, Discord, Zoom, Viber,
-                       Microsoft Teams, WhatsApp
+    NHẮN TIN - HỌP   : Zalo PC, Viber, WhatsApp, Telegram, Discord, Zoom,
+                       Microsoft Teams
     HỖ TRỢ TỪ XA     : UltraViewer, TeamViewer, AnyDesk
-    ĐÁM MÂY          : Google Drive, OneDrive
     THƯ VIỆN HỆ THỐNG: Visual C++ 2015-2022 x64 / x86, .NET Framework 3.5,
                        .NET Framework 4.8.1, DirectX Runtime
     TIỆN ÍCH         : Everything, HiBit Uninstaller, ShareX,

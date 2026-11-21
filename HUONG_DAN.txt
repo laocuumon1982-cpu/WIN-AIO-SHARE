@@ -1,4 +1,4 @@
-﻿WIN AIO BY DUY ANH - v2.2.1
+﻿WIN AIO BY DUY ANH - v2.2.2
 =========================
 
 CHỈ 1 FILE EXE
@@ -17,7 +17,7 @@ MỞ TOOL BẰNG 1 DÒNG LỆNH (không cần USB)
   - Lệnh tự tải bản mới nhất về %LOCALAPPDATA%\WinAIO rồi mở tool (bấm Yes ở hộp UAC). Thư mục Data cũng nằm ở đó.
     Chạy lại lần sau: đã có bản mới nhất thì mở luôn, không tải lại.
 
-NGUỒN "github:" (v2.2.1) - link không bao giờ cũ
+NGUỒN "github:" (v2.2.2) - link không bao giờ cũ
   - Cú pháp: github:chủ/repo|mẫu-tên-file   VD: github:storytold/wordcraft|windows-x64-portable\.zip$
   - Mỗi lần cài, tool hỏi GitHub bản phát hành mới nhất rồi tải file có tên khớp mẫu.
   - Admin bấm ✎ -> "Kiểm tra link" để xem bản mới nhất và tên file sẽ tải.

@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v2.2.2
+- Danh sách mặc định theo cách đã sắp (5 cột); nhóm Tự thêm (IDM, Adobe Reader); xóa nguồn link crack.
+
 ## v2.2.1
 - Tự vừa màn hình: nút ◀ ▲ ▼ ▶ di chuyển nhóm đủ 4 hướng, chính xác; giữ nguyên cách chia cột đã sắp.
 

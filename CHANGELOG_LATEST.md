@@ -1,5 +1,5 @@
-Win AIO by Duy Anh v2.2.1
+Win AIO by Duy Anh v2.2.2
 
-- Kiểu xếp "Tự vừa màn hình": nút di chuyển nhóm ◀ ▲ ▼ ▶ dùng được đủ 4 hướng và chính xác - ▲ ▼ đưa nhóm lên / xuống trong cột, ◀ ▶ đưa nhóm sang cột bên trái / phải (giữ hàng). Nhóm vừa di chuyển nhấp nháy để dễ thấy.
-- Tool tự chia nhóm vào cột lần đầu rồi lưu lại, các lần sau giữ nguyên chỗ bạn đã sắp (chỉ co giãn cỡ chữ cho vừa màn hình). Kéo thả nhóm cũng theo cột: thả nửa trên / nửa dưới nhóm đích, hoặc thả xuống chỗ trống của cột.
-- "⚖ Tự sắp xếp" ở kiểu này: chia lại các nhóm cho đều từ đầu.
+- Danh sách mặc định sắp xếp lại theo bản sao lưu của Duy Anh (21/11/2026): 5 cột, đúng thứ tự nhóm và thứ tự nút. Bỏ nhóm Đám mây.
+- Nhóm ở vị trí thứ 2 cột 1 đổi thành "TỰ THÊM", có sẵn IDM (bản chính hãng qua winget, dùng thử 30 ngày) và Adobe Acrobat Reader.
+- Link tải công cụ crack / kích hoạt lậu bị xóa nguồn (nút vẫn giữ nguyên chỗ, hiện "CHƯA CÓ NGUỒN"), kể cả khi nhập từ file sao lưu.

@@ -32,7 +32,7 @@ from urllib.parse import unquote, urlparse, parse_qs
 import mgr
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v2.2.1"
+APP_VERSION = "v2.2.2"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -108,7 +108,13 @@ def norm_name(t):
     return re.sub(r"[^a-z0-9]+", "", unicodedata.normalize("NFKD", (t or "").lower()).encode("ascii", "ignore").decode())
 
 
+# Link tải công cụ crack / kích hoạt lậu: tool không giữ - nút còn nguyên (giữ vị trí) nhưng nguồn để trống
+BLOCKED_SRC = re.compile(r"IDM_Cracker|/GenP|Microsoft-Activation-Scripts|massgrave|KMS_?Suite", re.I)
+
+
 def fix_src(src):
+    if BLOCKED_SRC.search(src or ""):
+        return ""
     new = OLD_DEFAULT_SRC.get((src or "").strip())
     if new:
         return new
@@ -142,12 +148,27 @@ def nice_err(e):
 DEFAULT_PW = "HP360"          # mật khẩu Admin mặc định
 KHO_FSHARE = "open:https://www.fshare.vn/folder/BESIWSY4GNO7"
 KHO_GDRIVE = "open:https://drive.google.com/drive/u/3/folders/173Ouz2LQQcrVr9SbirV68wgJvXP2Svz2"
-DEFAULT_GROUPS = [
-    ("KHO PHẦN MỀM", [
+DEFAULT_GROUPS = [     # (tên nhóm, cột, [nút...]) - thứ tự & cột theo cách Duy Anh đã sắp (21/11/2026)
+    ("KHO PHẦN MỀM", 0, [
         ("🗄️", "Kho Fshare", KHO_FSHARE, "", "Mở thư mục phần mềm trên Fshare"),
         ("🗂️", "Kho Google Drive", KHO_GDRIVE, "", "Mở thư mục phần mềm trên Google Drive"),
     ]),
-    ("VĂN PHÒNG - PDF", [
+    ("TỰ THÊM", 0, [
+        ("⬇️", "IDM", "winget:Tonec.InternetDownloadManager", "", "Internet Download Manager bản chính hãng (dùng thử 30 ngày, nhập key của bạn)"),
+        ("📕", "Adobe Acrobat Reader", "winget:Adobe.Acrobat.Reader.64-bit", "", "Đọc PDF miễn phí của Adobe"),
+    ]),
+    ("TRÌNH DUYỆT WEB", 0, [
+        ("🌐", "Google Chrome", "winget:Google.Chrome", "", ""),
+        ("🦊", "Firefox", "winget:Mozilla.Firefox.vi", "", ""),
+        ("🍀", "Cốc Cốc", "winget:CocCoc.CocCoc", "", ""),
+        ("🦁", "Brave", "winget:Brave.Brave", "", ""),
+    ]),
+    ("HỖ TRỢ TỪ XA", 0, [
+        ("🖥️", "UltraViewer", "winget:DucFabulous.UltraViewer", "", ""),
+        ("🖥️", "TeamViewer", "winget:TeamViewer.TeamViewer", "", ""),
+        ("🖥️", "AnyDesk", "winget:AnyDesk.AnyDesk", "", ""),
+    ]),
+    ("VĂN PHÒNG - PDF", 1, [
         ("🏢", "MS Office", "office:", "", "Cài Office 2016 / 2019 / 2021 / 2024 / 365 chính chủ từ Microsoft (Online hoặc Offline)"),
         ("📄", "Foxit PDF Reader", "winget:Foxit.FoxitReader", "", ""),
         ("📄", "Sumatra PDF", "winget:SumatraPDF.SumatraPDF", "", ""),
@@ -155,73 +176,59 @@ DEFAULT_GROUPS = [
         ("📝", "LibreOffice", "winget:TheDocumentFoundation.LibreOffice", "", ""),
         ("📝", "WPS Office", "winget:Kingsoft.WPSOffice", "", ""),
     ]),
-    ARTCRAFT,
-    ("BỘ GÕ TIẾNG VIỆT", [
+    ("ARTCRAFT OFFICE", 1, ARTCRAFT[1]),
+    ("BỘ GÕ TIẾNG VIỆT", 1, [
         ("⌨️", "UniKey", "winget:UniKey.UniKey", "", ""),
         ("⌨️", "EVKey", "winget:lamquangminh.EVKey", "", ""),
     ]),
-    ("NÉN - GIẢI NÉN", [
+    ("NHẮN TIN - HỌP", 2, [
+        ("💬", "Zalo PC", "winget:VNGCorp.Zalo", "", ""),
+        ("📞", "Viber", "winget:Rakuten.Viber", "", ""),
+        WHATSAPP,
+        ("✈️", "Telegram", "winget:Telegram.TelegramDesktop", "", ""),
+        ("🎮", "Discord", "winget:Discord.Discord", "", ""),
+        ("📹", "Zoom", "winget:Zoom.Zoom", "", ""),
+        ("👥", "Microsoft Teams", "winget:Microsoft.Teams", "", ""),
+    ]),
+    ("NÉN - GIẢI NÉN", 2, [
         ("📦", "WinRAR", "winget:RARLab.WinRAR", "", ""),
         ("📦", "7-Zip", "winget:7zip.7zip", "", ""),
     ]),
-    ("ĐA PHƯƠNG TIỆN", [
+    ("GIẢ LẬP ANDROID", 2, [
+        ("📱", "BlueStacks 5", "winget:BlueStack.BlueStacks", "", ""),
+        ("🎮", "LDPlayer", "https://www.ldplayer.net/", "", "Mở trang tải"),
+    ]),
+    ("ĐA PHƯƠNG TIỆN", 3, [
         ("🎬", "K-Lite Codec Pack", "winget:CodecGuide.K-LiteCodecPack.Standard", "", ""),
         ("🎬", "VLC Media Player", "winget:VideoLAN.VLC", "", ""),
         ("🎞️", "OBS Studio", "winget:OBSProject.OBSStudio", "", ""),
     ]),
-    ("TRÌNH DUYỆT WEB", [
-        ("🌐", "Google Chrome", "winget:Google.Chrome", "", ""),
-        ("🦊", "Firefox", "winget:Mozilla.Firefox.vi", "", ""),
-        ("🍀", "Cốc Cốc", "winget:CocCoc.CocCoc", "", ""),
-        ("🦁", "Brave", "winget:Brave.Brave", "", ""),
-    ]),
-    ("NHẮN TIN - HỌP", [
-        ("💬", "Zalo PC", "winget:VNGCorp.Zalo", "", ""),
-        ("✈️", "Telegram", "winget:Telegram.TelegramDesktop", "", ""),
-        ("🎮", "Discord", "winget:Discord.Discord", "", ""),
-        ("📹", "Zoom", "winget:Zoom.Zoom", "", ""),
-        ("📞", "Viber", "winget:Rakuten.Viber", "", ""),
-        WHATSAPP,
-        ("👥", "Microsoft Teams", "winget:Microsoft.Teams", "", ""),
-    ]),
-    ("HỖ TRỢ TỪ XA", [
-        ("🖥️", "UltraViewer", "winget:DucFabulous.UltraViewer", "", ""),
-        ("🖥️", "TeamViewer", "winget:TeamViewer.TeamViewer", "", ""),
-        ("🖥️", "AnyDesk", "winget:AnyDesk.AnyDesk", "", ""),
-    ]),
-    ("ĐÁM MÂY", [
-        ("☁️", "Google Drive", "winget:Google.GoogleDrive", "", ""),
-        ("☁️", "OneDrive", "winget:Microsoft.OneDrive", "", ""),
-    ]),
-    ("THƯ VIỆN HỆ THỐNG", [
-        ("⚙️", "Visual C++ 2015-2022 x64", "winget:Microsoft.VCRedist.2015+.x64", "", ""),
-        ("⚙️", "Visual C++ 2015-2022 x86", "winget:Microsoft.VCRedist.2015+.x86", "", ""),
-        ("⚙️", ".NET Framework 3.5", "cmd:DISM /Online /Enable-Feature /FeatureName:NetFx3 /All /NoRestart", "", "Bật tính năng có sẵn của Windows (cần mạng)"),
-        ("⚙️", ".NET Framework 4.8.1", "winget:Microsoft.DotNet.Framework.DeveloperPack_4", "", ""),
-        ("🎮", "DirectX Runtime", "winget:Microsoft.DirectX", "", ""),
-    ]),
-    ("TIỆN ÍCH", [
+    ("TIỆN ÍCH", 3, [
         ("🔎", "Everything", "winget:voidtools.Everything", "", "Tìm file siêu nhanh"),
         ("🧹", "HiBit Uninstaller", "winget:HiBitSoftware.HiBitUninstaller", "", ""),
         ("📸", "ShareX", "winget:ShareX.ShareX", "", "Chụp màn hình"),
         ("📊", "TreeSize Free", "winget:JAMSoftware.TreeSize.Free", "", ""),
         ("🛠️", "Snappy Driver Installer", "winget:GlennDelahoy.SnappyDriverInstallerOrigin", "", ""),
-        ("🎞️", "CIT Voice Studio", GH_CIT, "", "Luôn tải bản mới nhất trên GitHub"),
-        ("🎞️", "Subtitle Translator", GH_SUBTR, "", "Bản portable, luôn tải bản mới nhất trên GitHub"),
-        ("🎞️", "YouTube Downloader Pro", GH_YTDL, "", "Bản portable, giải nén rồi chạy"),
+        ("🎞️", "CIT Voice Studio", GH_CIT, "", ""),
+        ("🎞️", "Subtitle Translator", GH_SUBTR, "", ""),
+        ("🎞️", "YouTube Downloader Pro", GH_YTDL, "", ""),
     ]),
-    ("GIẢ LẬP ANDROID", [
-        ("📱", "BlueStacks 5", "winget:BlueStack.BlueStacks", "", ""),
-        ("🎮", "LDPlayer", "https://www.ldplayer.net/", "", "Mở trang tải"),
-    ]),
-    ("LẬP TRÌNH", [
+    ("LẬP TRÌNH", 4, [
         ("🐍", "Python 3.12", "winget:Python.Python.3.12", "", ""),
         ("📝", "VS Code", "winget:Microsoft.VisualStudioCode", "", ""),
         ("🟢", "Node.js LTS", "winget:OpenJS.NodeJS.LTS", "", ""),
         ("☕", "Java JDK 21", "winget:EclipseAdoptium.Temurin.21.JDK", "", ""),
         ("🔧", "Git", "winget:Git.Git", "", ""),
     ]),
+    ("THƯ VIỆN HỆ THỐNG", 4, [
+        ("⚙️", "Visual C++ 2015-2022 x64", "winget:Microsoft.VCRedist.2015+.x64", "", ""),
+        ("⚙️", "Visual C++ 2015-2022 x86", "winget:Microsoft.VCRedist.2015+.x86", "", ""),
+        ("⚙️", ".NET Framework 3.5", "cmd:DISM /Online /Enable-Feature /FeatureName:NetFx3 /All /NoRestart", "", "Bật tính năng có sẵn của Windows (cần mạng)"),
+        ("⚙️", ".NET Framework 4.8.1", "winget:Microsoft.DotNet.Framework.DeveloperPack_4", "", ""),
+        ("🎮", "DirectX Runtime", "winget:Microsoft.DirectX", "", ""),
+    ]),
 ]
+DEFAULT_FIT_N = 5
 
 # ---------------------------------------------------------------- tiện ích Windows cố định
 # (id, nhóm, nhãn, kiểu, lệnh, cần xác nhận)  kiểu: ps = PowerShell, cmd = cmd /c, open = mở chương trình
@@ -610,7 +617,7 @@ class Store:
                 self.db.execute("UPDATE groups SET gpos=COALESCE(gpos,0)+1")
                 self.db.execute("UPDATE groups SET ord=ord+1 WHERE col=0")
                 gid = self.db.execute("INSERT INTO groups(name, ord, col, gpos) VALUES(?,?,?,?)", ("KHO PHẦN MỀM", 0, 0, 0)).lastrowid
-                for i, (icon, name, src, args, note) in enumerate(DEFAULT_GROUPS[0][1]):
+                for i, (icon, name, src, args, note) in enumerate(DEFAULT_GROUPS[0][2]):
                     self.db.execute("INSERT INTO apps(group_id, icon, name, src, args, note, ord) VALUES(?,?,?,?,?,?,?)",
                                     (gid, icon, name, src, args, note, i))
                 self.commit(persist=False)
@@ -681,12 +688,15 @@ class Store:
         with self.lock:
             self.db.execute("DELETE FROM apps")
             self.db.execute("DELETE FROM groups")
-            for gi, (gname, apps) in enumerate(DEFAULT_GROUPS):
-                gid = self.db.execute("INSERT INTO groups(name, ord, gpos) VALUES(?,?,?)", (gname, gi, gi)).lastrowid
+            per_col = {}
+            for gi, (gname, col, apps) in enumerate(DEFAULT_GROUPS):
+                o = per_col.get(col, 0)
+                per_col[col] = o + 1
+                gid = self.db.execute("INSERT INTO groups(name, ord, col, gpos) VALUES(?,?,?,?)", (gname, o, col, gi)).lastrowid
                 for ai, (icon, name, src, args, note) in enumerate(apps):
                     self.db.execute("INSERT INTO apps(group_id, icon, name, src, args, note, ord) VALUES(?,?,?,?,?,?,?)",
                                     (gid, icon, name, src, args, note, ai))
-            self.auto_columns()
+            self.cfg["fit_n"] = DEFAULT_FIT_N          # Tự vừa màn hình: 5 cột như cách đã sắp
             self.commit(persist)
 
     def export_data(self):
@@ -3048,6 +3058,8 @@ class App:
                           ("wg_find_7zip", lambda: E._wg_find_new_id("7-Zip")),
                           ("wg_find_vlc", lambda: E._wg_find_new_id("VLC media player")),
                           ("wg_whatsapp_msstore", lambda: E.winget_check("9NKSQGP7F2NH", force=True)),
+                          ("wg_idm", lambda: E.winget_check("Tonec.InternetDownloadManager", force=True)),
+                          ("wg_acrobat", lambda: E.winget_check("Adobe.Acrobat.Reader.64-bit", force=True)),
                           ("gh_wordcraft", lambda: resolve_github(ARTCRAFT[1][0][2])),
                           ("gh_ytdl", lambda: resolve_github(GH_YTDL))]:
                 try:

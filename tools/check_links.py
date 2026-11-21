@@ -16,7 +16,7 @@ for n in tree.body:      # chỉ chạy các dòng gán hằng chuỗi + DEFAULT
 groups = ns["DEFAULT_GROUPS"]
 ua = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124 Safari/537.36"}
 bad = 0
-for gname, apps in groups:
+for gname, _col, apps in groups:
     for icon, name, link, args, note in apps:
         if link.startswith("github:"):
             body = link.split(":", 1)[1]
