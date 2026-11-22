@@ -32,7 +32,7 @@ from urllib.parse import unquote, urlparse, parse_qs
 import mgr
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v2.4.1"
+APP_VERSION = "v2.4.2"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -109,13 +109,7 @@ def norm_name(t):
     return re.sub(r"[^a-z0-9]+", "", unicodedata.normalize("NFKD", (t or "").lower()).encode("ascii", "ignore").decode())
 
 
-# Link tải công cụ crack / kích hoạt lậu: tool không giữ - nút còn nguyên (giữ vị trí) nhưng nguồn để trống
-BLOCKED_SRC = re.compile(r"IDM_Cracker|/GenP|Microsoft-Activation-Scripts|massgrave|KMS_?Suite", re.I)
-
-
 def fix_src(src):
-    if BLOCKED_SRC.search(src or ""):
-        return ""
     new = OLD_DEFAULT_SRC.get((src or "").strip())
     if new:
         return new

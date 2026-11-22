@@ -1,4 +1,4 @@
-Win AIO by Duy Anh v2.4.1
+Win AIO by Duy Anh v2.4.2
 
-- Tab Web: mặc định là 12 nút trống (chưa có tên, chưa có link), không gắn sẵn trang nào. Bật Admin, bấm ✎ trên nút để đặt tên và gắn link bạn hay dùng; "＋ Thêm link" để thêm nút.
-- Máy đang dùng giữ nguyên các link bạn đã gắn.
+- Cập nhật tool không còn đụng tới nút và link bạn tự gắn: tên, link, vị trí bạn đã sắp (mọi nhóm) và các link trong tab Web giữ nguyên khi update, và được nhập lại đầy đủ từ file sao lưu JSON.
+- Máy mới cài tool: tab Web là 12 nút trống để tự gắn link.

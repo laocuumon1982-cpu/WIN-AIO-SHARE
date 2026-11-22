@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v2.4.2
+- Cài mới: nhóm CRACK với 3 nút trống; cập nhật không xóa link đã gắn trong nút.
+
 ## v2.4.1
 - Tab Web mặc định 12 nút trống để tự gắn link.
 
