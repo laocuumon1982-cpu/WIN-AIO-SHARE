@@ -3365,6 +3365,8 @@ class App:
                           ("usb_disks", extra.usb_disks), ("setup_info", extra.setup_info),
                           ("mac_list", lambda: [len(apple.mac_list())] + [(x["name"], x["version"], x["build"], x["kind"], x["size"], len(x["files"]),
                                                                             x["files"][0]["url"]) for x in apple.mac_list()[:40]]),
+                          ("mac_old", lambda: [(x["name"], x["version"], x["build"], x["kind"], x["size"], [f["name"] for f in x["files"]])
+                                               for x in apple.mac_list() if x["version"].startswith("10.")]),
                           ("ios_devices", lambda: [len(apple.ios_devices())] + apple.ios_devices()[:4]),
                           ("ios_fw", lambda: [(f["version"], f["build"], f["signed"], f["size"], f["url"]) for f in apple.ios_firmwares("iPhone15,2")["fw"][:3]])]:
                 try:
