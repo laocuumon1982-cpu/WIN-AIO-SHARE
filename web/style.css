@@ -1014,3 +1014,40 @@ body.admin .nadm{display:none}
 .badge{display:inline-grid;place-items:center;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:var(--red);color:#fff;font-size:11px;font-weight:800;margin-left:auto;margin-right:4px}
 .badge[hidden]{display:none!important}
 .subtabs .badge{margin-left:5px;margin-right:0}
+
+/* ---------- v2.6: Sửa lỗi & thiết lập, hồ sơ cài đặt, Ventoy, driver, hiệu năng ---------- */
+.fixgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.fixgrid .wide2{grid-column:span 1}
+@media (max-width:1180px){.fixgrid{grid-template-columns:1fr}}
+.tgrid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.tgrid2 .tbtn{height:auto;min-height:50px;padding:7px 12px}
+.tgrid2 .tbtn .tt{display:block}
+.tbtn .tt b{display:block;font-size:13px}.tbtn .tt small{display:block;color:var(--muted);font-size:11px;font-weight:500;margin-top:1px}
+.tbtn.hot{border-color:var(--ac);background:color-mix(in srgb,var(--ac) 9%,var(--head))}
+.flist{margin:4px 0 6px 18px;padding:0;line-height:1.7;font-size:13px}
+.sugrid{display:flex;flex-direction:column;gap:8px}
+.sur{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:7px 9px;border:1px solid var(--border);border-radius:10px;background:var(--head)}
+.sur input:not([type=checkbox]),.sur select{flex:1;min-width:120px}
+.sur .ck{margin:0}
+.sul{width:130px;font-weight:700;font-size:13px;flex:none}
+.sur .path{max-width:380px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prelist{display:flex;flex-direction:column;gap:9px;margin-top:10px;max-height:60vh;overflow:auto}
+.prei{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--head)}
+.pric{font-size:28px;flex:none}.prx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.prx b{font-size:15px}.prx small{color:var(--muted);font-size:12px;line-height:1.35}.prx em.bad{color:#e0262a;font-style:normal}
+.pecols{display:grid;grid-template-columns:1.3fr 1fr;gap:14px;margin-top:10px}
+.pecols h5{margin:0 0 6px;font-size:12px;color:var(--muted)}
+.pebox{max-height:52vh;overflow:auto;border:1px solid var(--border);border-radius:10px;padding:8px 10px;columns:2;column-gap:14px}
+.pecols>div:last-child .pebox{columns:1}
+.peg{break-inside:avoid;margin-bottom:8px}.peg>b{display:block;font-size:11px;color:var(--muted);margin:2px 0}
+.peg .ck{display:flex;margin:1px 0;font-size:12.5px}
+.vtl{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:9px}
+.pout{max-height:260px;overflow:auto;background:#0d1117;color:#d1fae5;padding:8px 10px;border-radius:8px;font-size:11.5px;white-space:pre-wrap}
+.pfh{font-size:13px;margin:6px 0 4px}
+.pfch{width:100%;height:80px;background:var(--head);border:1px solid var(--border);border-radius:8px;margin-top:4px}
+.pfleg{display:flex;gap:14px;font-size:11.5px;font-weight:650;margin-top:3px}
+.tst .tacts select,.tst .tacts input{height:28px}
+#pg-system .ring#rTmp .rin b{font-size:16px}
+.tst[data-id="perf"]{grid-column:span 2}
+.tst[data-id="perf"] .tacts{flex-wrap:wrap;gap:6px}
+#rTmp .rin small{font-size:8px;letter-spacing:0}

@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v2.6
+- Sửa lỗi Windows 1 chạm, Dọn Win 11, Thiết lập máy mới, font tiếng Việt, hồ sơ cài đặt, chuyển phần mềm sang Win mới, USB boot Ventoy, Driver, nhiệt độ CPU, test hiệu năng; tối ưu tốc độ giao diện.
+
 ## v2.5
 - Quản lý › Cập nhật app: kiểm tra & cập nhật phần mềm đã cài qua winget, số báo trên menu.
 

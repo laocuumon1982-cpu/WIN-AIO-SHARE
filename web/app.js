@@ -86,13 +86,14 @@ function popMenu(anchor, items) {
 /* ===================================================================== WIN AIO */
 const PAGES = {
   system: ["Thông tin & khởi động", "Thông tin máy, khởi động đặc biệt (BIOS, Safe Mode...) và mở nhanh công cụ Windows"],
-  manage: ["Quản lý", "Khởi động cùng Windows · Gỡ phần mềm tận gốc · Ứng dụng MS Store · Defender · Cập nhật app"],
+  manage: ["Quản lý", "Khởi động cùng Windows · Gỡ phần mềm tận gốc · Ứng dụng MS Store · Defender · Cập nhật app · Driver"],
+  fix: ["Sửa lỗi & thiết lập", "Sửa lỗi Windows 1 chạm · Dọn Win 11 · Thiết lập máy mới · Bộ font tiếng Việt"],
   clean: ["Dọn dẹp", "Dọn rác, phân tích ổ đĩa, cache CapCut, virus macro Excel, xóa metadata ảnh"],
-  backup: ["Sao lưu", "Thư mục người dùng · Zalo · Zalo nhiều tài khoản · Trình duyệt"],
+  backup: ["Sao lưu", "Thư mục người dùng · Zalo · Zalo nhiều tài khoản · Trình duyệt · Chuyển phần mềm sang Win mới"],
   apps: ["Cài phần mềm", "Bấm 1 nút để cài ngay, hoặc chọn nhiều mục rồi bấm ▶ Cài mục đã chọn"],
   power: ["Nguồn & Ổ USB", "Tắt máy khẩn cấp · Khóa máy · Hẹn giờ tắt · Tháo ổ USB an toàn"],
-  test: ["Test máy", "Kiểm tra màn hình, cảm ứng, bàn phím, loa, micro, trackpad, webcam, pin laptop"],
-  iso: ["Kho ISO Win", "Chọn bản Windows rồi bấm Tải - tool tự lấy link gốc của Microsoft · Kiểm tra SHA-256 file ISO"],
+  test: ["Test máy", "Kiểm tra màn hình, cảm ứng, bàn phím, loa, micro, trackpad, webcam, pin laptop, hiệu năng"],
+  iso: ["Kho ISO Win", "Tải ISO gốc Microsoft · Tạo USB boot Ventoy · Kiểm tra SHA-256 file ISO"],
   tools: ["Tiện ích Windows", "Thiết lập nhanh, mạng, Defender, Windows Update, máy in, BitLocker, sao lưu Wifi / Driver"],
   web: ["Web", "Trang web hay dùng - bấm để mở · Admin bấm ✎ để sửa, ＋ để thêm link"],
   history: ["Nhật ký", "Những gì tool đã cài / đã chạy"],
@@ -117,6 +118,7 @@ function showPage(p) {
   if (p === "clean") cleanShow();
   if (p === "backup") backShow();
   if (p === "iso") isoShow();
+  if (p === "fix") fixShow();
   if (p === "web") webShow();
   if (p === "settings" && ADMIN) renderSettings();
 }
@@ -334,7 +336,7 @@ function updSel() {
   $("selcnt").textContent = "Đã chọn: " + picked.size;
   $("s-sel").textContent = picked.size;
 }
-$("q").oninput = renderGroups;
+let qT; $("q").oninput = () => { clearTimeout(qT); qT = setTimeout(renderGroups, 120); };
 $("bAll").onclick = () => { document.querySelectorAll(".arow:not(.hide)").forEach(r => picked.add(+r.dataset.a)); renderGroups(); };
 $("bNone").onclick = () => { picked.clear(); renderGroups(); };
 $("bGo").onclick = async () => {
@@ -524,7 +526,7 @@ function renderInfo() {
           <span class="chip cp" data-copy="${esc(pc.tag || "")}" title="Bấm để copy"><i>🏷️</i>Service Tag <b>${esc(pc.tag || "không có")}</b>${pc.tag ? " ⧉" : ""}</span>
           ${ip ? `<span class="chip cp" data-copy="${esc(ip)}" title="Bấm để copy"><i>🌐</i>IP <b>${esc(ip)}</b> ⧉</span>` : ""}
         </div></div></div>
-    <div class="hr">${ring("rCpu", "CPU", "#e0262a")}${ring("rRam", "RAM", "#2f7fa3")}
+    <div class="hr">${ring("rCpu", "CPU", "#e0262a")}${ring("rRam", "RAM", "#2f7fa3")}${ring("rTmp", "NHIỆT ĐỘ", "#d97706")}
       <div class="upt"><small>ĐÃ CHẠY</small><b id="upt">—</b><small id="ramtx"></small></div>
       <div class="hbtn"><button class="btn sm" id="bSysRef">⟳ Làm mới</button><button class="btn sm" id="bSysCopy">⧉ Copy tất cả</button></div></div>`;
   const slots = Math.max(ram.slots || 0, (ram.sticks || []).length);
@@ -558,7 +560,7 @@ function renderInfo() {
   ];
   $("info").innerHTML = cards.join("");
   [30, 400, 1500].forEach(t => setTimeout(fitSys, t));
-  $("bSysRef").onclick = () => { api("refresh_sysinfo"); ST.sysinfo = null; infoShown = undefined; renderInfo(); };
+  $("bSysRef").onclick = () => { api("refresh_sysinfo"); ST.sysinfo = SYSI = null; SIV = null; infoShown = undefined; renderInfo(); };
   $("bSysCopy").onclick = () => { copyLocal(sysText(si)) && toast("Đã copy thông tin máy"); };
   live();
 }
@@ -582,6 +584,10 @@ async function live() {
     const L = await api("live");
     const set = (id, p, t) => { const r = $(id); r.style.setProperty("--p", p); r.querySelector("b").textContent = t; };
     set("rCpu", L.cpu, L.cpu + "%"); set("rRam", L.ram_pct, L.ram_pct + "%");
+    const tr = $("rTmp");
+    if (tr) { const t = L.temp; set("rTmp", t == null ? 0 : Math.min(100, t), t == null ? "—" : Math.round(t) + "°C");
+      tr.style.setProperty("--c", t == null ? "#9ca3af" : t >= 85 ? "#e0262a" : t >= 70 ? "#d97706" : "#16a34a");
+      tr.title = t == null ? "Máy không có cảm biến nhiệt độ mà Windows đọc được" : "Nhiệt độ CPU (cảm biến ACPI của Windows)"; }
     $("lCpu").style.width = L.cpu + "%"; $("lCpuT").textContent = L.cpu + "%";
     $("lRam").style.width = L.ram_pct + "%"; $("lRamT").textContent = `${L.ram_used} / ${L.ram_total} GB`;
     const u = L.uptime, d = Math.floor(u / 86400), h = Math.floor(u % 86400 / 3600), m = Math.floor(u % 3600 / 60);
@@ -892,9 +898,13 @@ function progOnButton(cur, d, n) {                       // vệt tiến độ +
 let WGC = 0;
 document.addEventListener("click", e => { if (e.target.id === "upgN") setTimeout(() => { const t = $("mtabs").querySelector('[data-t="upgrade"]'); if (t) t.click(); }, 60); });
 function setUpgBadge(n) { for (const id of ["upgN", "upgB"]) { const b = $(id); if (b) { b.hidden = !n; b.textContent = n; } } }
+let SIV = null, SYSI = null, hidTick = 0;
 async function tick() {
   try {
-    ST = await api("state", logSeq);
+    if (document.hidden && ++hidTick % 4) return;                 // cửa sổ ẩn / thu nhỏ: hỏi chậm lại
+    ST = await api("state", logSeq, SIV);
+    if (ST.si !== SIV) { SIV = ST.si; SYSI = ST.sysinfo; }
+    ST.sysinfo = SYSI;
     if (ST.logs.length) { logSeq = ST.logs[ST.logs.length - 1][0]; addLogs(ST.logs); }
     if (ST.admin !== ADMIN) setAdmin(ST.admin);
     if (ST.wg_checked && ST.wg_checked !== WGC) { WGC = ST.wg_checked; loadGroups(); }
@@ -926,7 +936,7 @@ async function tick() {
     $("fb").style.width = run && bn ? Math.round((bi / bn) * 100) + "%" : "0";
     const rs = JSON.stringify(ST.results);
     if (rs !== lastRes) { lastRes = rs; renderGroups(); }
-    if (ST.sysinfo !== infoShown && JSON.stringify(ST.sysinfo) !== JSON.stringify(infoShown)) { infoShown = ST.sysinfo; renderInfo(); }
+    if (ST.sysinfo !== infoShown) { infoShown = ST.sysinfo; renderInfo(); }
     tiles();
   } catch (e) { /* bỏ qua 1 nhịp */ }
 }

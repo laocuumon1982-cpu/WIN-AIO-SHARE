@@ -30,7 +30,7 @@ function mgrShow() {
   $("mtabs").onclick = e => { const d = e.target.closest("[data-t]"); if (!d) return; MT = d.dataset.t;
     $("mtabs").querySelectorAll("div").forEach(x => x.classList.toggle("on", x === d));
     document.querySelectorAll(".mpane").forEach(p => p.hidden = p.id !== "mp-" + MT); mgrShow(); };
-  if (!MLOAD[MT]) { MLOAD[MT] = 1; ({startup: stLoad, programs: prLoad, appx: axLoad, defender: dfLoad, upgrade: upLoad})[MT](); }
+  if (!MLOAD[MT]) { MLOAD[MT] = 1; ({startup: stLoad, programs: prLoad, appx: axLoad, defender: dfLoad, upgrade: upLoad, driver: drvLoad})[MT](); }
 }
 
 /* ---------- khởi động cùng Windows ---------- */

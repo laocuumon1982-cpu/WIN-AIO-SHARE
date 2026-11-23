@@ -1,5 +1,5 @@
 ﻿=====================================================================
-           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v2.5)
+           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v2.6)
 =====================================================================
 Tool cài Win dạo 1 file exe portable (không cần cài đặt), giao diện tiếng Việt.
 Tải: https://github.com/laocuumon1982-cpu/WIN-AIO-SHARE/releases/latest
@@ -33,7 +33,7 @@ HỆ THỐNG
 [Thông tin & khởi động]
 - Tên máy, Windows, CPU, RAM (từng khe), card màn hình, mainboard / BIOS,
   mạng (IP, MAC, tốc độ), ổ cứng và phân vùng (dung lượng, loại SSD/HDD).
-- Theo dõi trực tiếp % CPU, % RAM, thời gian máy đã chạy.
+- Theo dõi trực tiếp % CPU, % RAM, nhiệt độ CPU (máy có cảm biến), thời gian máy đã chạy.
 - Khởi động đặc biệt: vào BIOS / UEFI, vào Recovery (WinRE),
   chọn ổ khởi động 1 lần, Safe Mode, trở về khởi động bình thường.
 - Mở nhanh: Thông tin máy, Device Manager, Disk Management, Control Panel,
@@ -141,6 +141,45 @@ DỌN DẸP & SAO LƯU
 - Zalo nhiều tài khoản: mỗi tài khoản 1 cửa sổ Zalo riêng.
 - Trình duyệt Chrome, Edge, Cốc Cốc, Brave, Firefox: dấu trang,
   tiện ích, mật khẩu, lịch sử, cài đặt.
+- Chuyển phần mềm sang Win mới (v2.6): lưu danh sách phần mềm đang cài (winget export)
+  vào USB; cài Win xong mở tool, chọn file danh sách, bỏ tick mục không cần, cài lại hết.
+
+
+---------------------------------------------------------------------
+SỬA LỖI & THIẾT LẬP (v2.6)
+---------------------------------------------------------------------
+[Sửa lỗi Windows 1 chạm]
+- Sửa tất cả file hệ thống: DISM RestoreHealth rồi SFC /scannow.
+- SFC /scannow, DISM RestoreHealth riêng lẻ (có % tiến độ, xem chi tiết kết quả).
+- Reset Windows Update (xóa bộ nhớ đệm SoftwareDistribution, catroot2).
+- Reset Microsoft Store.
+- Sửa lỗi chia sẻ máy in 0x0000011b / 0x00000709 (làm trên cả máy chủ và máy con).
+[Dọn Win 11 cho gọn]
+- 1 nút tắt Copilot, Recall, quảng cáo / gợi ý Start menu và màn hình khóa,
+  Widgets, gửi dữ liệu chẩn đoán, quảng cáo cá nhân hóa, gợi ý Bing khi tìm.
+- Nút "Bật lại như cũ".
+[Thiết lập máy mới]
+- Đổi tên máy, tạo tài khoản Windows (thường / quản trị, có hoặc không mật khẩu).
+- Bỏ mật khẩu đăng nhập tài khoản cục bộ; mở netplwiz.
+- Đặt Chrome làm trình duyệt mặc định (Windows bắt bấm xác nhận 1 lần).
+- Cho UniKey chạy cùng Windows (tự tìm UniKey trên máy).
+[Bộ font tiếng Việt]
+- Cài VNI, TCVN3 (.VnTime...), Unicode: từ link .zip Admin gắn 1 lần,
+  hoặc từ file .zip / file font / thư mục. Bỏ qua font máy đã có.
+
+[Hồ sơ cài đặt] (tab Cài phần mềm › 📋 Hồ sơ cài đặt)
+- Mặc định: Máy văn phòng, Máy kế toán, Máy game.
+- Bấm 1 lần: cài cả bộ phần mềm, chạy tiện ích Windows, dọn Win 11, cài font.
+- Admin thêm / sửa / xóa hồ sơ (chọn phần mềm, tiện ích). Đi kèm file sao lưu JSON.
+
+[Kho ISO › Tạo USB boot Ventoy]
+- Liệt kê USB đang cắm (chỉ ổ USB, không bao giờ đụng ổ Windows).
+- Tự tải Ventoy mới nhất, cài vào USB (MBR hoặc GPT), xác nhận gõ XOA trước khi xóa USB.
+- Chép file ISO (đã tải trong Kho ISO hoặc chọn file khác) vào USB Ventoy, có %.
+
+[Quản lý › Driver]
+- Liệt kê thiết bị lỗi / thiếu driver (dấu chấm than vàng), lý do lỗi, mã phần cứng.
+- Tìm driver qua Windows Update, chọn và cài.
 
 
 ---------------------------------------------------------------------
@@ -165,4 +204,7 @@ KIỂM TRA
 - Webcam: xem hình, độ phân giải, chụp thử.
 - Sức khỏe ổ cứng: SMART, dự báo hỏng, nhiệt độ, độ hao mòn SSD, giờ chạy.
 - Pin laptop: dung lượng thiết kế, dung lượng còn lại, độ chai, số lần sạc.
+- Hiệu năng nhanh (v2.6): đo tốc độ đọc / ghi tuần tự, đọc ngẫu nhiên 4K của ổ cứng
+  (WinSAT có sẵn của Windows), chạy tải 100% CPU 1 / 3 / 5 phút, vẽ biểu đồ nhiệt độ,
+  xung nhịp, tải CPU, báo CPU có hạ xung vì nóng không.
 - Tổng kết kết quả các bài test, sao chép báo cáo.

@@ -27,12 +27,13 @@ import threading
 import time
 import zipfile
 from pathlib import Path
-from urllib.parse import unquote, urlparse, parse_qs
+from urllib.parse import unquote, urlparse
 
 import mgr
+import extra
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v2.5"
+APP_VERSION = "v2.6"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -155,6 +156,18 @@ ISO_MG_PAGES = [
 ]
 # Tab Web: nút mở trang web hay dùng (Admin sửa / thêm / xóa)
 DEFAULT_WEB = [("HAY DÙNG", "🌐", "", "")] * 12     # 12 nút trống - Admin bấm ✎ để đặt tên, gắn link
+
+# Hồ sơ cài đặt (preset): bấm 1 lần cài các phần mềm + chạy tiện ích Windows. Lưu tên phần mềm (không lưu id -> đổi nút vẫn khớp).
+DEFAULT_PRESETS = [
+    ("Máy văn phòng", "🏢", ["Google Chrome", "UniKey", "Zalo PC", "Foxit PDF Reader", "WinRAR", "UltraViewer", "MS Office"],
+     ["ext", "thispc", "tz", "faststart"], {"tidy": True}),
+    ("Máy kế toán", "🧮", ["Google Chrome", "UniKey", "Zalo PC", "Foxit PDF Reader", "WinRAR", "UltraViewer", "TeamViewer", "MS Office",
+                         ".NET Framework 3.5", "Visual C++ 2015-2022 x86"],
+     ["ext", "thispc", "tz", "faststart"], {"tidy": True, "fonts": True}),
+    ("Máy game", "🎮", ["Google Chrome", "Discord", "7-Zip", "Visual C++ 2015-2022 x64", "Visual C++ 2015-2022 x86", "DirectX Runtime",
+                      "OBS Studio"],
+     ["faststart", "hiber", "tz"], {"tidy": True}),
+]
 DEFAULT_PW = "HP360"          # mật khẩu Admin mặc định
 KHO_FSHARE = "open:https://www.fshare.vn/folder/BESIWSY4GNO7"
 KHO_GDRIVE = "open:https://drive.google.com/drive/u/3/folders/173Ouz2LQQcrVr9SbirV68wgJvXP2Svz2"
@@ -527,6 +540,7 @@ class Store:
         self.db.executescript("""
             CREATE TABLE IF NOT EXISTS groups(id INTEGER PRIMARY KEY, name TEXT, ord INTEGER, col INTEGER, gpos INTEGER);
             CREATE TABLE IF NOT EXISTS weblinks(id INTEGER PRIMARY KEY, grp TEXT, icon TEXT, name TEXT, url TEXT, ord INTEGER);
+            CREATE TABLE IF NOT EXISTS presets(id INTEGER PRIMARY KEY, name TEXT, icon TEXT, apps TEXT, tools TEXT, opts TEXT, ord INTEGER);
             CREATE TABLE IF NOT EXISTS winget_info(pkg TEXT PRIMARY KEY, ok INTEGER, ver TEXT, url TEXT, pname TEXT, checked REAL);
             CREATE TABLE IF NOT EXISTS apps(id INTEGER PRIMARY KEY, group_id INTEGER, icon TEXT, name TEXT,
                 src TEXT, args TEXT, note TEXT, ord INTEGER);
@@ -612,6 +626,15 @@ class Store:
                     self.db.execute("INSERT INTO weblinks(grp, icon, name, url, ord) VALUES(?,?,?,?,?)", (g, ic, n, u, i))
                 self.commit(persist=False)
             done.add("web")
+            self.cfg["migrated"] = sorted(done)
+            self.save_config(persist=False)
+        if "presets" not in done:
+            if not self.db.execute("SELECT 1 FROM presets").fetchone():
+                for i, (n, ic, apps, tools, opts) in enumerate(DEFAULT_PRESETS):
+                    self.db.execute("INSERT INTO presets(name, icon, apps, tools, opts, ord) VALUES(?,?,?,?,?,?)",
+                                    (n, ic, json.dumps(apps, ensure_ascii=False), json.dumps(tools), json.dumps(opts), i))
+                self.commit(persist=False)
+            done.add("presets")
             self.cfg["migrated"] = sorted(done)
             self.save_config(persist=False)
         if "v223" not in done:
@@ -735,14 +758,34 @@ class Store:
         for g in self.groups():
             out.append({"name": g["name"], "col": g.get("col"), "pos": g.get("gpos"), "apps": [{k: a[k] for k in ("icon", "name", "src", "args", "note")} for a in g["apps"]]})
         web = [{k: w[k] for k in ("grp", "icon", "name", "url")} for w in self.web_list()]
-        return {"app": APP_TITLE, "version": APP_VERSION, "exported": now(), "groups": out, "web": web}
+        pre = [{k: p[k] for k in ("name", "icon", "apps", "tools", "opts")} for p in self.preset_list()]
+        return {"app": APP_TITLE, "version": APP_VERSION, "exported": now(), "groups": out, "web": web, "presets": pre}
 
     def web_list(self):
         with self.lock:
             return [dict(r) for r in self.db.execute("SELECT * FROM weblinks ORDER BY ord, id")]
 
+    def preset_list(self):
+        out = []
+        with self.lock:
+            for r in self.db.execute("SELECT * FROM presets ORDER BY ord, id"):
+                d = dict(r)
+                for k, dflt in (("apps", []), ("tools", []), ("opts", {})):
+                    try:
+                        d[k] = json.loads(d[k] or "null") or dflt
+                    except ValueError:
+                        d[k] = dflt
+                out.append(d)
+        return out
+
     def import_data(self, data):
         with self.lock:
+            if isinstance(data.get("presets"), list):
+                self.db.execute("DELETE FROM presets")
+                for i, p in enumerate(data["presets"]):
+                    self.db.execute("INSERT INTO presets(name, icon, apps, tools, opts, ord) VALUES(?,?,?,?,?,?)",
+                                    (str(p.get("name", "Hồ sơ")), str(p.get("icon", "📋")), json.dumps(p.get("apps") or [], ensure_ascii=False),
+                                     json.dumps(p.get("tools") or []), json.dumps(p.get("opts") or {}), i))
             if isinstance(data.get("web"), list):
                 self.db.execute("DELETE FROM weblinks")
                 for i, w in enumerate(data["web"]):
@@ -803,6 +846,7 @@ class Store:
             self.db.execute("INSERT INTO history(ts, name, src, status, detail) VALUES(?,?,?,?,?)",
                             (now(), name, src, status, detail[:2000]))
             self.commit(persist=False)
+            self.hist_ver = getattr(self, "hist_ver", 0) + 1
 
 
 # ================================================================= bộ máy cài đặt
@@ -827,7 +871,7 @@ class Engine:
         self.wg_ready.set()
         self.power = Power(self)
         self.office = OfficeSetup(self)
-        mgr.init(ps=ps, run=run_hidden, fake=FAKE, base=BASE, data=DATA, ensure_disk=store.ensure_disk, log=self.log,
+        mgr.init(ps=ps, run=run_hidden, fake=FAKE, base=BASE, data=DATA, ensure_disk=store.ensure_disk, log=self.log, live=self.live, gh=resolve_github,
                  history=lambda n, src, st, d="": store.add_history(n, src, st, d or ""))
         threading.Thread(target=self._bg_checks, daemon=True).start()
 
@@ -942,7 +986,7 @@ $net=@(Get-NetAdapter -Physical | Where-Object Status -eq 'Up' | ForEach-Object 
         if FAKE or not IS_WIN:
             import random
             return {"cpu": random.randint(8, 35), "ram_used": round(random.uniform(11, 14), 1), "ram_total": 31.8,
-                    "ram_pct": random.randint(35, 45), "uptime": int(time.monotonic()) + 3600 * 5}
+                    "ram_pct": random.randint(35, 45), "uptime": int(time.monotonic()) + 3600 * 5, "temp": extra.cpu_temp()}
         from ctypes import wintypes
 
         class MEM(ctypes.Structure):
@@ -963,7 +1007,13 @@ $net=@(Get-NetAdapter -Physical | Where-Object Status -eq 'Up' | ForEach-Object 
         self._cpu_prev = cur
         ctypes.windll.kernel32.GetTickCount64.restype = ctypes.c_ulonglong
         return {"cpu": cpu, "ram_used": round((m.total - m.avail) / 2**30, 1), "ram_total": round(m.total / 2**30, 1),
-                "ram_pct": int(m.load), "uptime": int(ctypes.windll.kernel32.GetTickCount64() // 1000)}
+                "ram_pct": int(m.load), "uptime": int(ctypes.windll.kernel32.GetTickCount64() // 1000), "temp": self._temp()}
+
+    def _temp(self):
+        try:
+            return extra.cpu_temp()
+        except Exception:                   # noqa: BLE001  máy không đọc được cảm biến -> không hiện
+            return None
 
     # ---- winget: kiểm tra bản cũ / mới, tự cài bản mới (im lặng)
     def _winget_version(self):
@@ -1525,6 +1575,64 @@ Remove-Item $d -Recurse -Force; 'OK'
         return ("ok" if code in (0, 3010, 1641) else "err"), ("Cần khởi động lại máy" if code == 3010 else ("" if code == 0 else f"mã thoát {code}"))
 
     # ---- tiện ích Windows
+    def preset_run(self, j, pid):
+        """Hồ sơ cài đặt: xếp các phần mềm vào hàng đợi cài, chờ cài xong, chạy tiện ích Windows, dọn Win 11, cài font."""
+        p = next((x for x in self.st.preset_list() if x["id"] == int(pid)), None)
+        if not p:
+            raise RuntimeError("Không có hồ sơ này")
+        apps = {}
+        for g in self.st.groups():
+            for a in g["apps"]:
+                apps.setdefault(norm_name(a["name"]), a)
+        want = [apps.get(norm_name(n)) for n in p["apps"]]
+        miss = [n for n, a in zip(p["apps"], want) if not a]
+        ids = [a["id"] for a in want if a and (a.get("src") or "").strip()]
+        nosrc = [a["name"] for a in want if a and not (a.get("src") or "").strip()]
+        steps = len(p["tools"]) + bool(p["opts"].get("tidy")) + bool(p["opts"].get("fonts"))
+        if ids:
+            self.enqueue(ids)
+            j["text"] = f"Đang cài {len(ids)} phần mềm..."
+            time.sleep(0.5)
+            while self.worker and self.worker.is_alive():
+                if j.get("stop"):
+                    self.stop()
+                    raise RuntimeError("Đã dừng")
+                with self.lock:
+                    n, i = max(1, self.batch_n), self.batch_i
+                    cur = self.cur["name"] if self.cur else ""
+                j["pct"] = int(80 * i / n) if steps else int(100 * i / n)
+                j["text"] = f"Cài phần mềm {min(i + 1, n)}/{n}: {cur}" if cur else f"Cài phần mềm {i}/{n}"
+                time.sleep(0.7)
+        base = 80 if ids else 0
+        k = 0
+        notes = []
+        for tid in p["tools"]:
+            t = next((x for x in TOOLS if x[0] == tid), None)
+            if not t:
+                continue
+            j["pct"], j["text"] = base + int((100 - base) * k / max(1, steps)), "Tiện ích: " + t[2]
+            self.run_tool(tid)
+            k += 1
+        if p["opts"].get("tidy"):
+            j["text"] = "Dọn Win 11 cho gọn..."
+            extra.win11_tidy(j, True)
+            k += 1
+        if p["opts"].get("fonts"):
+            url = self.st.cfg.get("font_pack_url", "")
+            if url:
+                j["text"] = "Cài bộ font tiếng Việt..."
+                notes.append(extra.font_install(j, url)["text"])
+            else:
+                notes.append("Bỏ qua cài font: Admin chưa gắn link bộ font (tab Tiện ích Windows > Font tiếng Việt).")
+        ok_n = sum(1 for i in ids if self.results.get(i) == "ok")
+        msg = f"Hồ sơ '{p['name']}': cài xong {ok_n}/{len(ids)} phần mềm, chạy {len(p['tools'])} tiện ích" + \
+              (", đã dọn Win 11" if p["opts"].get("tidy") else "") + "."
+        if miss:
+            msg += " Không thấy nút: " + ", ".join(miss) + "."
+        if nosrc:
+            msg += " Nút chưa có nguồn: " + ", ".join(nosrc) + "."
+        return {"text": " ".join([msg] + notes)}
+
     def run_tool(self, tid, extra=None):
         t = next((x for x in TOOLS if x[0] == tid), None)
         if not t:
@@ -2381,17 +2489,29 @@ class Api:
                 self._s.commit()
         return True
 
-    def state(self, since=0):
+    _done_cache = (None, None, 0)
+    _si_obj, _si_n = None, 0
+
+    def state(self, since=0, si=None):
+        """Gọi 0,7 giây / lần: chỉ gửi phần thay đổi (thông tin máy chỉ gửi lại khi đổi, đếm 'xong hôm nay' chỉ tính lại khi có nhật ký mới)."""
         e = self._e
         with e.lock:
             logs = [l for l in e.logs if l[0] > since]
             q = list(e.queue)
         today = dt.datetime.now().strftime("%d/%m/%Y")
-        with self._s.lock:
-            done_today = self._s.db.execute("SELECT COUNT(*) FROM history WHERE ts LIKE ? AND status IN ('Xong','Đã mở trang web')",
-                                            (today + "%",)).fetchone()[0]
+        hv = getattr(self._s, "hist_ver", 0)
+        if self._done_cache[:2] != (today, hv):
+            with self._s.lock:
+                n = self._s.db.execute("SELECT COUNT(*) FROM history WHERE ts LIKE ? AND status IN ('Xong','Đã mở trang web')",
+                                       (today + "%",)).fetchone()[0]
+            self._done_cache = (today, hv, n)
+        done_today = self._done_cache[2]
+        if e.sysinfo is not self._si_obj:              # giữ tham chiếu -> so "is" chắc chắn, không nhầm khi đọc lại
+            self._si_obj, self._si_n = e.sysinfo, self._si_n + 1
+        siv = self._si_n
         return {"logs": logs, "cur": e.cur, "queue": q, "batch": [e.batch_i, e.batch_n], "results": e.results,
-                "checks": e.checks, "winget": e.winget, "admin": self._admin, "busy_tool": e.busy_tool, "sysinfo": e.sysinfo,
+                "checks": e.checks, "winget": e.winget, "admin": self._admin, "busy_tool": e.busy_tool, "si": siv,
+                "sysinfo": None if (si is not None and si == siv) else e.sysinfo,
                 "done_today": done_today, "running": bool(e.worker and e.worker.is_alive()),
                 "shutdown_at": e.power.shutdown_at, "now": time.time(), "upd": self._upd,
                 "wg_checked": getattr(e, "wg_checked", 0), "upg_n": getattr(e, "upg_n", None)}
@@ -2638,6 +2758,41 @@ class Api:
                 o = st.db.execute("SELECT COALESCE(MAX(ord),-1)+1 FROM weblinks").fetchone()[0]
                 st.db.execute("INSERT INTO weblinks(grp, icon, name, url, ord) VALUES(?,?,?,?,?)", (grp, icon, name, url, o))
             st.commit()
+        return True
+
+    # ---- Hồ sơ cài đặt (preset)
+    def preset_list(self):
+        return self._s.preset_list()
+
+    def preset_save(self, p):
+        self._need_admin()
+        st = self._s
+        name = (p.get("name") or "").strip() or "Hồ sơ mới"
+        row = (name, (p.get("icon") or "📋").strip(), json.dumps([str(x) for x in p.get("apps") or []], ensure_ascii=False),
+               json.dumps([str(x) for x in p.get("tools") or []]), json.dumps(p.get("opts") or {}))
+        with st.lock:
+            if p.get("id"):
+                st.db.execute("UPDATE presets SET name=?, icon=?, apps=?, tools=?, opts=? WHERE id=?", row + (int(p["id"]),))
+            else:
+                o = st.db.execute("SELECT COALESCE(MAX(ord),-1)+1 FROM presets").fetchone()[0]
+                st.db.execute("INSERT INTO presets(name, icon, apps, tools, opts, ord) VALUES(?,?,?,?,?,?)", row + (o,))
+            st.commit()
+        return True
+
+    def preset_delete(self, pid):
+        self._need_admin()
+        with self._s.lock:
+            self._s.db.execute("DELETE FROM presets WHERE id=?", (int(pid),))
+            self._s.commit()
+        return True
+
+    def font_cfg(self, url=None):
+        """Link tải bộ font tiếng Việt (.zip) do Admin gắn. Gọi không tham số -> đọc."""
+        if url is None:
+            return self._s.cfg.get("font_pack_url", "")
+        self._need_admin()
+        self._s.cfg["font_pack_url"] = url.strip()
+        self._s.save_config(persist=True)
         return True
 
     def web_delete(self, wid):
@@ -2915,9 +3070,14 @@ class Api:
     # ---- Quản lý / Dọn dẹp / Sao lưu (mgr.py)
     M_SYNC = {"startup_list", "startup_set", "startup_delete", "programs_list", "leftovers_rescan", "leftovers_delete", "appx_list",
               "defender_status", "defender_set", "defender_excl", "capcut_info", "xlstart_scan", "xlstart_quarantine", "excel_safe_macro",
-              "backup_info", "zalo_info", "zalo_open", "zalo_profile_delete", "browsers_info", "job_status", "job_stop"}
+              "backup_info", "zalo_info", "zalo_open", "zalo_profile_delete", "browsers_info", "job_status", "job_stop",
+              # extra.py (v2.6)
+              "drv_problems", "setup_info", "setup_rename", "setup_user", "setup_nopass", "setup_browser", "setup_unikey",
+              "usb_disks", "iso_files", "apps_list_file", "cpu_temp"}
     M_JOB = {"uninstall_run", "appx_remove", "clean_scan", "clean_run", "folder_sizes", "capcut_clean", "metadata_strip", "backup_user",
-             "restore_user", "zalo_backup", "zalo_restore", "browser_backup", "browser_restore", "sha256_file", "iso_download", "wg_upgrades", "wg_upgrade"}
+             "restore_user", "zalo_backup", "zalo_restore", "browser_backup", "browser_restore", "sha256_file", "iso_download", "wg_upgrades", "wg_upgrade",
+             "fix_sfc", "fix_dism", "fix_wu", "fix_store", "fix_printer", "fix_all", "win11_tidy", "font_install", "apps_export",
+             "apps_import", "drv_wu_scan", "drv_wu_install", "bench_disk", "bench_cpu", "ventoy_install", "ventoy_copy", "preset_run"}
 
     def set_upg_n(self, n):
         self._e.upg_n = int(n)
@@ -2926,12 +3086,14 @@ class Api:
     def m(self, name, *args):
         if name not in self.M_SYNC:
             raise ValueError("Không có chức năng " + name)
-        return getattr(mgr, name)(*args)
+        return getattr(mgr if hasattr(mgr, name) else extra, name)(*args)
 
     def mjob(self, name, label, *args):
         if name not in self.M_JOB:
             raise ValueError("Không có chức năng " + name)
-        return mgr.job_start(label, getattr(mgr, name), *args)
+        if name == "preset_run":
+            return mgr.job_start(label, self._e.preset_run, *args)
+        return mgr.job_start(label, getattr(mgr if hasattr(mgr, name) else extra, name), *args)
 
     def open_folder(self, p):
         if p and (FAKE or Path(p).exists()):
@@ -3012,15 +3174,25 @@ class Api:
 
 
 # ================================================================= cửa sổ
+_PAGE = {}
+
+
 def page_html(token=""):
+    """Ghép index.html + css + js thành 1 trang. Bản exe: đọc file 1 lần rồi giữ trong RAM (mở lại trang không đọc đĩa)."""
+    key = token if getattr(sys, "frozen", False) else None
+    if key is not None and key in _PAGE:
+        return _PAGE[key]
     web = RES / "web"
     html = (web / "index.html").read_text(encoding="utf-8")
     css = (web / "style.css").read_text(encoding="utf-8")
     js = (web / "app.js").read_text(encoding="utf-8")
     html = html.replace('<link rel="stylesheet" href="style.css">', f"<style>{css}</style>")
-    for extra in ("test.js", "mgr.js"):
-        html = html.replace(f'<script src="{extra}"></script>', f"<script>{(web / extra).read_text(encoding='utf-8')}</script>")
-    return html.replace('<script src="app.js"></script>', f"<script>window.__TOKEN={json.dumps(token)};</script><script>{js}</script>")
+    for name in ("test.js", "mgr.js", "extra.js"):
+        html = html.replace(f'<script src="{name}"></script>', f"<script>{(web / name).read_text(encoding='utf-8')}</script>")
+    html = html.replace('<script src="app.js"></script>', f"<script>window.__TOKEN={json.dumps(token)};</script><script>{js}</script>")
+    if key is not None:
+        _PAGE[key] = html
+    return html
 
 
 def start_http(api, port=0):
@@ -3170,6 +3342,7 @@ class App:
                           ("wg_acrobat", lambda: E.winget_check("Adobe.Acrobat.Reader.64-bit", force=True)),
                           ("gh_wordcraft", lambda: resolve_github(ARTCRAFT[1][0][2])),
                           ("gh_ytdl", lambda: resolve_github(GH_YTDL)),
+                          ("gh_ventoy", lambda: resolve_github(r"github:ventoy/Ventoy|windows\.zip$")),
                           ("wg_upgrades", lambda: [(x["name"], x["id"], x["ver"], x["new"], x["cut"]) for x in mgr.wg_upgrades()])]:
                 try:
                     lines.append(f"{nm}: " + json.dumps(f(), ensure_ascii=False, default=str)[:600])
@@ -3179,7 +3352,9 @@ class App:
                           ("programs", lambda: [len(mgr.programs_list())] + [x["name"] for x in mgr.programs_list()[:8]]),
                           ("appx", lambda: len(mgr.appx_list())), ("mgr_defender", mgr.defender_status),
                           ("backup", lambda: [(d["key"], d["path"], d["exists"]) for d in mgr.backup_info()["dirs"]]),
-                          ("zalo", mgr.zalo_info), ("browsers", mgr.browsers_info), ("capcut", mgr.capcut_info), ("xlstart", mgr.xlstart_scan)]:
+                          ("zalo", mgr.zalo_info), ("browsers", mgr.browsers_info), ("capcut", mgr.capcut_info), ("xlstart", mgr.xlstart_scan),
+                          ("drv_problems", extra.drv_problems), ("cpu_temp", lambda: [extra.cpu_temp(), time.sleep(3), extra.cpu_temp(), extra.cpu_clock()]),
+                          ("usb_disks", extra.usb_disks), ("setup_info", extra.setup_info)]:
                 try:
                     lines.append(f"{nm}: " + json.dumps(f(), ensure_ascii=False, default=str)[:1200])
                 except Exception as e:      # noqa: BLE001

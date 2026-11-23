@@ -1,4 +1,4 @@
-﻿WIN AIO BY DUY ANH - v2.5
+﻿WIN AIO BY DUY ANH - v2.6
 =========================
 
 CHỈ 1 FILE EXE
@@ -151,3 +151,30 @@ DỮ LIỆU (thư mục Data)
   Downloads     file cài đặt đã tải       Backup   sao lưu Wifi, Driver, bản xuất danh sách nút
   Quên mật khẩu Admin: tắt tool, mở config.json, xóa trắng admin_salt và admin_hash -> mật khẩu về "HP360".
   Chép danh sách nút sang máy khác: Cài đặt -> Xuất ra file JSON; bên kia chép file vào Data\apps.json rồi mở tool.
+
+SỬA LỖI & THIẾT LẬP (v2.6) - menu Cài đặt › Sửa lỗi & thiết lập
+- Máy lỗi linh tinh, báo thiếu file: bấm "Sửa tất cả file hệ thống" (cắm mạng, 15 - 40 phút).
+- Update kẹt: "Reset Windows Update". Store không mở: "Reset Microsoft Store".
+- Máy con không in qua mạng được (0x0000011b / 0x00000709): bấm "Sửa lỗi chia sẻ máy in"
+  trên CẢ máy chủ và máy con, rồi thêm lại máy in.
+- "Dọn Win 11 cho gọn": tắt Copilot, Recall, quảng cáo Start, Widgets. Khách cần lại thì bấm "Bật lại như cũ".
+- Font tiếng Việt: Admin dán link tải thẳng file .zip bộ font của bạn, bấm Lưu link. Lần sau bấm "Tải & cài từ link".
+
+HỒ SƠ CÀI ĐẶT (v2.6) - Cài phần mềm › 📋 Hồ sơ cài đặt
+- Chọn Máy văn phòng / Máy kế toán / Máy game, bấm ▶ Cài: tool tự cài hết phần mềm và chạy tiện ích.
+- Admin bấm ✎ để sửa hồ sơ, ＋ Thêm hồ sơ để tạo mới.
+
+CHUYỂN PHẦN MỀM SANG WIN MỚI (v2.6) - Sao lưu
+- Máy cũ: chọn nơi lưu là USB, bấm "Lưu danh sách phần mềm".
+- Cài Win xong: mở tool từ USB, bấm "Cài lại từ danh sách...", chọn file PhanMem_....json.
+
+USB BOOT (v2.6) - Kho ISO Win › Tạo USB boot (Ventoy)
+- Cắm USB, chọn đúng USB, bấm "Cài Ventoy" (gõ XOA để xác nhận - USB bị xóa sạch).
+- Chọn file ISO, bấm "Chép ISO vào USB Ventoy". 1 USB chép được nhiều ISO.
+
+DRIVER (v2.6) - Quản lý › 🧩 Driver
+- Xem thiết bị thiếu driver, bấm "Tìm driver qua Windows Update", tick rồi "Cài driver đã chọn".
+
+TEST HIỆU NĂNG (v2.6) - Test máy › Hiệu năng nhanh
+- "Đo ổ cứng": tốc độ đọc / ghi. "Tải CPU": chạy 100% CPU, xem nhiệt độ cao nhất và có hạ xung không.
+

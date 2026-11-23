@@ -9,6 +9,7 @@ const TESTS = [
   {id: "cam", ic: "📷", c: "#0f8fd8", t: "Webcam", d: "Xem hình camera, độ phân giải, chụp thử."},
   {id: "disk", ic: "💽", c: "#0f766e", t: "Sức khỏe ổ cứng", d: "SMART của từng ổ: dự báo hỏng, nhiệt độ, độ hao mòn SSD, giờ chạy, lỗi đọc / ghi."},
   {id: "bat", ic: "🔋", c: "#65a30d", t: "Pin laptop", d: "Dung lượng thiết kế, dung lượng còn lại, độ chai, số lần sạc."},
+  {id: "perf", ic: "🚀", c: "#be123c", t: "Hiệu năng nhanh", d: "Tốc độ đọc / ghi ổ cứng (kiểu CrystalDiskMark), chạy tải CPU vài phút, nhiệt độ, hạ xung."},
 ];
 const TRES = {};                       // kết quả: id -> "ok" | "err"
 let BAT = null;
@@ -19,6 +20,8 @@ function initTests() {
       <div class="tbody" id="tb-${x.id}">${x.id === "bat" ? '<div class="logl"><span class="spin"></span> Đang đọc pin...</div>' : x.id === "disk" ? '<div class="logl"><span class="spin"></span> Đang đọc SMART...</div>' : ""}</div>
       <div class="tacts">${x.id === "bat" ? `<button class="btn sm" data-a="batref">⟳ Đọc lại</button><button class="btn sm" data-a="batrep">📄 Báo cáo pin chi tiết</button>`
         : x.id === "disk" ? `<button class="btn sm" data-a="diskref">⟳ Kiểm tra lại</button>`
+        : x.id === "perf" ? `Ổ <input id="pfDrv" value="C" maxlength="1" style="width:38px;text-align:center"><button class="btn sm" data-a="pfdisk">💽 Đo ổ cứng</button>
+          <select id="pfSec"><option value="60">1 phút</option><option value="180">3 phút</option><option value="300">5 phút</option></select><button class="btn sm red" data-a="pfcpu">🔥 Tải CPU</button>`
         : `<button class="btn red shine" data-a="run">▶ Bắt đầu test</button>`}
         <span class="sp"></span><button class="btn sm ok" data-a="pass">✓ Đạt</button><button class="btn sm bad" data-a="fail">✗ Lỗi</button></div></div>`).join("");
   $("tests").onclick = e => {
@@ -28,9 +31,12 @@ function initTests() {
     else if (a === "pass" || a === "fail") setRes(id, a === "pass" ? "ok" : "err");
     else if (a === "batref") loadBattery(true);
     else if (a === "diskref") loadDisk(true);
+    else if (a === "pfdisk") pfDisk();
+    else if (a === "pfcpu") pfCpu();
     else if (a === "batrep") api("battery_report").then(m => m ? toast(m, "err") : toast("Đã mở báo cáo pin của Windows"));
   };
   renderSum();
+  if (typeof pfRender === "function") pfRender();
 }
 function setRes(id, r) {
   TRES[id] = TRES[id] === r ? undefined : r;
