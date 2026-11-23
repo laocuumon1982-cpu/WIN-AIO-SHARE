@@ -1,5 +1,5 @@
 ﻿=====================================================================
-           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v2.7)
+           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v2.8)
 =====================================================================
 Tool cài Win dạo 1 file exe portable (không cần cài đặt), giao diện tiếng Việt.
 Tải: https://github.com/laocuumon1982-cpu/WIN-AIO-SHARE/releases/latest
@@ -164,6 +164,7 @@ SỬA LỖI & THIẾT LẬP (v2.6)
 - Đặt Chrome làm trình duyệt mặc định (Windows bắt bấm xác nhận 1 lần).
 - Cho UniKey chạy cùng Windows (tự tìm UniKey trên máy).
 [Bộ font tiếng Việt]
+- Bộ font đầy đủ gắn sẵn (v2.8, 317 font VNI, TCVN3, SVN, Unicode) - bấm "Tải & cài từ link".
 - Cài VNI, TCVN3 (.VnTime...), Unicode: từ link .zip Admin gắn 1 lần,
   hoặc từ file .zip / file font / thư mục. Bỏ qua font máy đã có.
 
@@ -172,7 +173,12 @@ SỬA LỖI & THIẾT LẬP (v2.6)
 - Bấm 1 lần: cài cả bộ phần mềm, chạy tiện ích Windows, dọn Win 11, cài font.
 - Admin thêm / sửa / xóa hồ sơ (chọn phần mềm, tiện ích). Đi kèm file sao lưu JSON.
 
-[Kho bộ cài Mac] (v2.7)
+[Kho bộ cài WIN › Kho driver IRST] (v2.8)
+- Nhận biết CPU máy đang dùng có cần driver Intel RST / VMD không (Intel đời 11+, Core Ultra).
+- 2 bản: 19.5.8.1059.2 (Intel đời 11 - 13), 20.2.7.1026 (đời 13 - 15, Core Ultra); đánh dấu bản hợp máy.
+- Tải và giải nén thẳng vào gốc USB cài Win / thư mục tùy chọn; hoặc giải nén từ file .zip có sẵn.
+
+[Kho bộ cài MAC] (v2.7)
 - Giống trình tải của macUSB: đọc danh mục bộ cài macOS trực tiếp từ máy chủ Apple.
 - macOS 11 trở lên (Tahoe, Sequoia, Sonoma, Ventura, Monterey, Big Sur): 1 file InstallAssistant.pkg.
 - macOS 10.13 - 10.15: tải đủ bộ 3 file của Apple vào 1 thư mục.

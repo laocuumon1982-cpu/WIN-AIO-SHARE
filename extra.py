@@ -889,3 +889,83 @@ def iso_files():
     if not d or not d.exists():
         return []
     return [{"path": str(f), "name": f.name, "size": f.stat().st_size} for f in sorted(d.glob("*.iso"))]
+
+
+# ================================================================ KHO DRIVER IRST (Intel RST / VMD)
+# Máy Intel đời 11 trở lên bật VMD: lúc cài Win không thấy ổ cứng -> chép driver này vào USB, bấm "Load driver".
+IRST_BASE = "https://github.com/laocuumon1982-cpu/WIN-AIO-SHARE/raw/main/drivers/"
+IRST = [
+    {"ver": "19.5.8.1059.2", "gen": "Intel Core đời 11 - 13", "min": 11, "max": 13, "file": "IntelRstVmd_19.5.8.1059.2_Intel-Gen11-13.zip"},
+    {"ver": "20.2.7.1026", "gen": "Intel Core đời 13 - 15, Core Ultra", "min": 13, "max": 99, "file": "IntelRstVmd_20.2.7.1026-Gen13-15.zip"},
+]
+
+
+def _cpu_gen(name):
+    """(đời CPU Intel, cần IRST?) theo tên CPU - giống cách Tiện ích cài Win dạo nhận biết."""
+    if "intel" not in name.lower():
+        return None, False
+    if re.search(r"Core\(TM\)\s*Ultra|Core Ultra", name, re.I):
+        return "Ultra", True
+    m = re.search(r"(\d+)(?:st|nd|rd|th)\s+Gen", name, re.I)
+    if m:
+        g = int(m.group(1))
+    else:
+        m = re.search(r"i\d-?(\d{4,5})", name, re.I)
+        if not m:
+            return None, False
+        n = m.group(1)
+        g = int(n[:2]) if len(n) >= 5 else int(n[:1])
+    return g, g >= 11
+
+
+def irst_info():
+    if fake():
+        cpu = "13th Gen Intel(R) Core(TM) i5-13400"
+    else:
+        import winreg
+        try:
+            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"HARDWARE\DESCRIPTION\System\CentralProcessor\0") as k:
+                cpu = winreg.QueryValueEx(k, "ProcessorNameString")[0].strip()
+        except OSError:
+            cpu = ""
+    gen, need = _cpu_gen(cpu)
+    rows = []
+    for it in IRST:
+        r = dict(it, url=IRST_BASE + it["file"])
+        r["fit"] = bool(need and (gen == "Ultra" and it["max"] == 99 or isinstance(gen, int) and it["min"] <= gen <= it["max"]))
+        rows.append(r)
+    if need and not any(r["fit"] for r in rows):
+        rows[-1]["fit"] = True
+    return {"cpu": cpu, "gen": gen, "need": need, "list": rows}
+
+
+def _extract_zip(zp, dest):
+    zp, dest = Path(zp), Path(dest)
+    out = dest / zp.stem
+    with zipfile.ZipFile(zp) as z:
+        names = z.namelist()
+        top = {n.split("/")[0] for n in names if n.strip("/")}
+        z.extractall(dest if top == {zp.stem} else out)       # zip đã có sẵn thư mục cùng tên -> không lồng 2 lớp
+    return out
+
+
+def irst_get(j, file, dest="", local=""):
+    """Tải (hoặc lấy file .zip có sẵn) driver IRST rồi giải nén vào dest (thường là gốc USB cài Win)."""
+    it = next((x for x in IRST if x["file"] == file), None)
+    if not it and not local:
+        raise RuntimeError("Không có bản driver này")
+    dest = absp(dest) if dest else (absp("Data/Driver") if fake() else data_dir("Driver"))
+    if fake():
+        time.sleep(0.8)
+        return {"text": f"Đã giải nén driver vào {dest}\\{Path(local or file).stem}.", "dest": str(dest)}
+    if local:
+        zp = absp(local)
+    else:
+        import apple
+        zp = Path(apple.dl_files(j, [{"name": it["file"], "url": IRST_BASE + it["file"], "size": 0}], data_dir("Driver"), "Driver IRST " + it["ver"])["path"])
+    j["pct"], j["text"] = 99, "Đang giải nén driver..."
+    dest.mkdir(parents=True, exist_ok=True)
+    out = _extract_zip(zp, dest)
+    return {"text": f"Đã giải nén driver vào {out}. Lúc cài Win không thấy ổ cứng: bấm 'Load driver' → Browse → chọn thư mục này "
+                    "(thư mục VMD), bỏ tick 'Hide drivers...' nếu không thấy, chọn 'Intel RST VMD Controller' → Next.",
+            "dest": str(out)}

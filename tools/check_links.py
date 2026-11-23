@@ -21,12 +21,13 @@ for gname, _col, apps in groups:
         if link.startswith("github:"):
             body = link.split(":", 1)[1]
             repo, _, pat = body.partition("|")
+            repo, _, tag = repo.partition("@")
             try:
                 import os, re as _re
                 h = {"User-Agent": "WinAIO"}
                 if os.environ.get("GH_TOKEN"):
                     h["Authorization"] = "Bearer " + os.environ["GH_TOKEN"]
-                js = requests.get(f"https://api.github.com/repos/{repo}/releases/latest", headers=h, timeout=25).json()
+                js = requests.get(f"https://api.github.com/repos/{repo}/releases/" + (f"tags/{tag}" if tag else "latest"), headers=h, timeout=25).json()
                 hit = [a["name"] for a in js.get("assets", []) if _re.search(pat, a["name"], _re.I)]
                 ok, info = bool(hit), f"{js.get('tag_name')} -> {hit[:1] or 'KHONG CO FILE KHOP'}"
             except Exception as e:  # noqa: BLE001

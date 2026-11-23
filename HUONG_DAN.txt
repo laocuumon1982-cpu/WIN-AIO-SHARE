@@ -1,4 +1,4 @@
-﻿WIN AIO BY DUY ANH - v2.7
+﻿WIN AIO BY DUY ANH - v2.8
 =========================
 
 CHỈ 1 FILE EXE
@@ -158,7 +158,7 @@ SỬA LỖI & THIẾT LẬP (v2.6) - menu Cài đặt › Sửa lỗi & thiết 
 - Máy con không in qua mạng được (0x0000011b / 0x00000709): bấm "Sửa lỗi chia sẻ máy in"
   trên CẢ máy chủ và máy con, rồi thêm lại máy in.
 - "Dọn Win 11 cho gọn": tắt Copilot, Recall, quảng cáo Start, Widgets. Khách cần lại thì bấm "Bật lại như cũ".
-- Font tiếng Việt: Admin dán link tải thẳng file .zip bộ font của bạn, bấm Lưu link. Lần sau bấm "Tải & cài từ link".
+- Font tiếng Việt: link bộ font đầy đủ đã gắn sẵn, bấm "Tải & cài từ link" (Admin đổi link được).
 
 HỒ SƠ CÀI ĐẶT (v2.6) - Cài phần mềm › 📋 Hồ sơ cài đặt
 - Chọn Máy văn phòng / Máy kế toán / Máy game, bấm ▶ Cài: tool tự cài hết phần mềm và chạy tiện ích.
@@ -185,4 +185,8 @@ KHO BỘ CÀI MAC (v2.7)
 KHO iOS (v2.7)
 - Chọn loại máy (iPhone, iPad...), bấm vào máy, chọn bản có nhãn CÒN KÝ, bấm ⬇ Tải. File lưu trong Data\iOS.
 - Khôi phục: mở iTunes, giữ Shift bấm Restore (Khôi phục), chọn file .ipsw.
+
+DRIVER IRST (v2.8) - Kho bộ cài WIN › Kho driver IRST
+- Máy Intel đời 11 trở lên cài Win không thấy ổ cứng: cắm USB cài Win, chọn "Giải nén vào: USB", bấm Tải bản có dấu ✅.
+- Lúc cài Win: bấm "Load driver" → Browse → chọn thư mục IntelRstVmd_... (thư mục VMD) → chọn "Intel RST VMD Controller" → Next.
 

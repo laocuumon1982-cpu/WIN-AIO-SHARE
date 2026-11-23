@@ -34,7 +34,7 @@ import extra
 import apple
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v2.7"
+APP_VERSION = "v2.8"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -71,6 +71,10 @@ ARTCRAFT = ("ARTCRAFT OFFICE PORTABLE", [
 ])
 ONLYOFFICE = ("📝", "ONLYOFFICE", "winget:ONLYOFFICE.DesktopEditors", "", "Bộ văn phòng miễn phí, mở tốt file Word / Excel / PowerPoint")
 WHATSAPP = ("🟢", "WhatsApp", "winget:9NKSQGP7F2NH", "", "Cài từ Microsoft Store")
+# Tiện ích cài Win dạo (Hải Đỗ): file mới nhất trong bản phát hành "caiwindao" (tool đó tự đọc version.txt cùng chỗ)
+CAIWINDAO = ("🧰", "Tiện ích cài Win dạo", r"github:minhhaibuitt/Caiwindao@caiwindao|^Tien\.ich\.cai\.Win\.dao\.v[\d.]+\.exe$", "",
+             "Tool cài Win dạo của Hải Đỗ - luôn tải bản mới nhất (mật khẩu: haido)")
+FONT_PACK = "https://github.com/minhhaibuitt/Caiwindao/releases/download/Tonghop/fontchu.zip"     # bộ font đầy đủ (VNI, TCVN3, SVN...)
 
 # Link cũ đã chết -> nguồn mới (tự sửa trong dữ liệu đã lưu và lúc cài)
 DEAD_LINKS = [
@@ -234,6 +238,7 @@ DEFAULT_GROUPS = [     # (tên nhóm, cột, [nút...]) - thứ tự & cột the
         ("📸", "ShareX", "winget:ShareX.ShareX", "", "Chụp màn hình"),
         ("📊", "TreeSize Free", "winget:JAMSoftware.TreeSize.Free", "", ""),
         ("🛠️", "Snappy Driver Installer", "winget:GlennDelahoy.SnappyDriverInstallerOrigin", "", ""),
+        CAIWINDAO,
         ("🎞️", "CIT Voice Studio", GH_CIT, "", ""),
         ("🎞️", "Subtitle Translator", GH_SUBTR, "", ""),
         ("🎞️", "YouTube Downloader Pro", GH_YTDL, "", ""),
@@ -450,14 +455,14 @@ def resolve_github(src):
     """github:chủ/repo|mẫu-tên-file  ->  (link tải file mới nhất, tên bản). Link không bao giờ cũ vì luôn hỏi bản mới nhất."""
     body = src.split(":", 1)[1].strip()
     repo, _, pat = body.partition("|")
-    repo = repo.strip().strip("/")
+    repo, _, tag = repo.strip().strip("/").partition("@")      # github:chủ/repo@tên-bản|mẫu -> lấy trong bản phát hành cố định
     if FAKE:
         return f"https://github.com/{repo}/releases/download/v9.9.9/demo-windows-x64.zip", "v9.9.9"
     import requests
     hdr = {"User-Agent": "WinAIO", "Accept": "application/vnd.github+json"}
     if os.environ.get("GH_TOKEN"):
         hdr["Authorization"] = "Bearer " + os.environ["GH_TOKEN"]
-    r = requests.get(f"https://api.github.com/repos/{repo}/releases/latest", headers=hdr, timeout=20)
+    r = requests.get(f"https://api.github.com/repos/{repo}/releases/" + (f"tags/{tag}" if tag else "latest"), headers=hdr, timeout=20)
     if r.status_code == 404:
         raise RuntimeError(f"Không thấy bản phát hành nào của {repo} trên GitHub.")
     if r.status_code == 403:
@@ -466,11 +471,21 @@ def resolve_github(src):
     js = r.json()
     assets = js.get("assets") or []
     rx = re.compile(pat.strip() or r"\.(exe|msi|zip)$", re.I)
-    for a in assets:
-        if rx.search(a.get("name", "")):
-            return a["browser_download_url"], js.get("tag_name", "")
+    hits = [a for a in assets if rx.search(a.get("name", ""))]
+    if tag and hits:                     # bản phát hành chứa nhiều phiên bản -> lấy số phiên bản lớn nhất
+        a = max(hits, key=lambda a: [int(x) for x in re.findall(r"\d+", a["name"])])
+        return a["browser_download_url"], ".".join(re.findall(r"\d+", a["name"]))
+    for a in hits:
+        return a["browser_download_url"], js.get("tag_name", "")
     raise RuntimeError(f"Bản {js.get('tag_name', '')} của {repo} không có file khớp mẫu '{pat}'. "
                        "Admin bấm ✎ để sửa mẫu tên file.")
+
+
+def requests_head(url):
+    """Selftest: link còn sống không (mã HTTP, dung lượng)."""
+    import requests
+    r = requests.head(url, allow_redirects=True, timeout=20, headers={"User-Agent": "Mozilla/5.0"})
+    return r.status_code, int(r.headers.get("Content-Length") or 0)
 
 
 def run_hidden(cmd, shell=False, timeout=None):
@@ -636,6 +651,16 @@ class Store:
                                     (n, ic, json.dumps(apps, ensure_ascii=False), json.dumps(tools), json.dumps(opts), i))
                 self.commit(persist=False)
             done.add("presets")
+            self.cfg["migrated"] = sorted(done)
+            self.save_config(persist=False)
+        if "v28" not in done:
+            if not self.db.execute("SELECT 1 FROM apps WHERE src=?", (CAIWINDAO[2],)).fetchone():
+                g = self.db.execute("SELECT id FROM groups WHERE name LIKE 'TIỆN ÍCH%' ORDER BY id LIMIT 1").fetchone()
+                if g:
+                    o = self.db.execute("SELECT COALESCE(MAX(ord),0)+1 FROM apps WHERE group_id=?", (g[0],)).fetchone()[0]
+                    self.db.execute("INSERT INTO apps(group_id, icon, name, src, args, note, ord) VALUES(?,?,?,?,?,?,?)", (g[0],) + CAIWINDAO + (o,))
+                    self.commit(persist=False)
+            done.add("v28")
             self.cfg["migrated"] = sorted(done)
             self.save_config(persist=False)
         if "v223" not in done:
@@ -1619,7 +1644,7 @@ Remove-Item $d -Recurse -Force; 'OK'
             extra.win11_tidy(j, True)
             k += 1
         if p["opts"].get("fonts"):
-            url = self.st.cfg.get("font_pack_url", "")
+            url = self.st.cfg.get("font_pack_url") or FONT_PACK
             if url:
                 j["text"] = "Cài bộ font tiếng Việt..."
                 notes.append(extra.font_install(j, url)["text"])
@@ -2790,7 +2815,7 @@ class Api:
     def font_cfg(self, url=None):
         """Link tải bộ font tiếng Việt (.zip) do Admin gắn. Gọi không tham số -> đọc."""
         if url is None:
-            return self._s.cfg.get("font_pack_url", "")
+            return self._s.cfg.get("font_pack_url") or FONT_PACK
         self._need_admin()
         self._s.cfg["font_pack_url"] = url.strip()
         self._s.save_config(persist=True)
@@ -3076,12 +3101,12 @@ class Api:
               "drv_problems", "setup_info", "setup_rename", "setup_user", "setup_nopass", "setup_browser", "setup_unikey",
               "usb_disks", "iso_files", "apps_list_file", "cpu_temp",
               # apple.py (v2.7)
-              "ios_devices", "ios_firmwares"}
+              "ios_devices", "ios_firmwares", "irst_info"}
     M_JOB = {"uninstall_run", "appx_remove", "clean_scan", "clean_run", "folder_sizes", "capcut_clean", "metadata_strip", "backup_user",
              "restore_user", "zalo_backup", "zalo_restore", "browser_backup", "browser_restore", "sha256_file", "iso_download", "wg_upgrades", "wg_upgrade",
              "fix_sfc", "fix_dism", "fix_wu", "fix_store", "fix_printer", "fix_all", "win11_tidy", "font_install", "apps_export",
              "apps_import", "drv_wu_scan", "drv_wu_install", "bench_disk", "bench_cpu", "ventoy_install", "ventoy_copy", "preset_run",
-             "mac_list", "mac_download", "ios_download"}
+             "mac_list", "mac_download", "ios_download", "irst_get"}
 
     def set_upg_n(self, n):
         self._e.upg_n = int(n)
@@ -3351,6 +3376,8 @@ class App:
                           ("gh_wordcraft", lambda: resolve_github(ARTCRAFT[1][0][2])),
                           ("gh_ytdl", lambda: resolve_github(GH_YTDL)),
                           ("gh_ventoy", lambda: resolve_github(r"github:ventoy/Ventoy|windows\.zip$")),
+                          ("gh_caiwindao", lambda: resolve_github(CAIWINDAO[2])), ("irst_info", extra.irst_info),
+                          ("irst_links", lambda: [(v["file"], requests_head(v["url"])) for v in extra.irst_info()["list"]] + [("font", requests_head(FONT_PACK))]),
                           ("wg_upgrades", lambda: [(x["name"], x["id"], x["ver"], x["new"], x["cut"]) for x in mgr.wg_upgrades()])]:
                 try:
                     lines.append(f"{nm}: " + json.dumps(f(), ensure_ascii=False, default=str)[:600])

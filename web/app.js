@@ -93,7 +93,7 @@ const PAGES = {
   apps: ["Cài phần mềm", "Bấm 1 nút để cài ngay, hoặc chọn nhiều mục rồi bấm ▶ Cài mục đã chọn"],
   power: ["Nguồn & Ổ USB", "Tắt máy khẩn cấp · Khóa máy · Hẹn giờ tắt · Tháo ổ USB an toàn"],
   test: ["Test máy", "Kiểm tra màn hình, cảm ứng, bàn phím, loa, micro, trackpad, webcam, pin laptop, hiệu năng"],
-  mac: ["Kho bộ cài Mac", "Bộ cài macOS chính chủ Apple: Tahoe, Sequoia, Sonoma, Ventura... về tới Lion - tải thẳng từ máy chủ Apple"],
+  mac: ["Kho bộ cài MAC", "Bộ cài macOS chính chủ Apple: Tahoe, Sequoia, Sonoma, Ventura... về tới Lion - tải thẳng từ máy chủ Apple"],
   ios: ["Kho iOS", "Firmware IPSW cho iPhone, iPad, iPod, Apple TV, Mac chip M - danh sách theo ipsw.me, tải từ máy chủ Apple"],
   iso: ["Kho bộ cài WIN", "Tải ISO gốc Microsoft · Tạo USB boot Ventoy · Kiểm tra SHA-256 file ISO"],
   tools: ["Tiện ích Windows", "Thiết lập nhanh, mạng, Defender, Windows Update, máy in, BitLocker, sao lưu Wifi / Driver"],

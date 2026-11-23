@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v2.8
+- Kho driver IRST, bộ font chữ đầy đủ gắn sẵn, nút Tiện ích cài Win dạo (bản mới nhất), đổi tên Kho bộ cài MAC.
+
 ## v2.7
 - Đổi tên Kho bộ cài WIN; thêm Kho bộ cài Mac (bộ cài macOS từ máy chủ Apple) và Kho iOS (IPSW theo ipsw.me).
 

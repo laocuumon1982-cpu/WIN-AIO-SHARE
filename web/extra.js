@@ -197,7 +197,37 @@ async function vtLoad() {
     const r = await runJob("ventoy_copy", "Chép ISO vào USB", [iso, letter]); if (r.ok) doneBox("USB boot", r.result);
   };
 }
-{ const _is = isoShow; isoShow = function () { _is(); addVentoy(); }; }
+/* =============================================================== KHO DRIVER IRST (trong Kho bộ cài WIN) */
+function addIrst() {
+  const W = $("isowrap"); if (!W.dataset.ok || $("irBody")) return;
+  const vt = $("vtBody").closest(".isosec");
+  vt.insertAdjacentHTML("afterend", `<div class="tcard isosec" style="--ac:#0f62fe"><div class="sh"><span class="si">💾</span><div><b>KHO DRIVER IRST (Intel RST / VMD)</b>
+      <small>Máy Intel đời 11 trở lên lúc cài Win không thấy ổ cứng → chép driver vào USB cài Win, bấm "Load driver"</small></div></div>
+    <div id="irBody"><div class="logl"><span class="spin"></span> Đang kiểm tra CPU...</div></div></div>`);
+  irLoad();
+}
+async function irLoad() {
+  const B = $("irBody");
+  const [I, U] = await Promise.all([m("irst_info"), m("usb_disks")]);
+  const usb = U.flatMap(u => (u.letters || "").split(",").filter(Boolean).map(l => ({l, n: u.model})));
+  B.innerHTML = `<div class="${I.need ? "warnbox" : "okbox"}">${I.need ? "⚠" : "✔"} Máy này: <b>${esc(I.cpu || "không rõ CPU")}</b> -
+      ${I.need ? `<b>CẦN driver IRST</b> khi cài lại Win (Intel ${I.gen === "Ultra" ? "Core Ultra" : "đời " + I.gen})` : "không cần driver IRST (chỉ máy Intel đời 11 trở lên mới cần)"}</div>
+    <div class="isoopt"><label class="grow">Giải nén vào <select id="irDest"><option value="">📁 Thư mục Data\\Driver (kế bên tool)</option>
+      ${usb.map(x => `<option value="${esc(x.l)}:\\">🔌 USB ${esc(x.l)}: (${esc(x.n)}) - gốc USB</option>`).join("")}<option value="?">📂 Chọn thư mục khác...</option></select></label></div>
+    <div class="vtl">${I.list.map(x => `<div class="isov${x.fit ? " on" : ""}"><span class="ti">💾</span><span class="grow"><b>Intel RST ${esc(x.ver)}</b>
+      <small>${esc(x.gen)}${x.fit ? " · ✅ HỢP MÁY NÀY" : ""}</small></span><button class="btn sm red" data-ir="${esc(x.file)}">⬇ Tải</button></div>`).join("")}</div>
+    <div class="row-acts"><span class="logl grow" style="margin:0">Đã có file IntelRstVmd_....zip? Giải nén thẳng vào USB:</span><button class="btn sm" id="irLocal">📦 Chọn file .zip...</button></div>
+    <div class="logl">Không chắc đời CPU: chép cả 2 bản vào USB, lúc Load driver thử bản mới trước. Máy AMD không cần driver này.</div>`;
+  const dest = async () => { let d = $("irDest").value; if (d === "?") { d = await api("pick_folder_abs"); if (!d) return null; } return d; };
+  B.onclick = async e => {
+    const b = e.target.closest("[data-ir]"); if (!b) return;
+    const d = await dest(); if (d === null) return;
+    const r = await runJob("irst_get", "Driver IRST " + b.dataset.ir.replace(/^IntelRstVmd_|\.zip$/g, ""), [b.dataset.ir, d]); if (r.ok) dlDone(r);
+  };
+  $("irLocal").onclick = async () => { const p = await api("pick_file_abs"); if (!p) return; const d = await dest(); if (d === null) return;
+    const r = await runJob("irst_get", "Giải nén driver IRST", ["", d, p]); if (r.ok) dlDone(r); };
+}
+{ const _is = isoShow; isoShow = function () { _is(); addVentoy(); addIrst(); }; }
 
 /* =============================================================== DRIVER (tab Quản lý) */
 let DRV = [];

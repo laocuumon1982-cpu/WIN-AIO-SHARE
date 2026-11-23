@@ -1,5 +1,6 @@
-Win AIO by Duy Anh v2.7
+Win AIO by Duy Anh v2.8
 
-- Đổi tên tab "Kho ISO Win" thành "Kho bộ cài WIN".
-- Mới: tab "🍎 Kho bộ cài Mac" (giống trình tải của macUSB): đọc thẳng danh mục bộ cài của Apple - macOS Tahoe, Sequoia, Sonoma, Ventura, Monterey, Big Sur (InstallAssistant.pkg), Catalina / Mojave / High Sierra (bộ 3 file), Sierra / El Capitan / Yosemite / Mountain Lion / Lion (.dmg từ trang hỗ trợ Apple). Bấm Tải (có %, tải tiếp khi bị ngắt) hoặc 🔗 Link để dán vào IDM.
-- Mới: tab "📱 Kho iOS": danh sách firmware IPSW theo ipsw.me cho iPhone, iPad, iPod, Apple TV, HomePod, Mac chip M - chọn máy, xem bản nào Apple còn ký, bấm Tải hoặc lấy link (file tải từ máy chủ Apple).
+- Mới: Kho bộ cài WIN › "💾 Kho driver IRST (Intel RST / VMD)": tự nhận biết CPU có cần driver không (Intel đời 11 trở lên, Core Ultra), đánh dấu bản hợp máy, bấm Tải là tải và giải nén thẳng vào USB cài Win (hoặc giải nén từ file .zip có sẵn). Có 2 bản: 19.5.8.1059.2 (đời 11 - 13) và 20.2.7.1026 (đời 13 - 15, Core Ultra).
+- Mới: Bộ font chữ đầy đủ (317 font: VNI, TCVN3 .Vn, SVN, Unicode...) gắn sẵn - Sửa lỗi & thiết lập › Bộ font tiếng Việt › "Tải & cài từ link" (hồ sơ Máy kế toán cũng tự cài).
+- Mới: nút "Tiện ích cài Win dạo" (nhóm TIỆN ÍCH) - luôn tải bản mới nhất từ trang phát hành của tác giả Hải Đỗ.
+- Đổi tên "Kho bộ cài Mac" thành "Kho bộ cài MAC".
