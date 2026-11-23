@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v2.7
+- Đổi tên Kho bộ cài WIN; thêm Kho bộ cài Mac (bộ cài macOS từ máy chủ Apple) và Kho iOS (IPSW theo ipsw.me).
+
 ## v2.6
 - Sửa lỗi Windows 1 chạm, Dọn Win 11, Thiết lập máy mới, font tiếng Việt, hồ sơ cài đặt, chuyển phần mềm sang Win mới, USB boot Ventoy, Driver, nhiệt độ CPU, test hiệu năng; tối ưu tốc độ giao diện.
 

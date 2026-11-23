@@ -1,5 +1,5 @@
 ﻿=====================================================================
-           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v2.6)
+           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v2.7)
 =====================================================================
 Tool cài Win dạo 1 file exe portable (không cần cài đặt), giao diện tiếng Việt.
 Tải: https://github.com/laocuumon1982-cpu/WIN-AIO-SHARE/releases/latest
@@ -96,7 +96,7 @@ CÀI ĐẶT
 - Cửa sổ cài Office riêng: chọn phiên bản, bộ ứng dụng, ngôn ngữ,
   tải từ máy chủ Microsoft và cài (Office Deployment Tool).
 
-[Kho ISO Win] (v2.3.2)
+[Kho bộ cài WIN] (v2.3.2, đổi tên ở v2.7)
 - Chọn Windows 11 / Windows 10, ngôn ngữ, 32 / 64-bit, nơi lưu -> "Tải ISO": tool tự lấy
   link gốc của Microsoft và tải trong tool (có %, tốc độ, Dừng, tải tiếp từ chỗ dừng).
 - "Chỉ lấy link" để dán vào IDM (link dùng được 24 giờ).
@@ -172,10 +172,22 @@ SỬA LỖI & THIẾT LẬP (v2.6)
 - Bấm 1 lần: cài cả bộ phần mềm, chạy tiện ích Windows, dọn Win 11, cài font.
 - Admin thêm / sửa / xóa hồ sơ (chọn phần mềm, tiện ích). Đi kèm file sao lưu JSON.
 
-[Kho ISO › Tạo USB boot Ventoy]
+[Kho bộ cài Mac] (v2.7)
+- Giống trình tải của macUSB: đọc danh mục bộ cài macOS trực tiếp từ máy chủ Apple.
+- macOS 11 trở lên (Tahoe, Sequoia, Sonoma, Ventura, Monterey, Big Sur): 1 file InstallAssistant.pkg.
+- macOS 10.13 - 10.15: tải đủ bộ 3 file của Apple vào 1 thư mục.
+- macOS 10.7 - 10.12: file .dmg từ trang hỗ trợ của Apple.
+- Mặc định hiện bản mới nhất mỗi đời; bấm 1 đời để xem các bản cũ. Tải có %, tải tiếp, hoặc chép link cho IDM.
+
+[Kho iOS] (v2.7)
+- Danh sách thiết bị và firmware IPSW theo ipsw.me: iPhone, iPad, iPod, Apple TV, HomePod, Mac chip M.
+- Tìm máy theo tên / mã máy; xem phiên bản, build, ngày, dung lượng, bản Apple còn ký.
+- Tải file IPSW từ máy chủ Apple (có %, tải tiếp) hoặc chép link.
+
+[Kho bộ cài WIN › Tạo USB boot Ventoy]
 - Liệt kê USB đang cắm (chỉ ổ USB, không bao giờ đụng ổ Windows).
 - Tự tải Ventoy mới nhất, cài vào USB (MBR hoặc GPT), xác nhận gõ XOA trước khi xóa USB.
-- Chép file ISO (đã tải trong Kho ISO hoặc chọn file khác) vào USB Ventoy, có %.
+- Chép file ISO (đã tải trong Kho bộ cài WIN hoặc chọn file khác) vào USB Ventoy, có %.
 
 [Quản lý › Driver]
 - Liệt kê thiết bị lỗi / thiếu driver (dấu chấm than vàng), lý do lỗi, mã phần cứng.

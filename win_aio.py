@@ -31,9 +31,10 @@ from urllib.parse import unquote, urlparse
 
 import mgr
 import extra
+import apple
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v2.6"
+APP_VERSION = "v2.7"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -141,7 +142,7 @@ def nice_err(e):
 
 
 # ---------------------------------------------------------------- danh sách mặc định (sửa được trong tool)
-# Kho ISO Win - nút mở trang tải của massgrave.dev (link file trên đó đổi hằng tháng nên mở trang để luôn có bản mới)
+# Kho bộ cài WIN - nút mở trang tải của massgrave.dev (link file trên đó đổi hằng tháng nên mở trang để luôn có bản mới)
 ISO_MG = "https://massgrave.dev/"
 ISO_MG_PAGES = [
     ("🪟", "Windows 11", "windows_11_links", "Bản mới nhất, x64"),
@@ -3073,11 +3074,14 @@ class Api:
               "backup_info", "zalo_info", "zalo_open", "zalo_profile_delete", "browsers_info", "job_status", "job_stop",
               # extra.py (v2.6)
               "drv_problems", "setup_info", "setup_rename", "setup_user", "setup_nopass", "setup_browser", "setup_unikey",
-              "usb_disks", "iso_files", "apps_list_file", "cpu_temp"}
+              "usb_disks", "iso_files", "apps_list_file", "cpu_temp",
+              # apple.py (v2.7)
+              "ios_devices", "ios_firmwares"}
     M_JOB = {"uninstall_run", "appx_remove", "clean_scan", "clean_run", "folder_sizes", "capcut_clean", "metadata_strip", "backup_user",
              "restore_user", "zalo_backup", "zalo_restore", "browser_backup", "browser_restore", "sha256_file", "iso_download", "wg_upgrades", "wg_upgrade",
              "fix_sfc", "fix_dism", "fix_wu", "fix_store", "fix_printer", "fix_all", "win11_tidy", "font_install", "apps_export",
-             "apps_import", "drv_wu_scan", "drv_wu_install", "bench_disk", "bench_cpu", "ventoy_install", "ventoy_copy", "preset_run"}
+             "apps_import", "drv_wu_scan", "drv_wu_install", "bench_disk", "bench_cpu", "ventoy_install", "ventoy_copy", "preset_run",
+             "mac_list", "mac_download", "ios_download"}
 
     def set_upg_n(self, n):
         self._e.upg_n = int(n)
@@ -3086,14 +3090,18 @@ class Api:
     def m(self, name, *args):
         if name not in self.M_SYNC:
             raise ValueError("Không có chức năng " + name)
-        return getattr(mgr if hasattr(mgr, name) else extra, name)(*args)
+        return getattr(self._mod(name), name)(*args)
+
+    @staticmethod
+    def _mod(name):
+        return next(x for x in (mgr, extra, apple) if hasattr(x, name))
 
     def mjob(self, name, label, *args):
         if name not in self.M_JOB:
             raise ValueError("Không có chức năng " + name)
         if name == "preset_run":
             return mgr.job_start(label, self._e.preset_run, *args)
-        return mgr.job_start(label, getattr(mgr if hasattr(mgr, name) else extra, name), *args)
+        return mgr.job_start(label, getattr(self._mod(name), name), *args)
 
     def open_folder(self, p):
         if p and (FAKE or Path(p).exists()):
@@ -3187,7 +3195,7 @@ def page_html(token=""):
     css = (web / "style.css").read_text(encoding="utf-8")
     js = (web / "app.js").read_text(encoding="utf-8")
     html = html.replace('<link rel="stylesheet" href="style.css">', f"<style>{css}</style>")
-    for name in ("test.js", "mgr.js", "extra.js"):
+    for name in ("test.js", "mgr.js", "extra.js", "apple.js"):
         html = html.replace(f'<script src="{name}"></script>', f"<script>{(web / name).read_text(encoding='utf-8')}</script>")
     html = html.replace('<script src="app.js"></script>', f"<script>window.__TOKEN={json.dumps(token)};</script><script>{js}</script>")
     if key is not None:
@@ -3354,9 +3362,13 @@ class App:
                           ("backup", lambda: [(d["key"], d["path"], d["exists"]) for d in mgr.backup_info()["dirs"]]),
                           ("zalo", mgr.zalo_info), ("browsers", mgr.browsers_info), ("capcut", mgr.capcut_info), ("xlstart", mgr.xlstart_scan),
                           ("drv_problems", extra.drv_problems), ("cpu_temp", lambda: [extra.cpu_temp(), time.sleep(3), extra.cpu_temp(), extra.cpu_clock()]),
-                          ("usb_disks", extra.usb_disks), ("setup_info", extra.setup_info)]:
+                          ("usb_disks", extra.usb_disks), ("setup_info", extra.setup_info),
+                          ("mac_list", lambda: [len(apple.mac_list())] + [(x["name"], x["version"], x["build"], x["kind"], x["size"], len(x["files"]),
+                                                                            x["files"][0]["url"]) for x in apple.mac_list()[:40]]),
+                          ("ios_devices", lambda: [len(apple.ios_devices())] + apple.ios_devices()[:4]),
+                          ("ios_fw", lambda: [(f["version"], f["build"], f["signed"], f["size"], f["url"]) for f in apple.ios_firmwares("iPhone15,2")["fw"][:3]])]:
                 try:
-                    lines.append(f"{nm}: " + json.dumps(f(), ensure_ascii=False, default=str)[:1200])
+                    lines.append(f"{nm}: " + json.dumps(f(), ensure_ascii=False, default=str)[:4000 if nm == "mac_list" else 1200])
                 except Exception as e:      # noqa: BLE001
                     lines.append(f"{nm}: ERROR {e!r}")
             lines.append("Data folder exists: " + str(DATA.exists()))

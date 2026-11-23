@@ -1,4 +1,4 @@
-﻿WIN AIO BY DUY ANH - v2.6
+﻿WIN AIO BY DUY ANH - v2.7
 =========================
 
 CHỈ 1 FILE EXE
@@ -168,7 +168,7 @@ CHUYỂN PHẦN MỀM SANG WIN MỚI (v2.6) - Sao lưu
 - Máy cũ: chọn nơi lưu là USB, bấm "Lưu danh sách phần mềm".
 - Cài Win xong: mở tool từ USB, bấm "Cài lại từ danh sách...", chọn file PhanMem_....json.
 
-USB BOOT (v2.6) - Kho ISO Win › Tạo USB boot (Ventoy)
+USB BOOT (v2.6) - Kho bộ cài WIN › Tạo USB boot (Ventoy)
 - Cắm USB, chọn đúng USB, bấm "Cài Ventoy" (gõ XOA để xác nhận - USB bị xóa sạch).
 - Chọn file ISO, bấm "Chép ISO vào USB Ventoy". 1 USB chép được nhiều ISO.
 
@@ -177,4 +177,12 @@ DRIVER (v2.6) - Quản lý › 🧩 Driver
 
 TEST HIỆU NĂNG (v2.6) - Test máy › Hiệu năng nhanh
 - "Đo ổ cứng": tốc độ đọc / ghi. "Tải CPU": chạy 100% CPU, xem nhiệt độ cao nhất và có hạ xung không.
+
+KHO BỘ CÀI MAC (v2.7)
+- Chọn đời macOS, bấm ⬇ Tải (hoặc 🔗 Link để tải bằng IDM). File lưu trong Data\macOS.
+- Chép file sang máy Mac: mở InstallAssistant.pkg (hoặc .dmg) để có ứng dụng cài đặt, rồi dùng macUSB tạo USB.
+
+KHO iOS (v2.7)
+- Chọn loại máy (iPhone, iPad...), bấm vào máy, chọn bản có nhãn CÒN KÝ, bấm ⬇ Tải. File lưu trong Data\iOS.
+- Khôi phục: mở iTunes, giữ Shift bấm Restore (Khôi phục), chọn file .ipsw.
 
