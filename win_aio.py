@@ -35,7 +35,7 @@ import apple
 import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v3.0"
+APP_VERSION = "v3.1"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -75,6 +75,9 @@ WHATSAPP = ("🟢", "WhatsApp", "winget:9NKSQGP7F2NH", "", "Cài từ Microsoft 
 # Tiện ích cài Win dạo (Hải Đỗ): file mới nhất trong bản phát hành "caiwindao" (tool đó tự đọc version.txt cùng chỗ)
 CAIWINDAO = ("🧰", "Tiện ích cài Win dạo", r"github:minhhaibuitt/Caiwindao@caiwindao|^Tien\.ich\.cai\.Win\.dao\.v[\d.]+\.exe$", "",
              "Tool cài Win dạo của Hải Đỗ - luôn tải bản mới nhất (mật khẩu: haido)")
+# Tiện ích văn phòng (Hải Đỗ): file mới nhất trong bản phát hành "vanphong" (tool đó tự đọc version.txt cùng chỗ)
+VANPHONG = ("🧾", "Tiện ích văn phòng", r"github:minhhaibuitt/Caiwindao@vanphong|^Tien\.ich\.van\.phong\.v[\d.]+\.exe$", "",
+            "Tiện ích văn phòng của Hải Đỗ - luôn tải bản mới nhất")
 FONT_PACK = "https://github.com/minhhaibuitt/Caiwindao/releases/download/Tonghop/fontchu.zip"     # bộ font đầy đủ (VNI, TCVN3, SVN...)
 
 # Link cũ đã chết -> nguồn mới (tự sửa trong dữ liệu đã lưu và lúc cài)
@@ -199,6 +202,7 @@ DEFAULT_GROUPS = [     # (tên nhóm, cột, [nút...]) - thứ tự & cột the
     ]),
     ("VĂN PHÒNG - PDF", 1, [
         ("🏢", "MS Office", "office:", "", "Cài Office 2016 / 2019 / 2021 / 2024 / 365 chính chủ từ Microsoft (Online hoặc Offline)"),
+        VANPHONG,
         ("📄", "Foxit PDF Reader", "winget:Foxit.FoxitReader", "", ""),
         ("📄", "Sumatra PDF", "winget:SumatraPDF.SumatraPDF", "", ""),
         ("📝", "Notepad++", "winget:Notepad++.Notepad++", "", ""),
@@ -652,6 +656,17 @@ class Store:
                                     (n, ic, json.dumps(apps, ensure_ascii=False), json.dumps(tools), json.dumps(opts), i))
                 self.commit(persist=False)
             done.add("presets")
+            self.cfg["migrated"] = sorted(done)
+            self.save_config(persist=False)
+        if "v31" not in done:
+            if not self.db.execute("SELECT 1 FROM apps WHERE src=?", (VANPHONG[2],)).fetchone():
+                g = self.db.execute("SELECT group_id FROM apps WHERE src LIKE 'office:%' LIMIT 1").fetchone() or \
+                    self.db.execute("SELECT id FROM groups WHERE name LIKE 'VĂN PHÒNG%' ORDER BY id LIMIT 1").fetchone()
+                if g:
+                    o = self.db.execute("SELECT COALESCE(MAX(ord),0)+1 FROM apps WHERE group_id=?", (g[0],)).fetchone()[0]
+                    self.db.execute("INSERT INTO apps(group_id, icon, name, src, args, note, ord) VALUES(?,?,?,?,?,?,?)", (g[0],) + VANPHONG + (o,))
+                    self.commit(persist=False)
+            done.add("v31")
             self.cfg["migrated"] = sorted(done)
             self.save_config(persist=False)
         if "v28" not in done:
@@ -3400,7 +3415,7 @@ class App:
                           ("gh_wordcraft", lambda: resolve_github(ARTCRAFT[1][0][2])),
                           ("gh_ytdl", lambda: resolve_github(GH_YTDL)),
                           ("gh_ventoy", lambda: resolve_github(r"github:ventoy/Ventoy|windows\.zip$")),
-                          ("gh_caiwindao", lambda: resolve_github(CAIWINDAO[2])), ("gh_rufus", lambda: resolve_github(extra.RUFUS)),
+                          ("gh_caiwindao", lambda: resolve_github(CAIWINDAO[2])), ("gh_vanphong", lambda: resolve_github(VANPHONG[2])), ("gh_rufus", lambda: resolve_github(extra.RUFUS)),
                           ("off_scan", officex.off_scan), ("crack_check", officex.crack_check), ("lic_oem", officex.lic_oem),
                           ("lic_win", lambda: officex.lic_status("windows")["out"][:400]), ("odt_latest", odt_latest_url), ("irst_info", extra.irst_info),
                           ("irst_links", lambda: [(v["file"], requests_head(v["url"])) for v in extra.irst_info()["list"]] + [("font", requests_head(FONT_PACK))]),

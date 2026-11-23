@@ -1,5 +1,5 @@
 ﻿=====================================================================
-           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v3.0)
+           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v3.1)
 =====================================================================
 Tool cài Win dạo 1 file exe portable (không cần cài đặt), giao diện tiếng Việt.
 Tải: https://github.com/laocuumon1982-cpu/WIN-AIO-SHARE/releases/latest
@@ -154,6 +154,7 @@ MS OFFICE (nút trong nhóm Văn phòng, bổ sung v3.0)
 - Bản quyền Office / Windows bằng key của khách: kích hoạt online, qua điện thoại
   (Installation ID → Confirmation ID), key OEM trong BIOS, đổi Office Retail → Volume
   khi có key Volume, kiểm tra / dọn crack KMS - Ohook, gỡ key Windows. Không bẻ khóa.
+- Nút "Tiện ích văn phòng" (v3.1) cạnh MS Office: luôn tải bản mới nhất của tác giả Hải Đỗ.
 - Thiết lập Office cho văn bản Việt Nam: A4, lề, Times New Roman, cỡ chữ, giãn dòng,
   tắt Protected View, bỏ màn hình Start, tắt kiểm tra chính tả.
 
