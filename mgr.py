@@ -1371,3 +1371,148 @@ def iso_download(j, win, lang, arch, dest):
     part.rename(path)
     H["history"](name, url, "Xong", "Tải ISO Windows")
     return {"path": str(path), "dest": str(out), "name": name, "size": path.stat().st_size, "url": url, "text": f"Đã tải xong {name}"}
+
+
+# ================================================================ Cập nhật phần mềm qua winget (giống Wingetix)
+FAKE_UPG = [
+    {"name": "Google Chrome", "id": "Google.Chrome", "ver": "131.0.6778.86", "new": "131.0.6778.109", "src": "winget"},
+    {"name": "7-Zip 24.08 (x64)", "id": "7zip.7zip", "ver": "24.08", "new": "24.09", "src": "winget"},
+    {"name": "Zalo", "id": "VNGCorp.Zalo", "ver": "24.10.2", "new": "24.11.1", "src": "winget"},
+    {"name": "Microsoft Visual C++ 2015-2022 Redistributable (x64)", "id": "Microsoft.VCRedist.2015+.x64", "ver": "14.40.33810.0", "new": "14.42.34433.0", "src": "winget"},
+    {"name": "Notepad++ (64-bit x64)", "id": "Notepad++.Notepad++", "ver": "8.6.9", "new": "8.7.1", "src": "winget"},
+]
+
+
+def _clean_out(out):
+    """Bỏ vòng xoay / thanh % của winget (in bằng \\r), giữ dòng cuối của mỗi dòng."""
+    lines = []
+    for ln in (out or "").replace("\r\n", "\n").split("\n"):
+        lines.append(ln.split("\r")[-1].rstrip())
+    return lines
+
+
+def parse_upgrades(out):
+    """Đọc bảng của 'winget upgrade': Name | Id | Version | Available | Source (cột căn theo dòng tiêu đề)."""
+    rows, lines = [], _clean_out(out)
+    hi = next((i for i, l in enumerate(lines) if re.search(r"\bId\b", l) and re.search(r"\bVersion\b", l) and re.search(r"\bAvailable\b", l)), None)
+    if hi is None:
+        return rows
+    h = lines[hi]
+    c_id, c_ver, c_av = h.index("Id"), re.search(r"\bVersion\b", h).start(), re.search(r"\bAvailable\b", h).start()
+    m = re.search(r"\bSource\b", h)
+    c_src = m.start() if m else None
+    for l in lines[hi + 1:]:
+        if not l.strip():
+            break                                   # hết bảng (phần sau là gói ghim / cần chỉ định riêng)
+        if set(l.strip()) <= {"-", " "}:
+            continue
+        if re.match(r"^\d+ (upgrades?|package)", l.strip()):
+            break
+        name = l[:c_id].strip()
+        pid = l[c_id:c_ver].strip()
+        ver = l[c_ver:c_av].strip()
+        new = (l[c_av:c_src] if c_src else l[c_av:]).strip()
+        src = l[c_src:].strip() if c_src else "winget"
+        if not pid or not new or new.lower() == "unknown":
+            continue
+        rows.append({"name": name, "id": pid, "ver": ver, "new": new, "src": src or "winget",
+                     "cut": pid.endswith("…") or pid.endswith("...")})
+    return rows
+
+
+def wg_upgrades(j=None):
+    """Danh sách phần mềm (đã cài) có bản mới trong kho winget."""
+    if fake():
+        if j:
+            for i in range(0, 101, 20):
+                j["pct"], j["text"] = i, "Đang hỏi winget phần mềm nào có bản mới..."
+                time.sleep(0.15)
+        return [dict(x, cut=False) for x in FAKE_UPG]
+    if j:
+        j["pct"], j["text"] = -1, "Đang hỏi winget phần mềm nào có bản mới (10 - 40 giây)..."
+    base = ["winget", "upgrade", "--source", "winget", "--accept-source-agreements"]
+    code, out = H["run"](base + ["--disable-interactivity"], timeout=240)
+    if (code & 0xFFFFFFFF) == 0x8A150002:
+        code, out = H["run"](base, timeout=240)
+    rows = parse_upgrades(out)
+    if any(r["cut"] for r in rows):            # ID dài bị winget cắt "…" -> tra ID đầy đủ bằng winget export
+        try:
+            f = data_dir("Tools") / "winget_export.json"
+            H["run"](["winget", "export", "-o", str(f), "--source", "winget", "--accept-source-agreements"], timeout=240)
+            ids = [(p_["PackageIdentifier"], str(p_.get("Version", ""))) for src_ in json.loads(f.read_text(encoding="utf-8-sig")).get("Sources", [])
+                   for p_ in src_.get("Packages", [])]
+            for r in rows:
+                if r["cut"]:
+                    pre = r["id"].rstrip("…").rstrip(".").rstrip()
+                    hit = [x for x, v in ids if x.lower().startswith(pre.lower())]
+                    if len(hit) > 1:            # VD VCRedist x64 / x86: chọn theo phiên bản đang cài
+                        hit = [x for x, v in ids if x.lower().startswith(pre.lower()) and v == r["ver"]] or hit
+                    if len(hit) == 1:
+                        r["id"], r["cut"] = hit[0], False
+        except Exception:                       # noqa: BLE001
+            pass
+    if not rows and "No installed package" not in (out or "") and "No available upgrade" not in (out or "") \
+            and not re.search(r"\bId\b", out or ""):
+        raise RuntimeError("winget không trả lời đúng: " + " ".join((out or "").split())[-200:])
+    return rows
+
+
+def _stream(cmd, j, base_pct, span, label):
+    """Chạy winget, đọc % tải / cài để hiện tiến độ."""
+    flags = 0x08000000 if os.name == "nt" else 0
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, creationflags=flags, env=H.get("env_fn", lambda: None)())
+    buf, out = b"", []
+    while True:
+        ch = p.stdout.read(256)
+        if not ch:
+            break
+        if j.get("stop"):
+            p.kill()
+            raise RuntimeError("Đã dừng")
+        buf += ch
+        txt = buf.decode("utf-8", "ignore")
+        out.append(txt)
+        m = re.findall(r"(\d{1,3})\s*%", txt) or re.findall(r"([\d.]+)\s*[KMG]B\s*/\s*([\d.]+)\s*[KMG]B", txt)
+        if m:
+            last = m[-1]
+            pct = int(last) if isinstance(last, str) else int(float(last[0]) * 100 / max(0.01, float(last[1])))
+            j["pct"] = int(base_pct + span * min(100, pct) / 100)
+            j["text"] = f"{label}: đang tải {min(100, pct)}%"
+        if "Starting package install" in txt or "Bắt đầu" in txt:
+            j["text"] = f"{label}: đang cài..."
+        buf = buf[-200:]
+    return p.wait(), "".join(out)
+
+
+WG_OK = {0, 0x8A15002B, 0x8A150109, 0x8A15010D}        # xong / đã là bản mới / cần khởi động lại
+
+
+def wg_upgrade(j, items):
+    """Cập nhật lần lượt các phần mềm đã chọn (winget upgrade, cài im lặng)."""
+    done, errs, n = [], [], len(items)
+    for i, it in enumerate(items):
+        label = f"[{i + 1}/{n}] {it.get('name') or it['id']}"
+        j["text"], j["pct"] = label, int(i * 100 / n)
+        if fake():
+            for k in range(0, 101, 25):
+                j["pct"], j["text"] = int((i + k / 100) * 100 / n), f"{label}: đang tải {k}%"
+                time.sleep(0.12)
+            done.append(it["id"])
+            continue
+        pid = it["id"].rstrip("…").rstrip(".")
+        target = ["--id", it["id"], "-e"] if not it.get("cut") else ["--name", it.get("name", pid)]
+        cmd = ["winget", "upgrade"] + target + ["--source", it.get("src") or "winget", "--silent",
+                                               "--accept-package-agreements", "--accept-source-agreements", "--disable-interactivity"]
+        code, out = _stream(cmd, j, i * 100 / n, 100 / n, label)
+        if (code & 0xFFFFFFFF) == 0x8A150002:
+            code, out = _stream(cmd[:-1], j, i * 100 / n, 100 / n, label)
+        code &= 0xFFFFFFFF
+        if code in WG_OK:
+            done.append(it["id"])
+            H["history"](it.get("name") or it["id"], "winget:" + it["id"], "Đã cập nhật", f"{it.get('ver', '')} → {it.get('new', '')}")
+        else:
+            tail = " ".join(out.split())[-160:]
+            errs.append(f"{it.get('name') or it['id']}: mã 0x{code:08X} {tail}")
+            H["history"](it.get("name") or it["id"], "winget:" + it["id"], "Lỗi", f"0x{code:08X}")
+    j["pct"] = 100
+    return {"done": done, "errs": errs, "text": f"Đã cập nhật {len(done)}/{n} phần mềm" + (f", {len(errs)} lỗi" if errs else "")}

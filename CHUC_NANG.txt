@@ -1,5 +1,5 @@
 ﻿=====================================================================
-           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v2.4.2)
+           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v2.5)
 =====================================================================
 Tool cài Win dạo 1 file exe portable (không cần cài đặt), giao diện tiếng Việt.
 Tải: https://github.com/laocuumon1982-cpu/WIN-AIO-SHARE/releases/latest
@@ -50,6 +50,8 @@ HỆ THỐNG
 - Defender & bảo mật: bảng trạng thái; bật / tắt Realtime, Cloud,
   gửi mẫu tự động, Firewall, SmartScreen, UAC; thêm / bỏ ngoại lệ
   (thư mục, tiến trình, đuôi file).
+- Cập nhật app (v2.5): liệt kê phần mềm đã cài có bản mới (winget) - phiên bản đang dùng,
+  bản mới, nút Cập nhật từng cái / đã chọn / tất cả; mở tool tự kiểm tra, menu Quản lý hiện số.
 
 [Nguồn & Ổ USB]  (gộp từ Power & USB Eject)
 - Tắt máy ngay (ép đóng ứng dụng), khóa máy, đổi người dùng.

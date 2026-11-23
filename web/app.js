@@ -86,7 +86,7 @@ function popMenu(anchor, items) {
 /* ===================================================================== WIN AIO */
 const PAGES = {
   system: ["Thông tin & khởi động", "Thông tin máy, khởi động đặc biệt (BIOS, Safe Mode...) và mở nhanh công cụ Windows"],
-  manage: ["Quản lý", "Chương trình khởi động cùng Windows · Gỡ phần mềm tận gốc · Ứng dụng MS Store · Defender"],
+  manage: ["Quản lý", "Khởi động cùng Windows · Gỡ phần mềm tận gốc · Ứng dụng MS Store · Defender · Cập nhật app"],
   clean: ["Dọn dẹp", "Dọn rác, phân tích ổ đĩa, cache CapCut, virus macro Excel, xóa metadata ảnh"],
   backup: ["Sao lưu", "Thư mục người dùng · Zalo · Zalo nhiều tài khoản · Trình duyệt"],
   apps: ["Cài phần mềm", "Bấm 1 nút để cài ngay, hoặc chọn nhiều mục rồi bấm ▶ Cài mục đã chọn"],
@@ -890,12 +890,15 @@ function progOnButton(cur, d, n) {                       // vệt tiến độ +
   x.textContent = (downloading ? "⬇ " : "⚙ ") + Math.max(0, v) + "%";
 }
 let WGC = 0;
+document.addEventListener("click", e => { if (e.target.id === "upgN") setTimeout(() => { const t = $("mtabs").querySelector('[data-t="upgrade"]'); if (t) t.click(); }, 60); });
+function setUpgBadge(n) { for (const id of ["upgN", "upgB"]) { const b = $(id); if (b) { b.hidden = !n; b.textContent = n; } } }
 async function tick() {
   try {
     ST = await api("state", logSeq);
     if (ST.logs.length) { logSeq = ST.logs[ST.logs.length - 1][0]; addLogs(ST.logs); }
     if (ST.admin !== ADMIN) setAdmin(ST.admin);
-    if (ST.wg_checked && ST.wg_checked !== WGC) { WGC = ST.wg_checked; loadGroups(); }   // vừa kiểm tra xong các nút winget
+    if (ST.wg_checked && ST.wg_checked !== WGC) { WGC = ST.wg_checked; loadGroups(); }
+    if (ST.upg_n !== null && ST.upg_n !== undefined) setUpgBadge(ST.upg_n);   // vừa kiểm tra xong các nút winget
     const cur = ST.cur, [bi, bn] = ST.batch, run = ST.running;
     let frac = 0;
     if (cur) {

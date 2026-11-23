@@ -30,7 +30,7 @@ function mgrShow() {
   $("mtabs").onclick = e => { const d = e.target.closest("[data-t]"); if (!d) return; MT = d.dataset.t;
     $("mtabs").querySelectorAll("div").forEach(x => x.classList.toggle("on", x === d));
     document.querySelectorAll(".mpane").forEach(p => p.hidden = p.id !== "mp-" + MT); mgrShow(); };
-  if (!MLOAD[MT]) { MLOAD[MT] = 1; ({startup: stLoad, programs: prLoad, appx: axLoad, defender: dfLoad})[MT](); }
+  if (!MLOAD[MT]) { MLOAD[MT] = 1; ({startup: stLoad, programs: prLoad, appx: axLoad, defender: dfLoad, upgrade: upLoad})[MT](); }
 }
 
 /* ---------- khởi động cùng Windows ---------- */
@@ -484,4 +484,54 @@ async function webEdit(w) {
       if (await confirmBox("Xóa link", `Xóa "${w.name}"?`, "🗑 Xóa")) { await api("web_delete", w.id); c.close(null); toast("Đã xóa"); webShow(); } }; }});
   if (!r) return;
   await api("web_save", r); toast("Đã lưu link"); webShow();
+}
+
+
+/* =============================================================== CẬP NHẬT APP (winget upgrade) */
+let UP = null, upSel = new Set();
+async function upLoad(force) {
+  const P = $("mp-upgrade");
+  P.innerHTML = `<div class="mbar"><button class="btn" id="upChk">⟳ Kiểm tra bản mới</button>
+      <button class="btn" id="upSelB">⬆ Cập nhật mục đã chọn</button><button class="btn red shine" id="upAll">⬆⬆ Cập nhật tất cả</button>
+      <span class="cnt" id="upCnt"></span><span class="sp"></span>⌕ <input type="search" id="upQ" placeholder="tìm..." style="width:200px"></div>
+    <div id="upTbl">${tbl([["Tên"]], "", UP ? "" : 'Bấm "⟳ Kiểm tra bản mới" để hỏi winget phần mềm nào trên máy có phiên bản mới')}</div>
+    <div class="logl">Kiểm tra mọi phần mềm đã cài trên máy (không chỉ cài từ tool) mà kho winget có bản mới hơn. Cập nhật chạy im lặng; nên đóng phần mềm đó trước khi cập nhật.</div>`;
+  $("upChk").onclick = () => upCheck();
+  $("upQ").oninput = upRender;
+  $("upSelB").onclick = () => upRun(UP ? UP.filter(x => upSel.has(x.id)) : []);
+  $("upAll").onclick = () => upRun(UP || []);
+  if (UP) upRender(); else upCheck();
+}
+async function upCheck() {
+  const r = await runJob("wg_upgrades", "Kiểm tra phần mềm có bản mới", []);
+  if (!r.ok) return;
+  UP = r.result; upSel = new Set(UP.map(x => x.id));
+  api("set_upg_n", UP.length); setUpgBadge(UP.length);
+  upRender();
+}
+function upRender() {
+  if (!UP) return;
+  const q = norm($("upQ").value), L = UP.filter(x => !q || norm(x.name + " " + x.id).includes(q));
+  $("upCnt").textContent = UP.length ? `${UP.length} phần mềm có bản mới · đã chọn ${upSel.size}` : "";
+  $("upTbl").innerHTML = tbl([["", "34px"], ["Phần mềm"], ["ID winget", "24%"], ["Đang dùng", "130px"], ["Bản mới", "130px"], ["", "120px"]],
+    L.map(x => `<tr data-id="${esc(x.id)}" class="${upSel.has(x.id) ? "sel" : ""}"><td><span class="chk${upSel.has(x.id) ? " on" : ""}"></span></td>
+      <td><b>${esc(x.name)}</b></td><td class="path">${esc(x.id)}</td><td>${esc(x.ver)}</td>
+      <td><span class="pill t-new">${esc(x.new)}</span></td><td><button class="btn sm green" data-up="1">⬆ Cập nhật</button></td></tr>`).join(""),
+    "✔ Tất cả phần mềm đã là bản mới nhất");
+  $("upTbl").querySelector("tbody").onclick = e => {
+    const tr = e.target.closest("tr[data-id]"); if (!tr) return;
+    const x = UP.find(u => u.id === tr.dataset.id);
+    if (e.target.closest("[data-up]")) return upRun([x]);
+    upSel.has(x.id) ? upSel.delete(x.id) : upSel.add(x.id); upRender();
+  };
+}
+async function upRun(list) {
+  if (!list.length) return toast("Chưa chọn phần mềm nào", "err");
+  if (list.length > 1 && !(await confirmBox("Cập nhật phần mềm", `Cập nhật ${list.length} phần mềm?\n${list.map(x => `• ${x.name}: ${x.ver} → ${x.new}`).join("\n")}\n\nNên đóng các phần mềm này trước.`, "⬆ Cập nhật", false))) return;
+  const r = await runJob("wg_upgrade", list.length > 1 ? `Cập nhật ${list.length} phần mềm` : `Cập nhật ${list[0].name}`, [list]);
+  if (!r.ok) return;
+  toast(r.result.text, r.result.errs.length ? "err" : "");
+  if (r.result.errs.length) errBox("Có phần mềm chưa cập nhật được", r.result.errs.join("\n"));
+  UP = UP.filter(x => !r.result.done.includes(x.id)); r.result.done.forEach(id => upSel.delete(id));
+  api("set_upg_n", UP.length); setUpgBadge(UP.length); upRender();
 }

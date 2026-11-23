@@ -32,7 +32,7 @@ from urllib.parse import unquote, urlparse, parse_qs
 import mgr
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v2.4.2"
+APP_VERSION = "v2.5"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -1131,6 +1131,14 @@ $net=@(Get-NetAdapter -Physical | Where-Object Status -eq 'Up' | ForEach-Object 
             else:
                 self.log(f"✔ Đã kiểm tra {len(apps)} nút WINGET: tất cả còn dùng được.", "dim")
             self.wg_checked = time.time()
+            try:                            # phần mềm nào có bản mới -> hiện số trên menu Quản lý
+                up = mgr.wg_upgrades()
+                self.upg_n = len(up)
+                if up:
+                    self.log(f"⬆ {len(up)} phần mềm có bản mới: " + ", ".join(x["name"] for x in up[:6])
+                             + (" ..." if len(up) > 6 else "") + " - vào Quản lý › Cập nhật app.", "warn")
+            except Exception:               # noqa: BLE001
+                pass
         except Exception as e:              # noqa: BLE001
             self.log(f"Bỏ qua kiểm tra nút winget: {e}", "dim")
 
@@ -2386,7 +2394,7 @@ class Api:
                 "checks": e.checks, "winget": e.winget, "admin": self._admin, "busy_tool": e.busy_tool, "sysinfo": e.sysinfo,
                 "done_today": done_today, "running": bool(e.worker and e.worker.is_alive()),
                 "shutdown_at": e.power.shutdown_at, "now": time.time(), "upd": self._upd,
-                "wg_checked": getattr(e, "wg_checked", 0)}
+                "wg_checked": getattr(e, "wg_checked", 0), "upg_n": getattr(e, "upg_n", None)}
 
     def history(self, limit=1000):
         with self._s.lock:
@@ -2909,7 +2917,11 @@ class Api:
               "defender_status", "defender_set", "defender_excl", "capcut_info", "xlstart_scan", "xlstart_quarantine", "excel_safe_macro",
               "backup_info", "zalo_info", "zalo_open", "zalo_profile_delete", "browsers_info", "job_status", "job_stop"}
     M_JOB = {"uninstall_run", "appx_remove", "clean_scan", "clean_run", "folder_sizes", "capcut_clean", "metadata_strip", "backup_user",
-             "restore_user", "zalo_backup", "zalo_restore", "browser_backup", "browser_restore", "sha256_file", "iso_download"}
+             "restore_user", "zalo_backup", "zalo_restore", "browser_backup", "browser_restore", "sha256_file", "iso_download", "wg_upgrades", "wg_upgrade"}
+
+    def set_upg_n(self, n):
+        self._e.upg_n = int(n)
+        return True
 
     def m(self, name, *args):
         if name not in self.M_SYNC:
@@ -3157,7 +3169,8 @@ class App:
                           ("wg_idm", lambda: E.winget_check("Tonec.InternetDownloadManager", force=True)),
                           ("wg_acrobat", lambda: E.winget_check("Adobe.Acrobat.Reader.64-bit", force=True)),
                           ("gh_wordcraft", lambda: resolve_github(ARTCRAFT[1][0][2])),
-                          ("gh_ytdl", lambda: resolve_github(GH_YTDL))]:
+                          ("gh_ytdl", lambda: resolve_github(GH_YTDL)),
+                          ("wg_upgrades", lambda: [(x["name"], x["id"], x["ver"], x["new"], x["cut"]) for x in mgr.wg_upgrades()])]:
                 try:
                     lines.append(f"{nm}: " + json.dumps(f(), ensure_ascii=False, default=str)[:600])
                 except Exception as ex:     # noqa: BLE001

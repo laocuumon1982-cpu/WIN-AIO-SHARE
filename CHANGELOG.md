@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v2.5
+- Quản lý › Cập nhật app: kiểm tra & cập nhật phần mềm đã cài qua winget, số báo trên menu.
+
 ## v2.4.2
 - Cài mới: nhóm CRACK với 3 nút trống; cập nhật không xóa link đã gắn trong nút.
 

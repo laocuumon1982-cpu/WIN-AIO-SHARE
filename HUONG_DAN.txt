@@ -1,4 +1,4 @@
-﻿WIN AIO BY DUY ANH - v2.4.2
+﻿WIN AIO BY DUY ANH - v2.5
 =========================
 
 CHỈ 1 FILE EXE
@@ -64,6 +64,11 @@ KHO ISO WIN (v2.3.2)
 WEB (v2.4.1) - mục Khác
   - Mặc định 12 nút trống. Bấm nút để mở trang web. Bật Admin: ✎ trên nút trống để đặt tên, gắn link; "＋ Thêm link" (nhập biểu tượng, tên, địa chỉ, nhóm),
     ✎ để sửa / xóa, ◀ ▶ để đổi chỗ. Gõ tên nhóm mới là tạo nhóm mới.
+
+CẬP NHẬT APP (v2.5) - Quản lý › ⬆ Cập nhật app
+  - Bấm "⟳ Kiểm tra bản mới": tool hỏi winget mọi phần mềm đã cài trên máy có bản mới hơn.
+  - "⬆ Cập nhật" từng dòng, hoặc tick nhiều rồi "Cập nhật mục đã chọn" / "Cập nhật tất cả". Nên đóng phần mềm trước.
+  - Mở tool là tự kiểm tra ngầm; có bản mới thì menu Quản lý hiện số đỏ - bấm vào số để mở thẳng danh sách.
 
 QUẢN LÝ (v2.1)
   - Khởi động cùng Windows: chọn mục (bấm vào dòng) -> Vô hiệu / Kích hoạt (giống Task Manager), Xóa (có lưu bản sao

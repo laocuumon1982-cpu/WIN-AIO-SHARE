@@ -1,4 +1,4 @@
-Win AIO by Duy Anh v2.4.2
+Win AIO by Duy Anh v2.5
 
-- Cập nhật tool không còn đụng tới nút và link bạn tự gắn: tên, link, vị trí bạn đã sắp (mọi nhóm) và các link trong tab Web giữ nguyên khi update, và được nhập lại đầy đủ từ file sao lưu JSON.
-- Máy mới cài tool: tab Web là 12 nút trống để tự gắn link.
+- Mới: Quản lý › "⬆ Cập nhật app" (giống Wingetix) - hỏi winget mọi phần mềm đã cài trên máy có bản mới hơn: hiện tên, ID, phiên bản đang dùng và bản mới; mỗi dòng có nút "⬆ Cập nhật", hoặc tick nhiều rồi "Cập nhật mục đã chọn" / "Cập nhật tất cả". Cập nhật im lặng, có % tiến độ, nút Dừng, ghi vào Nhật ký.
+- Mở tool là tự kiểm tra ngầm: có phần mềm cần cập nhật thì menu Quản lý hiện số màu đỏ (bấm vào số để mở thẳng danh sách) và nhật ký ghi tên các phần mềm đó.
