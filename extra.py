@@ -969,3 +969,99 @@ def irst_get(j, file, dest="", local=""):
     return {"text": f"Đã giải nén driver vào {out}. Lúc cài Win không thấy ổ cứng: bấm 'Load driver' → Browse → chọn thư mục này "
                     "(thư mục VMD), bỏ tick 'Hide drivers...' nếu không thấy, chọn 'Intel RST VMD Controller' → Next.",
             "dest": str(out)}
+
+
+# ================================================================ GPU: bộ nhớ đồ họa (VRAM) đang dùng + tải 3D (PDH, không cần driver riêng)
+_GPU = {"q": None, "t": 0, "v": None, "total": None, "lock": threading.Lock()}
+
+
+def _vram_total():
+    """Dung lượng VRAM lớn nhất trong các card (registry của driver), bỏ qua card ảo Microsoft Basic."""
+    import winreg
+    best = 0
+    base = r"SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}"
+    try:
+        with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, base) as k:
+            i = 0
+            while True:
+                try:
+                    sub = winreg.EnumKey(k, i)
+                except OSError:
+                    break
+                i += 1
+                try:
+                    with winreg.OpenKey(k, sub) as s:
+                        try:
+                            desc = winreg.QueryValueEx(s, "DriverDesc")[0]
+                        except OSError:
+                            desc = ""
+                        if "basic" in desc.lower():
+                            continue
+                        val = None
+                        for n in ("HardwareInformation.qwMemorySize", "HardwareInformation.MemorySize"):
+                            try:
+                                val = winreg.QueryValueEx(s, n)[0]
+                                break
+                            except OSError:
+                                pass
+                        if isinstance(val, bytes):
+                            val = int.from_bytes(val[:8], "little")
+                        if isinstance(val, int) and val > best:
+                            best = val
+                except OSError:
+                    pass
+    except OSError:
+        pass
+    return best or None
+
+
+def gpu_usage():
+    """{used, total (byte), pct (% VRAM), load (% tải 3D)} - máy không đọc được -> None."""
+    if fake():
+        import random
+        tot = 12 * 1024 ** 3
+        used = int(tot * random.uniform(0.25, 0.45))
+        return {"used": used, "total": tot, "pct": round(used * 100 / tot), "load": random.randint(3, 30)}
+    with _GPU["lock"]:
+        if time.time() - _GPU["t"] < 1.2:
+            return _GPU["v"]
+        _GPU["t"] = time.time()
+        if _GPU["q"] is None:
+            _GPU["q"] = _Pdh({"ded": r"\GPU Adapter Memory(*)\Dedicated Usage",
+                              "eng": r"\GPU Engine(*engtype_3D)\Utilization Percentage"})
+            _GPU["total"] = _vram_total()
+        d = _GPU["q"].read()
+        ded = d.get("ded") or []
+        if not ded:
+            _GPU["v"] = None
+            return None
+        used, tot = int(max(ded)), _GPU["total"]
+        if not tot or tot < used:
+            tot = None
+        load = min(100, round(sum(d.get("eng") or [])))
+        _GPU["v"] = {"used": used, "total": tot, "pct": round(used * 100 / tot) if tot else None, "load": load}
+        return _GPU["v"]
+
+
+# ================================================================ RUFUS (tạo USB boot Windows / Linux)
+RUFUS = r"github:pbatard/rufus|^rufus-[\d.]+p\.exe$"          # bản portable chính chủ (rufus.ie lấy file từ GitHub này)
+
+
+def rufus_run(j):
+    """Tải Rufus portable bản mới nhất (đã có thì dùng lại) rồi mở lên."""
+    j["pct"], j["text"] = -1, "Đang hỏi bản Rufus mới nhất..."
+    url, tag = H["gh"](RUFUS)
+    name = url.rsplit("/", 1)[-1]
+    if fake():
+        time.sleep(0.8)
+        return {"text": f"Đã mở {name} (chạy thử)."}
+    d = data_dir("Tools", "Rufus")
+    exe = d / name
+    if not exe.exists():
+        import apple
+        apple.dl_files(j, [{"name": name, "url": url, "size": 0}], d, "Rufus " + tag)
+        for old in d.glob("rufus-*.exe"):
+            if old.name != name:
+                old.unlink(missing_ok=True)
+    subprocess.Popen([str(exe)], cwd=str(d))
+    return {"text": f"Đã mở Rufus {tag.lstrip('v')} (bản portable, lưu trong Data\\Tools\\Rufus)."}

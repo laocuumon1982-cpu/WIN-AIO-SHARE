@@ -34,7 +34,7 @@ import extra
 import apple
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v2.8"
+APP_VERSION = "v2.9"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -1012,7 +1012,7 @@ $net=@(Get-NetAdapter -Physical | Where-Object Status -eq 'Up' | ForEach-Object 
         if FAKE or not IS_WIN:
             import random
             return {"cpu": random.randint(8, 35), "ram_used": round(random.uniform(11, 14), 1), "ram_total": 31.8,
-                    "ram_pct": random.randint(35, 45), "uptime": int(time.monotonic()) + 3600 * 5, "temp": extra.cpu_temp()}
+                    "ram_pct": random.randint(35, 45), "uptime": int(time.monotonic()) + 3600 * 5, "gpu": extra.gpu_usage()}
         from ctypes import wintypes
 
         class MEM(ctypes.Structure):
@@ -1033,12 +1033,12 @@ $net=@(Get-NetAdapter -Physical | Where-Object Status -eq 'Up' | ForEach-Object 
         self._cpu_prev = cur
         ctypes.windll.kernel32.GetTickCount64.restype = ctypes.c_ulonglong
         return {"cpu": cpu, "ram_used": round((m.total - m.avail) / 2**30, 1), "ram_total": round(m.total / 2**30, 1),
-                "ram_pct": int(m.load), "uptime": int(ctypes.windll.kernel32.GetTickCount64() // 1000), "temp": self._temp()}
+                "ram_pct": int(m.load), "uptime": int(ctypes.windll.kernel32.GetTickCount64() // 1000), "gpu": self._gpu()}
 
-    def _temp(self):
+    def _gpu(self):
         try:
-            return extra.cpu_temp()
-        except Exception:                   # noqa: BLE001  máy không đọc được cảm biến -> không hiện
+            return extra.gpu_usage()
+        except Exception:                   # noqa: BLE001  máy không đọc được bộ đếm GPU -> không hiện
             return None
 
     # ---- winget: kiểm tra bản cũ / mới, tự cài bản mới (im lặng)
@@ -3106,7 +3106,7 @@ class Api:
              "restore_user", "zalo_backup", "zalo_restore", "browser_backup", "browser_restore", "sha256_file", "iso_download", "wg_upgrades", "wg_upgrade",
              "fix_sfc", "fix_dism", "fix_wu", "fix_store", "fix_printer", "fix_all", "win11_tidy", "font_install", "apps_export",
              "apps_import", "drv_wu_scan", "drv_wu_install", "bench_disk", "bench_cpu", "ventoy_install", "ventoy_copy", "preset_run",
-             "mac_list", "mac_download", "ios_download", "irst_get"}
+             "mac_list", "mac_download", "ios_download", "irst_get", "rufus_run"}
 
     def set_upg_n(self, n):
         self._e.upg_n = int(n)
@@ -3376,7 +3376,7 @@ class App:
                           ("gh_wordcraft", lambda: resolve_github(ARTCRAFT[1][0][2])),
                           ("gh_ytdl", lambda: resolve_github(GH_YTDL)),
                           ("gh_ventoy", lambda: resolve_github(r"github:ventoy/Ventoy|windows\.zip$")),
-                          ("gh_caiwindao", lambda: resolve_github(CAIWINDAO[2])), ("irst_info", extra.irst_info),
+                          ("gh_caiwindao", lambda: resolve_github(CAIWINDAO[2])), ("gh_rufus", lambda: resolve_github(extra.RUFUS)), ("irst_info", extra.irst_info),
                           ("irst_links", lambda: [(v["file"], requests_head(v["url"])) for v in extra.irst_info()["list"]] + [("font", requests_head(FONT_PACK))]),
                           ("wg_upgrades", lambda: [(x["name"], x["id"], x["ver"], x["new"], x["cut"]) for x in mgr.wg_upgrades()])]:
                 try:
@@ -3388,7 +3388,7 @@ class App:
                           ("appx", lambda: len(mgr.appx_list())), ("mgr_defender", mgr.defender_status),
                           ("backup", lambda: [(d["key"], d["path"], d["exists"]) for d in mgr.backup_info()["dirs"]]),
                           ("zalo", mgr.zalo_info), ("browsers", mgr.browsers_info), ("capcut", mgr.capcut_info), ("xlstart", mgr.xlstart_scan),
-                          ("drv_problems", extra.drv_problems), ("cpu_temp", lambda: [extra.cpu_temp(), time.sleep(3), extra.cpu_temp(), extra.cpu_clock()]),
+                          ("drv_problems", extra.drv_problems), ("gpu", lambda: [extra.gpu_usage(), time.sleep(2), extra.gpu_usage(), extra._vram_total()]), ("cpu_temp", lambda: [extra.cpu_temp(), time.sleep(3), extra.cpu_temp(), extra.cpu_clock()]),
                           ("usb_disks", extra.usb_disks), ("setup_info", extra.setup_info),
                           ("mac_list", lambda: [len(apple.mac_list())] + [(x["name"], x["version"], x["build"], x["kind"], x["size"], len(x["files"]),
                                                                             x["files"][0]["url"]) for x in apple.mac_list()[:40]]),

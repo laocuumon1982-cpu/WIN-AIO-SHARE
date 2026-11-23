@@ -1,5 +1,5 @@
 ﻿=====================================================================
-           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v2.8)
+           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v2.9)
 =====================================================================
 Tool cài Win dạo 1 file exe portable (không cần cài đặt), giao diện tiếng Việt.
 Tải: https://github.com/laocuumon1982-cpu/WIN-AIO-SHARE/releases/latest
@@ -33,7 +33,7 @@ HỆ THỐNG
 [Thông tin & khởi động]
 - Tên máy, Windows, CPU, RAM (từng khe), card màn hình, mainboard / BIOS,
   mạng (IP, MAC, tốc độ), ổ cứng và phân vùng (dung lượng, loại SSD/HDD).
-- Theo dõi trực tiếp % CPU, % RAM, nhiệt độ CPU (máy có cảm biến), thời gian máy đã chạy.
+- Theo dõi trực tiếp % CPU, % RAM, bộ nhớ GPU (VRAM) đang dùng + % tải 3D, thời gian máy đã chạy.
 - Khởi động đặc biệt: vào BIOS / UEFI, vào Recovery (WinRE),
   chọn ổ khởi động 1 lần, Safe Mode, trở về khởi động bình thường.
 - Mở nhanh: Thông tin máy, Device Manager, Disk Management, Control Panel,
@@ -172,6 +172,9 @@ SỬA LỖI & THIẾT LẬP (v2.6)
 - Mặc định: Máy văn phòng, Máy kế toán, Máy game.
 - Bấm 1 lần: cài cả bộ phần mềm, chạy tiện ích Windows, dọn Win 11, cài font.
 - Admin thêm / sửa / xóa hồ sơ (chọn phần mềm, tiện ích). Đi kèm file sao lưu JSON.
+
+[Kho bộ cài WIN › Rufus] (v2.9)
+- Bấm "Tải & mở Rufus": tải Rufus portable bản mới nhất chính chủ, lần sau dùng lại không tải lại.
 
 [Kho bộ cài WIN › Kho driver IRST] (v2.8)
 - Nhận biết CPU máy đang dùng có cần driver Intel RST / VMD không (Intel đời 11+, Core Ultra).

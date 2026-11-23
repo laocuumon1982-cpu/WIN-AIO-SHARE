@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v2.9
+- Vòng GPU (VRAM đang dùng) thay vòng nhiệt độ CPU; nút Tải & mở Rufus trong Kho bộ cài WIN.
+
 ## v2.8
 - Kho driver IRST, bộ font chữ đầy đủ gắn sẵn, nút Tiện ích cài Win dạo (bản mới nhất), đổi tên Kho bộ cài MAC.
 

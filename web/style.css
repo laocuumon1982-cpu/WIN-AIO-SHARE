@@ -1047,10 +1047,10 @@ body.admin .nadm{display:none}
 .pfch{width:100%;height:80px;background:var(--head);border:1px solid var(--border);border-radius:8px;margin-top:4px}
 .pfleg{display:flex;gap:14px;font-size:11.5px;font-weight:650;margin-top:3px}
 .tst .tacts select,.tst .tacts input{height:28px}
-#pg-system .ring#rTmp .rin b{font-size:16px}
+#pg-system .ring#rGpu .rin b{font-size:16px}
 .tst[data-id="perf"]{grid-column:span 2}
 .tst[data-id="perf"] .tacts{flex-wrap:wrap;gap:6px}
-#rTmp .rin small{font-size:8px;letter-spacing:0}
+#rGpu .rin small{font-size:8px;letter-spacing:0}
 
 /* ---------- v2.7: Kho bộ cài Mac + Kho iOS ---------- */
 .macfams{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:9px;margin:10px 0 2px}

@@ -1,6 +1,4 @@
-Win AIO by Duy Anh v2.8
+Win AIO by Duy Anh v2.9
 
-- Mới: Kho bộ cài WIN › "💾 Kho driver IRST (Intel RST / VMD)": tự nhận biết CPU có cần driver không (Intel đời 11 trở lên, Core Ultra), đánh dấu bản hợp máy, bấm Tải là tải và giải nén thẳng vào USB cài Win (hoặc giải nén từ file .zip có sẵn). Có 2 bản: 19.5.8.1059.2 (đời 11 - 13) và 20.2.7.1026 (đời 13 - 15, Core Ultra).
-- Mới: Bộ font chữ đầy đủ (317 font: VNI, TCVN3 .Vn, SVN, Unicode...) gắn sẵn - Sửa lỗi & thiết lập › Bộ font tiếng Việt › "Tải & cài từ link" (hồ sơ Máy kế toán cũng tự cài).
-- Mới: nút "Tiện ích cài Win dạo" (nhóm TIỆN ÍCH) - luôn tải bản mới nhất từ trang phát hành của tác giả Hải Đỗ.
-- Đổi tên "Kho bộ cài Mac" thành "Kho bộ cài MAC".
+- Thông tin & khởi động: vòng thứ 3 đổi từ nhiệt độ CPU sang bộ nhớ GPU (VRAM) đang dùng - hiện %, số GB đang dùng / tổng, rê chuột xem thêm % tải 3D.
+- Kho bộ cài WIN: thêm nút "Tải & mở Rufus" - tự tải Rufus portable bản mới nhất chính chủ (rufus.ie), mở lên dùng ngay.

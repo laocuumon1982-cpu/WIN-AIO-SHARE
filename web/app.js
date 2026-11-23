@@ -95,7 +95,7 @@ const PAGES = {
   test: ["Test máy", "Kiểm tra màn hình, cảm ứng, bàn phím, loa, micro, trackpad, webcam, pin laptop, hiệu năng"],
   mac: ["Kho bộ cài MAC", "Bộ cài macOS chính chủ Apple: Tahoe, Sequoia, Sonoma, Ventura... về tới Lion - tải thẳng từ máy chủ Apple"],
   ios: ["Kho iOS", "Firmware IPSW cho iPhone, iPad, iPod, Apple TV, Mac chip M - danh sách theo ipsw.me, tải từ máy chủ Apple"],
-  iso: ["Kho bộ cài WIN", "Tải ISO gốc Microsoft · Tạo USB boot Ventoy · Kiểm tra SHA-256 file ISO"],
+  iso: ["Kho bộ cài WIN", "Tải ISO gốc Microsoft · Rufus · USB boot Ventoy · Driver IRST · Kiểm tra SHA-256 file ISO"],
   tools: ["Tiện ích Windows", "Thiết lập nhanh, mạng, Defender, Windows Update, máy in, BitLocker, sao lưu Wifi / Driver"],
   web: ["Web", "Trang web hay dùng - bấm để mở · Admin bấm ✎ để sửa, ＋ để thêm link"],
   history: ["Nhật ký", "Những gì tool đã cài / đã chạy"],
@@ -530,7 +530,7 @@ function renderInfo() {
           <span class="chip cp" data-copy="${esc(pc.tag || "")}" title="Bấm để copy"><i>🏷️</i>Service Tag <b>${esc(pc.tag || "không có")}</b>${pc.tag ? " ⧉" : ""}</span>
           ${ip ? `<span class="chip cp" data-copy="${esc(ip)}" title="Bấm để copy"><i>🌐</i>IP <b>${esc(ip)}</b> ⧉</span>` : ""}
         </div></div></div>
-    <div class="hr">${ring("rCpu", "CPU", "#e0262a")}${ring("rRam", "RAM", "#2f7fa3")}${ring("rTmp", "NHIỆT ĐỘ", "#d97706")}
+    <div class="hr">${ring("rCpu", "CPU", "#e0262a")}${ring("rRam", "RAM", "#2f7fa3")}${ring("rGpu", "GPU", "#7c3aed")}
       <div class="upt"><small>ĐÃ CHẠY</small><b id="upt">—</b><small id="ramtx"></small></div>
       <div class="hbtn"><button class="btn sm" id="bSysRef">⟳ Làm mới</button><button class="btn sm" id="bSysCopy">⧉ Copy tất cả</button></div></div>`;
   const slots = Math.max(ram.slots || 0, (ram.sticks || []).length);
@@ -588,10 +588,13 @@ async function live() {
     const L = await api("live");
     const set = (id, p, t) => { const r = $(id); r.style.setProperty("--p", p); r.querySelector("b").textContent = t; };
     set("rCpu", L.cpu, L.cpu + "%"); set("rRam", L.ram_pct, L.ram_pct + "%");
-    const tr = $("rTmp");
-    if (tr) { const t = L.temp; set("rTmp", t == null ? 0 : Math.min(100, t), t == null ? "—" : Math.round(t) + "°C");
-      tr.style.setProperty("--c", t == null ? "#9ca3af" : t >= 85 ? "#e0262a" : t >= 70 ? "#d97706" : "#16a34a");
-      tr.title = t == null ? "Máy không có cảm biến nhiệt độ mà Windows đọc được" : "Nhiệt độ CPU (cảm biến ACPI của Windows)"; }
+    const gr = $("rGpu"), G = L.gpu;
+    if (gr) { const gb = n => (n / 1073741824).toFixed(1);
+      set("rGpu", G && G.pct != null ? G.pct : 0, !G ? "—" : G.pct != null ? G.pct + "%" : gb(G.used) + "G");
+      gr.style.setProperty("--c", !G ? "#9ca3af" : G.pct >= 90 ? "#e0262a" : G.pct >= 70 ? "#d97706" : "#7c3aed");
+      gr.title = !G ? "Không đọc được bộ nhớ GPU (Windows 10 bản 1709 trở lên + driver WDDM 2 mới có)"
+        : `Bộ nhớ GPU (VRAM) đang dùng: ${gb(G.used)}${G.total ? " / " + gb(G.total) : ""} GB · tải 3D ${G.load}%`;
+      gr.querySelector("small").textContent = G && G.total ? `GPU ${gb(G.used)}/${Math.round(G.total / 1073741824)}G` : "GPU"; }
     $("lCpu").style.width = L.cpu + "%"; $("lCpuT").textContent = L.cpu + "%";
     $("lRam").style.width = L.ram_pct + "%"; $("lRamT").textContent = `${L.ram_used} / ${L.ram_total} GB`;
     const u = L.uptime, d = Math.floor(u / 86400), h = Math.floor(u % 86400 / 3600), m = Math.floor(u % 3600 / 60);
