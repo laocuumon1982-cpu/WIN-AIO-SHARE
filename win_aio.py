@@ -32,9 +32,10 @@ from urllib.parse import unquote, urlparse
 import mgr
 import extra
 import apple
+import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v2.9"
+APP_VERSION = "v3.0"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -897,7 +898,7 @@ class Engine:
         self.wg_ready.set()
         self.power = Power(self)
         self.office = OfficeSetup(self)
-        mgr.init(ps=ps, run=run_hidden, fake=FAKE, base=BASE, data=DATA, ensure_disk=store.ensure_disk, log=self.log, live=self.live, gh=resolve_github,
+        mgr.init(ps=ps, run=run_hidden, fake=FAKE, base=BASE, data=DATA, ensure_disk=store.ensure_disk, log=self.log, live=self.live, gh=resolve_github, odt=self.office._setup_exe,
                  history=lambda n, src, st, d="": store.add_history(n, src, st, d or ""))
         threading.Thread(target=self._bg_checks, daemon=True).start()
 
@@ -1749,7 +1750,7 @@ Remove-Item $d -Recurse -Force; 'OK'
         return c2, o1 + "\n" + o2
 
 
-# ================================================================= MS OFFICE (viết lại từ "Cài đặt Office v4.1")
+# ================================================================= MS OFFICE (viết lại từ "Cài đặt Office v4.1", bổ sung theo v4.3 ở officex.py)
 # Dùng Office Deployment Tool (ODT) chính chủ của Microsoft: cài Online từ máy chủ Microsoft,
 # hoặc Offline từ thư viện đã tải sẵn trong thư mục Soft\Office kế bên exe.
 ODT_SETUP_URL = "https://officecdn.microsoft.com/pr/wsus/setup.exe"
@@ -1764,9 +1765,14 @@ OFFICE_EDITIONS = [("ProPlus", "Professional Plus (đầy đủ nhất)"), ("Sta
                    ("HomeBusiness", "Home & Business"), ("HomeStudent", "Home & Student")]
 
 
+OFFICE_365_EDITIONS = [("ProPlus", "Microsoft 365 Apps for enterprise (doanh nghiệp lớn)"),
+                       ("Business", "Microsoft 365 Apps for business (doanh nghiệp vừa & nhỏ)"),
+                       ("HomeStudent", "Microsoft 365 Personal / Family (cá nhân, gia đình)")]
+
+
 def office_product_id(ver, ed):
     if ver == "365":
-        return "O365HomePremRetail" if ed == "HomeStudent" else "O365ProPlusRetail"
+        return {"HomeStudent": "O365HomePremRetail", "HomeBusiness": "O365HomePremRetail", "Business": "O365BusinessRetail"}.get(ed, "O365ProPlusRetail")
     return f"{ed}Retail" if ver == "2016" else f"{ed}{ver}Retail"
 
 
@@ -1809,6 +1815,20 @@ def office_config(o, source=""):
     return x
 
 
+def odt_latest_url():
+    """Link gói ODT mới nhất trên trang tải của Microsoft (id=49117); lỗi thì dùng link dự phòng."""
+    import requests
+    try:
+        t = requests.get("https://www.microsoft.com/en-us/download/details.aspx?id=49117", timeout=20,
+                         headers={"User-Agent": "Mozilla/5.0"}).text
+        m = re.search(r"https://download\.microsoft\.com/download/[^\"'\s]+/officedeploymenttool_[^\"'\s]+\.exe", t)
+        if m:
+            return m.group(0)
+    except Exception:                       # noqa: BLE001
+        pass
+    return ODT_PACK_URL
+
+
 class OfficeSetup:
     def __init__(self, eng):
         self.e = eng
@@ -1849,7 +1869,7 @@ class OfficeSetup:
         except Exception as e:              # noqa: BLE001
             self.e.log(f"Không tải được setup.exe trực tiếp ({e}), thử gói ODT...", "warn")
         pack = d / "odt.exe"
-        r = requests.get(ODT_PACK_URL, timeout=120)
+        r = requests.get(odt_latest_url(), timeout=120)
         r.raise_for_status()
         pack.write_bytes(r.content)
         run_hidden([str(pack), f"/extract:{d}", "/quiet"], timeout=300)
@@ -3018,7 +3038,8 @@ class Api:
 
     # ---- MS Office
     def office_info(self):
-        return {"status": self._e.office.status(), "apps": OFFICE_APPS, "langs": OFFICE_LANGS, "editions": OFFICE_EDITIONS}
+        return {"status": self._e.office.status(), "apps": OFFICE_APPS, "langs": OFFICE_LANGS, "editions": OFFICE_EDITIONS,
+                "editions365": OFFICE_365_EDITIONS}
 
     def office_install(self, o):
         return self._e.office.install(o)
@@ -3101,12 +3122,15 @@ class Api:
               "drv_problems", "setup_info", "setup_rename", "setup_user", "setup_nopass", "setup_browser", "setup_unikey",
               "usb_disks", "iso_files", "apps_list_file", "cpu_temp",
               # apple.py (v2.7)
-              "ios_devices", "ios_firmwares", "irst_info"}
+              "ios_devices", "ios_firmwares", "irst_info",
+              # officex.py (v3.0)
+              "off_scan", "lic_status", "lic_iid", "lic_oem", "crack_check"}
     M_JOB = {"uninstall_run", "appx_remove", "clean_scan", "clean_run", "folder_sizes", "capcut_clean", "metadata_strip", "backup_user",
              "restore_user", "zalo_backup", "zalo_restore", "browser_backup", "browser_restore", "sha256_file", "iso_download", "wg_upgrades", "wg_upgrade",
              "fix_sfc", "fix_dism", "fix_wu", "fix_store", "fix_printer", "fix_all", "win11_tidy", "font_install", "apps_export",
              "apps_import", "drv_wu_scan", "drv_wu_install", "bench_disk", "bench_cpu", "ventoy_install", "ventoy_copy", "preset_run",
-             "mac_list", "mac_download", "ios_download", "irst_get", "rufus_run"}
+             "mac_list", "mac_download", "ios_download", "irst_get", "rufus_run",
+             "lic_key", "lic_cid", "crack_clear", "win_clear_key", "to_volume", "off_remove", "off_tune"}
 
     def set_upg_n(self, n):
         self._e.upg_n = int(n)
@@ -3119,7 +3143,7 @@ class Api:
 
     @staticmethod
     def _mod(name):
-        return next(x for x in (mgr, extra, apple) if hasattr(x, name))
+        return next(x for x in (mgr, extra, apple, officex) if hasattr(x, name))
 
     def mjob(self, name, label, *args):
         if name not in self.M_JOB:
@@ -3220,7 +3244,7 @@ def page_html(token=""):
     css = (web / "style.css").read_text(encoding="utf-8")
     js = (web / "app.js").read_text(encoding="utf-8")
     html = html.replace('<link rel="stylesheet" href="style.css">', f"<style>{css}</style>")
-    for name in ("test.js", "mgr.js", "extra.js", "apple.js"):
+    for name in ("test.js", "mgr.js", "extra.js", "apple.js", "office.js"):
         html = html.replace(f'<script src="{name}"></script>', f"<script>{(web / name).read_text(encoding='utf-8')}</script>")
     html = html.replace('<script src="app.js"></script>', f"<script>window.__TOKEN={json.dumps(token)};</script><script>{js}</script>")
     if key is not None:
@@ -3376,7 +3400,9 @@ class App:
                           ("gh_wordcraft", lambda: resolve_github(ARTCRAFT[1][0][2])),
                           ("gh_ytdl", lambda: resolve_github(GH_YTDL)),
                           ("gh_ventoy", lambda: resolve_github(r"github:ventoy/Ventoy|windows\.zip$")),
-                          ("gh_caiwindao", lambda: resolve_github(CAIWINDAO[2])), ("gh_rufus", lambda: resolve_github(extra.RUFUS)), ("irst_info", extra.irst_info),
+                          ("gh_caiwindao", lambda: resolve_github(CAIWINDAO[2])), ("gh_rufus", lambda: resolve_github(extra.RUFUS)),
+                          ("off_scan", officex.off_scan), ("crack_check", officex.crack_check), ("lic_oem", officex.lic_oem),
+                          ("lic_win", lambda: officex.lic_status("windows")["out"][:400]), ("odt_latest", odt_latest_url), ("irst_info", extra.irst_info),
                           ("irst_links", lambda: [(v["file"], requests_head(v["url"])) for v in extra.irst_info()["list"]] + [("font", requests_head(FONT_PACK))]),
                           ("wg_upgrades", lambda: [(x["name"], x["id"], x["ver"], x["new"], x["cut"]) for x in mgr.wg_upgrades()])]:
                 try:

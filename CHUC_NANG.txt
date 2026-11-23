@@ -1,5 +1,5 @@
 ﻿=====================================================================
-           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v2.9)
+           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v3.0)
 =====================================================================
 Tool cài Win dạo 1 file exe portable (không cần cài đặt), giao diện tiếng Việt.
 Tải: https://github.com/laocuumon1982-cpu/WIN-AIO-SHARE/releases/latest
@@ -143,6 +143,19 @@ DỌN DẸP & SAO LƯU
   tiện ích, mật khẩu, lịch sử, cài đặt.
 - Chuyển phần mềm sang Win mới (v2.6): lưu danh sách phần mềm đang cài (winget export)
   vào USB; cài Win xong mở tool, chọn file danh sách, bỏ tick mục không cần, cài lại hết.
+
+
+---------------------------------------------------------------------
+MS OFFICE (nút trong nhóm Văn phòng, bổ sung v3.0)
+---------------------------------------------------------------------
+- Cài Office 2016 / 2019 / 2021 / 2024 / 365 (365: enterprise, business, Personal/Family),
+  chọn ứng dụng, 32 / 64-bit, ngôn ngữ, Project, Visio; Online hoặc Offline; ODT mới nhất.
+- Gỡ Office tận gốc: Click-to-Run + MSI + dọn tàn dư.
+- Bản quyền Office / Windows bằng key của khách: kích hoạt online, qua điện thoại
+  (Installation ID → Confirmation ID), key OEM trong BIOS, đổi Office Retail → Volume
+  khi có key Volume, kiểm tra / dọn crack KMS - Ohook, gỡ key Windows. Không bẻ khóa.
+- Thiết lập Office cho văn bản Việt Nam: A4, lề, Times New Roman, cỡ chữ, giãn dòng,
+  tắt Protected View, bỏ màn hình Start, tắt kiểm tra chính tả.
 
 
 ---------------------------------------------------------------------

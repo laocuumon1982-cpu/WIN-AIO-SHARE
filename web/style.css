@@ -1059,3 +1059,14 @@ body.admin .nadm{display:none}
 .idevs .tbtn{height:auto;min-height:46px;padding:6px 10px}.idevs .tbtn .tt{display:block}
 #iCats{flex-wrap:wrap;gap:6px}
 #pg-mac .isoopt .ck{display:flex;flex-direction:row;align-items:center;gap:6px;white-space:nowrap;margin-bottom:8px}
+
+/* ---------- v3.0: MS Office - bản quyền / gỡ / thiết lập ---------- */
+.ltabs{display:flex;gap:6px;align-items:center;margin-bottom:8px}
+.licst{margin-bottom:8px}.licst .pout{max-height:150px;margin-top:4px}
+.licsec{border:1px solid var(--border);border-radius:10px;padding:9px 11px;margin-top:8px;background:var(--head)}
+.licsec>b{display:block;margin-bottom:6px;font-size:13px}
+.rmgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.rmbox{border:1px solid var(--border);border-top:3px solid var(--ac);border-radius:10px;padding:9px 12px;background:var(--head);font-size:13px;line-height:1.5}
+.rmbox .ck{margin:0 0 2px}.rmbox small{display:block;color:var(--muted);margin-bottom:4px}
+.sur input[type=number]{flex:none;width:72px;min-width:0}
+.sur select{flex:none;min-width:200px}

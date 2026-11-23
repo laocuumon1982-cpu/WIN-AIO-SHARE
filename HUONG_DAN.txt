@@ -1,4 +1,4 @@
-﻿WIN AIO BY DUY ANH - v2.9
+﻿WIN AIO BY DUY ANH - v3.0
 =========================
 
 CHỈ 1 FILE EXE
@@ -189,4 +189,10 @@ KHO iOS (v2.7)
 DRIVER IRST (v2.8) - Kho bộ cài WIN › Kho driver IRST
 - Máy Intel đời 11 trở lên cài Win không thấy ổ cứng: cắm USB cài Win, chọn "Giải nén vào: USB", bấm Tải bản có dấu ✅.
 - Lúc cài Win: bấm "Load driver" → Browse → chọn thư mục IntelRstVmd_... (thư mục VMD) → chọn "Intel RST VMD Controller" → Next.
+
+MS OFFICE (v3.0) - Cài phần mềm › nhóm Văn phòng › MS Office
+- 🗑 Gỡ Office: gỡ sạch Office cũ trước khi cài bản mới, xong khởi động lại máy.
+- 🔑 Bản quyền: nhập key của khách → Kích hoạt. Không có mạng: bấm "Lấy Installation ID", gọi Microsoft
+  lấy Confirmation ID rồi dán vào. Máy từng dùng crack: bấm "Dọn crack KMS / Ohook" trước khi nhập key.
+- 📝 Thiết lập Office: đóng hết Word / Excel rồi bấm Áp dụng - văn bản mới sẽ là A4, lề chuẩn, Times New Roman 14.
 

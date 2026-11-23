@@ -458,7 +458,7 @@ async function openOffice() {
       : `🌐 <b>ONLINE</b> — Microsoft sẽ tải bộ cài trong lúc cài (cần mạng). Muốn cài offline: bấm "⬇ Tải thư viện offline" một lần.`}</div>
     ${st.installed.length ? `<div class="pwwarn">Máy đang có Office: ${esc(st.installed.join(", "))}. Cài bản khác nên bấm "🗑 Gỡ Office cũ" trước.</div>` : ""}
     <label class="fl">PHIÊN BẢN</label><div class="ofrow" id="oVer">${radio("ver", vers.map(v => [v, v === "365" ? "Office 365" : "Office " + v]), OFF.ver)}</div>
-    <label class="fl">BIẾN THỂ (EDITION)</label><div class="ofrow" id="oEd">${radio("ed", info.editions, OFF.ed)}</div>
+    <label class="fl">BIẾN THỂ (EDITION)</label><div class="ofrow" id="oEd"></div>
     <div class="row2" style="gap:24px;align-items:flex-start">
       <div><label class="fl">KIẾN TRÚC</label><div class="ofrow" id="oBit">${radio("bit", [["64", "64-bit"], ["32", "32-bit"]], OFF.bit)}</div></div>
       <div style="flex:1"><label class="fl">NGÔN NGỮ</label><div class="row2"><select id="oLang">${info.langs.map(([c, n]) => `<option value="${c}"${c === OFF.lang ? " selected" : ""}>${esc(n)} – ${c}</option>`).join("")}</select>
@@ -468,7 +468,7 @@ async function openOffice() {
       <label class="ck"><input type="checkbox" id="oProj"${OFF.project ? " checked" : ""}> 📋 Project Pro</label>
       <label class="ck"><input type="checkbox" id="oVisio"${OFF.visio ? " checked" : ""}> 📈 Visio Pro</label></div>
     <label class="ck" style="margin-top:8px"><input type="checkbox" id="oSc"${OFF.shortcut ? " checked" : ""}> Ghim biểu tượng Word / Excel / PowerPoint... ra Desktop sau khi cài</label>
-    <div class="help">Cài bằng Office Deployment Tool chính chủ của Microsoft. Office cài xong ở trạng thái chưa kích hoạt — dùng key bản quyền của bạn ở nút "🔑 Nhập key Office".</div>
+    <div class="help">Cài bằng Office Deployment Tool chính chủ của Microsoft. Office cài xong ở trạng thái chưa kích hoạt — nhập key bản quyền của khách ở nút "🔑 Bản quyền" (có cả kích hoạt qua điện thoại).</div>
     <div class="err"></div>`;
   const read = c => {
     const v = n => (c.el.querySelector(`input[name="${n}"]:checked`) || {}).value;
@@ -480,8 +480,8 @@ async function openOffice() {
   };
   dialog({title: "Cài đặt Microsoft Office", width: 720, body,
     left: `<button class="btn sm" id="oDl" title="Tải bộ cài về Soft\\Office để lần sau cài không cần mạng">⬇ Tải thư viện offline</button>
-      <button class="btn sm" id="oUn">🗑 Gỡ Office cũ</button><button class="btn sm" id="oKey">🔑 Nhập key Office</button>
-      <button class="btn sm" id="oLic">🔍 Bản quyền</button><button class="btn sm" id="oSc2">🔗 Ghim Desktop</button>`,
+      <button class="btn sm" id="oUn">🗑 Gỡ Office</button><button class="btn sm" id="oLic">🔑 Bản quyền</button>
+      <button class="btn sm" id="oTune" title="A4, lề, Times New Roman, giãn dòng, tắt Protected View...">📝 Thiết lập Office</button><button class="btn sm" id="oSc2">🔗 Ghim Desktop</button>`,
     buttons: [{text: "Đóng", value: false}, {text: "⚙ CÀI ĐẶT", cls: "red shine", def: true, click: async c => {
       const o = read(c); const m = await api("office_install", o);
       if (m) { c.err(m); return false; }
@@ -491,14 +491,13 @@ async function openOffice() {
       c.q("#oAll").onclick = () => { const bs = [...c.el.querySelectorAll("#oApps input[value]")]; const all = bs.every(b => b.checked); bs.forEach(b => b.checked = !all); };
       c.q("#oDl").onclick = async () => { if (!(await confirmBox("Tải thư viện offline", `Tải bộ cài Office theo lựa chọn hiện tại về thư mục Soft\\Office kế bên tool (khoảng 2-4 GB).\nLần sau cài không cần mạng.`, "⬇ Tải", false))) return;
         const m = await api("office_download", read(c)); m ? c.err(m) : toast("Đang tải thư viện Office — xem nhật ký"); };
-      c.q("#oUn").onclick = async () => { if (!(await confirmBox("Gỡ Office", "Gỡ TOÀN BỘ Microsoft Office đang có trên máy (Click-to-Run và MSI)?"))) return;
-        const m = await api("office_uninstall"); m ? c.err(m) : toast("Đang gỡ Office — theo dõi cửa sổ của Microsoft"); };
+      c.q("#oUn").onclick = () => offRemoveBox();
       c.q("#oSc2").onclick = async () => { const m = await api("office_shortcuts"); m ? c.err(m) : toast("Đã ghim biểu tượng Office ra Desktop"); };
-      c.q("#oLic").onclick = async () => { const r = await api("office_license");
-        dialog({title: "Bản quyền Office", width: 720, body: `<div class="outbox">${esc(r.out)}</div>`, buttons: [{text: "OK", cls: "red", def: true}]}); };
-      c.q("#oKey").onclick = async () => { const k = await promptBox("Nhập key Office", "Key bản quyền Office của bạn (XXXXX-XXXXX-XXXXX-XXXXX-XXXXX):", ""); if (!k) return;
-        const r = await api("office_key", k);
-        dialog({title: (r.ok ? "✔ " : "✖ ") + "Kích hoạt Office", width: 720, body: `<div class="outbox">${esc(r.out)}</div>`, buttons: [{text: "OK", cls: "red", def: true}]}); };
+      c.q("#oLic").onclick = () => licBox("office");
+      c.q("#oTune").onclick = () => offTuneBox();
+      const edRow = () => { const v = (c.el.querySelector('input[name="ver"]:checked') || {}).value; const list = v === "365" ? info.editions365 : info.editions;
+        const cur = list.some(x => x[0] === OFF.ed) ? OFF.ed : list[0][0]; c.q("#oEd").innerHTML = radio("ed", list, cur); };
+      edRow(); c.q("#oVer").addEventListener("change", edRow);
     }});
 }
 

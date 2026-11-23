@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v3.0
+- MS Office: Office 365 đủ biến thể, ODT mới nhất, Gỡ Office tận gốc, Bản quyền Office / Windows (key, điện thoại, OEM, đổi Volume, dọn crack), Thiết lập Office cho văn bản Việt Nam.
+
 ## v2.9
 - Vòng GPU (VRAM đang dùng) thay vòng nhiệt độ CPU; nút Tải & mở Rufus trong Kho bộ cài WIN.
 
