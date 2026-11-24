@@ -95,6 +95,15 @@ TOOLS_3U = ("📱", "3uTools (64-bit)", r"page:https://www.3u.com/|https?://dl\.
 # Transub-Player bản Việt hóa của Duy Anh: lấy bộ cài trong bản phát hành mới nhất của repo fork
 TRANSUB = ("🎬", "Transub-Player", r"github:laocuumon1982-cpu/Transub-Player|win-x64-setup\.exe$", "",
            "Trình xem phim tự dịch phụ đề sang tiếng Việt (bản của Duy Anh)")
+# Nhóm đọc chữ thành giọng nói & phụ đề (v4.0)
+LAZIBOOK = ("📚", "LaziBook", "winget:9N2X9BM8R5P9", "", "Đọc truyện, nghe sách nói giọng Việt (EPUB, PDF, Word, truyện tranh) - Microsoft Store")
+VIENEU = ("🗣️", "VieNeu-TTS", r"github:pnnbao97/VieNeu-TTS|\.(exe|zip|7z)$", "", "Chuyển văn bản thành giọng nói tiếng Việt (bản mới nhất từ GitHub)")
+TTS_SUB = ("TTS & SUB", [
+    ("🎞️", "CIT Voice Studio", GH_CIT, "", ""),
+    ("🎞️", "Subtitle Translator", GH_SUBTR, "", ""),
+    LAZIBOOK,
+    VIENEU,
+])
 PICVIEW = ("🖼️", "PicView", "winget:Ruben2776.PicView", "", "Cài vào ổ C và tự đặt làm trình xem ảnh mặc định")
 FONT_PACK = "https://github.com/minhhaibuitt/Caiwindao/releases/download/Tonghop/fontchu.zip"     # bộ font đầy đủ (VNI, TCVN3, SVN...)
 
@@ -301,11 +310,10 @@ DEFAULT_GROUPS = [     # (tên nhóm, cột, [nút...]) - thứ tự trong cột
         ("📸", "ShareX", "winget:ShareX.ShareX", "", "Chụp màn hình"),
         ("📊", "TreeSize Free", "winget:JAMSoftware.TreeSize.Free", "", ""),
         ("🛠️", "Snappy Driver Installer", "winget:GlennDelahoy.SnappyDriverInstallerOrigin", "", ""),
-        ("🎞️", "CIT Voice Studio", r"github:Cuongyd196/cit-voice-studio|win-x86_64\.exe$", "", ""),
-        ("🎞️", "Subtitle Translator", r"github:rockbenben/subtitle-translator|x64_portable\.exe$", "", ""),
         ("🎞️", "YouTube Downloader Pro", r"github:duckmartians/YouTube_Downloader|windows\.zip$", "", ""),
         ("🧰", "Tiện ích cài Win dạo", r"github:minhhaibuitt/Caiwindao@caiwindao|^Tien\.ich\.cai\.Win\.dao\.v[\d.]+\.exe$", "", "Tool cài Win dạo của Hải Đỗ - luôn tải bản mới nhất (mật khẩu: haido)"),
     ]),
+    (TTS_SUB[0], 4, TTS_SUB[1]),
     ("UNINSTALLER TOOL", 4, [
         ("🧹", "HiBit Uninstaller", "winget:HiBitSoftware.HiBitUninstaller", "", ""),
         ("🅰️", "Avast Clear", "https://files.avast.com/iavs9x/avastclear.exe", "", "Công cụ gỡ Avast chính hãng (trang chủ Avast)"),
@@ -314,7 +322,7 @@ DEFAULT_GROUPS = [     # (tên nhóm, cột, [nút...]) - thứ tự trong cột
         ("🧽", "WPS Office Utility & Cleaner", r"codeberg:yansuogaming/wps-utility|portable.*\.(exe|zip|rar|7z)$", "pass=123", "Gỡ sạch / chặn WPS Office (Yansuo, bản Portable mới nhất từ Codeberg)"),
     ]),
 ]
-DEFAULT_GPOS = {"2026": 1, "KHO PHẦN MỀM": 0, "TRÌNH DUYỆT WEB": 7, "HỖ TRỢ TỪ XA": 9, "VĂN PHÒNG - PDF": 2, "ARTCRAFT OFFICE": 3, "BỘ GÕ TIẾNG VIỆT": 4, "NHẮN TIN - HỌP": 8, "ĐA PHƯƠNG TIỆN": 6, "NÉN - GIẢI NÉN": 5, "GIẢ LẬP ANDROID": 12, "LẬP TRÌNH": 13, "THƯ VIỆN HỆ THỐNG": 10, "TIỆN ÍCH": 11, "UNINSTALLER TOOL": 14}     # vị trí ở kiểu Lưới
+DEFAULT_GPOS = {"2026": 1, "KHO PHẦN MỀM": 0, "TRÌNH DUYỆT WEB": 7, "HỖ TRỢ TỪ XA": 9, "VĂN PHÒNG - PDF": 2, "ARTCRAFT OFFICE": 3, "BỘ GÕ TIẾNG VIỆT": 4, "NHẮN TIN - HỌP": 8, "ĐA PHƯƠNG TIỆN": 6, "NÉN - GIẢI NÉN": 5, "GIẢ LẬP ANDROID": 12, "LẬP TRÌNH": 13, "THƯ VIỆN HỆ THỐNG": 10, "TIỆN ÍCH": 11, "UNINSTALLER TOOL": 14, "TTS & SUB": 15}     # vị trí ở kiểu Lưới
 DEFAULT_FIT_N = 5
 
 # ---------------------------------------------------------------- tiện ích Windows cố định
@@ -814,6 +822,23 @@ class Store:
                     self.db.execute("INSERT INTO apps(group_id, icon, name, src, args, note, ord) VALUES(?,?,?,?,?,?,?)", (g[0],) + PICVIEW + (-1,))
             self.commit(persist=False)
             done.add("v32")
+            self.cfg["migrated"] = sorted(done)
+            self.save_config(persist=False)
+        if "v40" not in done:
+            # nhóm TTS & SUB: đặt ngay dưới nhóm TIỆN ÍCH, chuyển CIT Voice / Subtitle Translator sang, thêm LaziBook, VieNeu-TTS
+            if not self.db.execute("SELECT 1 FROM groups WHERE name=?", (TTS_SUB[0],)).fetchone():
+                ti = self.db.execute("SELECT col, ord FROM groups WHERE name LIKE 'TIỆN ÍCH%' ORDER BY id LIMIT 1").fetchone()
+                col, o = (ti[0], ti[1] + 1) if ti else (self.db.execute("SELECT COALESCE(MAX(col),0) FROM groups").fetchone()[0], 999)
+                self.db.execute("UPDATE groups SET ord=ord+1 WHERE col=? AND ord>=?", (col, o))
+                gp = self.db.execute("SELECT COALESCE(MAX(gpos),0)+1 FROM groups").fetchone()[0]
+                gid = self.db.execute("INSERT INTO groups(name, ord, col, gpos) VALUES(?,?,?,?)", (TTS_SUB[0], o, col, gp)).lastrowid
+                for i, a in enumerate(TTS_SUB[1]):
+                    if self.db.execute("SELECT 1 FROM apps WHERE src=?", (a[2],)).fetchone():
+                        self.db.execute("UPDATE apps SET group_id=?, ord=? WHERE src=?", (gid, i, a[2]))
+                    else:
+                        self.db.execute("INSERT INTO apps(group_id, icon, name, src, args, note, ord) VALUES(?,?,?,?,?,?,?)", (gid,) + a + (i,))
+                self.commit(persist=False)
+            done.add("v40")
             self.cfg["migrated"] = sorted(done)
             self.save_config(persist=False)
         if "v39" not in done:
@@ -3647,6 +3672,9 @@ class App:
                           ("gh_ytdl", lambda: resolve_github(GH_YTDL)),
                           ("gh_ventoy", lambda: resolve_github(r"github:ventoy/Ventoy|windows\.zip$")),
                           ("gh_caiwindao", lambda: resolve_github(CAIWINDAO[2])), ("gh_vanphong", lambda: resolve_github(VANPHONG[2])), ("gh_rufus", lambda: resolve_github(extra.RUFUS)), ("gh_transub", lambda: _try(lambda: resolve_github(TRANSUB[2]))),
+                          ("gh_vieneu", lambda: [_try(lambda: resolve_github(VIENEU[2])), _assets("github:pnnbao97/VieNeu-TTS")]),
+                          ("wg_lazibook", lambda: run_hidden(["winget", "show", "--id", "9N2X9BM8R5P9", "--source", "msstore",
+                                                              "--accept-source-agreements"], timeout=180)[1][-500:]),
                           ("uninst_links", lambda: [(a[1], _try(lambda a=a: resolve_github(a[2]) if src_kind(a[2]) == "github" else requests_head(a[2])))
                                                     for a in UNINSTALLER[1]]),
                           ("wg_picview", lambda: run_hidden(["winget", "show", "--id", "Ruben2776.PicView", "-e", "--source", "winget",
