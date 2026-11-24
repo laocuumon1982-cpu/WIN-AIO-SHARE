@@ -80,9 +80,9 @@ VANPHONG = ("🧾", "Tiện ích văn phòng", r"github:minhhaibuitt/Caiwindao@v
             "Tiện ích văn phòng của Hải Đỗ - luôn tải bản mới nhất")
 # Nhóm gỡ phần mềm cứng đầu (v3.2). codeberg: giống github: (Forgejo có API phát hành giống GitHub)
 UNINSTALLER = ("UNINSTALLER TOOL", [
-    ("🧽", "WPS Office Utility & Cleaner", r"codeberg:yansuogaming/wps-utility|portable.*\.(exe|zip|rar|7z)$", "",
+    ("🧽", "WPS Office Utility & Cleaner", r"codeberg:yansuogaming/wps-utility|portable.*\.(exe|zip|rar|7z)$", "pass=123",
      "Gỡ sạch / chặn WPS Office (Yansuo, bản Portable mới nhất từ Codeberg)"),
-    ("🛡️", "360 Total Security Remover", r"codeberg:yansuogaming/360totalremove|portable.*\.(exe|zip|rar|7z)$", "",
+    ("🛡️", "360 Total Security Remover", r"codeberg:yansuogaming/360totalremove|portable.*\.(exe|zip|rar|7z)$", "pass=123",
      "Gỡ sạch 360 Total Security (Yansuo, bản Portable mới nhất từ Codeberg)"),
     ("🧹", "360 Security Uninstaller Tool", r"github:ThanhNguyenVN93/360-Security-Uninstaller-Tool|\.(exe|zip)$", "",
      "Gỡ 360 Security (ThanhNguyenVN93, bản mới nhất từ GitHub)"),
@@ -539,7 +539,7 @@ def _rar_selftest():
         d = Path(tempfile.mkdtemp())
         f = d / url.rsplit("/", 1)[-1]
         f.write_bytes(requests.get(url, timeout=120).content)
-        ok = Engine._unarchive(f, d / "x")
+        ok = Engine._unarchive(f, d / "x", "123")
         tc, to = run_hidden(["tar", "-xf", str(f), "-C", str(d)], timeout=300)
         out.append([a[1], url, f.stat().st_size, ok, [x.name for x in (d / "x").rglob("*.exe")] if ok else [], "tar", tc, to[-120:]])
     return out
@@ -1678,16 +1678,17 @@ Remove-Item $d -Recurse -Force; 'OK'
         return out
 
     @staticmethod
-    def _unarchive(p, dest):
-        """Giải nén .rar / .7z: 7-Zip -> WinRAR -> tar.exe của Windows 11 (đọc được rar)."""
+    def _unarchive(p, dest, pw=""):
+        """Giải nén .rar / .7z: 7-Zip -> WinRAR -> tar.exe của Windows 11 (đọc được rar, không đọc được rar có mật khẩu)."""
         Path(dest).mkdir(parents=True, exist_ok=True)
         pf = [os.environ.get("ProgramW6432", ""), os.environ.get("ProgramFiles", ""), os.environ.get("ProgramFiles(x86)", "")]
         tries = []
         for b in pf:
             if b:
-                tries.append([str(Path(b) / "7-Zip" / "7z.exe"), "x", "-y", f"-o{dest}", str(p)])
-                tries.append([str(Path(b) / "WinRAR" / "UnRAR.exe"), "x", "-y", "-o+", str(p), str(dest) + "\\"])
-        tries.append([str(Path(os.environ.get("SystemRoot", r"C:\Windows")) / "System32" / "tar.exe"), "-xf", str(p), "-C", str(dest)])
+                tries.append([str(Path(b) / "7-Zip" / "7z.exe"), "x", "-y"] + ([f"-p{pw}"] if pw else []) + [f"-o{dest}", str(p)])
+                tries.append([str(Path(b) / "WinRAR" / "UnRAR.exe"), "x", "-y", "-o+", f"-p{pw}" if pw else "-p-", str(p), str(dest) + "\\"])
+        if not pw:
+            tries.append([str(Path(os.environ.get("SystemRoot", r"C:\Windows")) / "System32" / "tar.exe"), "-xf", str(p), "-C", str(dest)])
         for cmd in tries:
             if not Path(cmd[0]).exists():
                 continue
@@ -1720,10 +1721,17 @@ Remove-Item $d -Recurse -Force; 'OK'
                 os.startfile(dest)            # noqa: S606
             return "ok", ""
         if ext in (".rar", ".7z"):
+            pw = next((x.split("=", 1)[1] for x in a if x.lower().startswith("pass=")), "")
+            a = [x for x in a if not x.lower().startswith("pass=")]
             dest = self.dl_dir() / p.stem
             dest.mkdir(parents=True, exist_ok=True)
             stop = self._est_start(8.0, "Đang giải nén")
-            ok = self._unarchive(p, dest)
+            ok = self._unarchive(p, dest, pw)
+            if not ok and not FAKE:                 # máy chưa có 7-Zip -> cài 7-Zip rồi thử lại
+                self.log("Máy chưa có công cụ giải nén file này - đang cài 7-Zip...")
+                run_hidden(["winget", "install", "--id", "7zip.7zip", "-e", "--source", "winget", "--silent",
+                            "--accept-package-agreements", "--accept-source-agreements"], timeout=600)
+                ok = self._unarchive(p, dest, pw)
             stop.set()
             if not ok:
                 os.startfile(str(p))          # noqa: S606
@@ -3559,8 +3567,7 @@ class App:
                                                     for a in UNINSTALLER[1]]),
                           ("wg_picview", lambda: run_hidden(["winget", "show", "--id", "Ruben2776.PicView", "-e", "--source", "winget",
                                                              "--accept-source-agreements"], timeout=180)[1][-300:]),
-                          ("rar_test", _rar_selftest), ("cb_readme", lambda: [__import__("requests").get(f"https://codeberg.org/yansuogaming/{r}/raw/branch/main/README.md", timeout=20).text[:3000]
-                                                     for r in ("wps-utility", "360totalremove")]),
+                          ("rar_test", _rar_selftest), 
                           ("off_scan", officex.off_scan), ("crack_check", officex.crack_check), ("lic_oem", officex.lic_oem),
                           ("lic_win", lambda: officex.lic_status("windows")["out"][:400]), ("odt_latest", odt_latest_url), ("irst_info", extra.irst_info),
                           ("irst_links", lambda: [(v["file"], requests_head(v["url"])) for v in extra.irst_info()["list"]] + [("font", requests_head(FONT_PACK))]),
