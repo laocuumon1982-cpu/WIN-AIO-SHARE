@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v4.0
+- Nhóm TTS & SUB: CIT Voice Studio, Subtitle Translator, LaziBook, VieNeu-TTS.
+
 ## v3.9
 - Nút Transub-Player (nhóm Đa phương tiện).
 

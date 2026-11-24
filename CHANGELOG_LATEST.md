@@ -1,4 +1,7 @@
-Win AIO by Duy Anh v3.9
+Win AIO by Duy Anh v4.0
 
-- Mới: nút "Transub-Player" trong nhóm Đa phương tiện - trình xem phim tự dịch phụ đề sang tiếng Việt (bản của Duy Anh), luôn tải bộ cài mới nhất từ trang phát hành của repo laocuumon1982-cpu/Transub-Player.
-- Bản cũ cập nhật lên cũng tự có nút này, các nút khác giữ nguyên.
+- Mới: nhóm "TTS & SUB" (ngay dưới nhóm Tiện ích):
+  · CIT Voice Studio, Subtitle Translator (chuyển từ nhóm Tiện ích sang).
+  · LaziBook - đọc truyện, nghe sách nói giọng Việt (EPUB, PDF, Word, truyện tranh), cài từ Microsoft Store.
+  · VieNeu-TTS - chuyển văn bản thành giọng nói tiếng Việt, luôn tải bộ cài Windows mới nhất từ GitHub.
+- Bản cũ cập nhật lên tự tạo nhóm và chuyển nút, các nút khác giữ nguyên.

@@ -35,7 +35,7 @@ import apple
 import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v3.9"
+APP_VERSION = "v4.0"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -97,7 +97,7 @@ TRANSUB = ("🎬", "Transub-Player", r"github:laocuumon1982-cpu/Transub-Player|w
            "Trình xem phim tự dịch phụ đề sang tiếng Việt (bản của Duy Anh)")
 # Nhóm đọc chữ thành giọng nói & phụ đề (v4.0)
 LAZIBOOK = ("📚", "LaziBook", "winget:9N2X9BM8R5P9", "", "Đọc truyện, nghe sách nói giọng Việt (EPUB, PDF, Word, truyện tranh) - Microsoft Store")
-VIENEU = ("🗣️", "VieNeu-TTS", r"github:pnnbao97/VieNeu-TTS|\.(exe|zip|7z)$", "", "Chuyển văn bản thành giọng nói tiếng Việt (bản mới nhất từ GitHub)")
+VIENEU = ("🗣️", "VieNeu-TTS", r"github:pnnbao97/VieNeu-TTS|_x64-setup\.exe$", "", "Chuyển văn bản thành giọng nói tiếng Việt (bản mới nhất từ GitHub)")
 TTS_SUB = ("TTS & SUB", [
     ("🎞️", "CIT Voice Studio", GH_CIT, "", ""),
     ("🎞️", "Subtitle Translator", GH_SUBTR, "", ""),
