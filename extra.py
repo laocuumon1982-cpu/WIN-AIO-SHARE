@@ -1065,3 +1065,68 @@ def rufus_run(j):
                 old.unlink(missing_ok=True)
     subprocess.Popen([str(exe)], cwd=str(d))
     return {"text": f"Đã mở Rufus {tag.lstrip('v')} (bản portable, lưu trong Data\\Tools\\Rufus)."}
+
+
+# ================================================================ PICVIEW: đặt làm trình xem ảnh mặc định
+PIC_EXT = [".jpg", ".jpeg", ".jpe", ".jfif", ".png", ".bmp", ".gif", ".webp", ".tif", ".tiff", ".ico", ".heic", ".heif", ".avif"]
+PIC_PROGID = "WinAIO.PicView"
+
+
+def _picview_exe():
+    cands = []
+    for base in (os.environ.get("ProgramW6432", ""), os.environ.get("ProgramFiles", ""), os.environ.get("ProgramFiles(x86)", ""),
+                 os.path.join(os.environ.get("LOCALAPPDATA", ""), "Programs")):
+        if base:
+            cands.append(Path(base) / "PicView" / "PicView.exe")
+    wg = Path(os.environ.get("LOCALAPPDATA", "")) / "Microsoft" / "WinGet" / "Packages"
+    if wg.exists():
+        cands += list(wg.glob("Ruben2776.PicView*/**/PicView.exe"))
+    return next((c for c in cands if c.exists()), None)
+
+
+def picview_default():
+    """Đặt PicView mở các file ảnh: đăng ký ProgId, xóa lựa chọn cũ (Photos), và ghi chính sách liên kết mặc định
+    để Windows áp dụng cho mọi lần đăng nhập (Windows 10/11 không cho phần mềm tự đổi trực tiếp)."""
+    if fake():
+        return "Đã đặt PicView làm trình xem ảnh mặc định (chạy thử)."
+    import winreg
+    exe = _picview_exe()
+    if not exe:
+        raise RuntimeError("Không thấy PicView.exe sau khi cài")
+    cls = r"Software\Classes"
+    with winreg.CreateKey(winreg.HKEY_LOCAL_MACHINE, rf"{cls}\{PIC_PROGID}") as k:
+        winreg.SetValueEx(k, "", 0, winreg.REG_SZ, "Ảnh (PicView)")
+    with winreg.CreateKey(winreg.HKEY_LOCAL_MACHINE, rf"{cls}\{PIC_PROGID}\DefaultIcon") as k:
+        winreg.SetValueEx(k, "", 0, winreg.REG_SZ, f'"{exe}",0')
+    with winreg.CreateKey(winreg.HKEY_LOCAL_MACHINE, rf"{cls}\{PIC_PROGID}\shell\open\command") as k:
+        winreg.SetValueEx(k, "", 0, winreg.REG_SZ, f'"{exe}" "%1"')
+    # khai báo PicView là ứng dụng có thể mở ảnh (hiện trong Cài đặt > Ứng dụng mặc định)
+    cap = r"Software\WinAIO\PicView\Capabilities"
+    with winreg.CreateKey(winreg.HKEY_LOCAL_MACHINE, cap) as k:
+        winreg.SetValueEx(k, "ApplicationName", 0, winreg.REG_SZ, "PicView")
+        winreg.SetValueEx(k, "ApplicationDescription", 0, winreg.REG_SZ, "PicView - xem ảnh nhanh")
+    with winreg.CreateKey(winreg.HKEY_LOCAL_MACHINE, cap + r"\FileAssociations") as k:
+        for e in PIC_EXT:
+            winreg.SetValueEx(k, e, 0, winreg.REG_SZ, PIC_PROGID)
+    with winreg.CreateKey(winreg.HKEY_LOCAL_MACHINE, r"Software\RegisteredApplications") as k:
+        winreg.SetValueEx(k, "PicView", 0, winreg.REG_SZ, cap)
+    for e in PIC_EXT:
+        with winreg.CreateKey(winreg.HKEY_LOCAL_MACHINE, rf"{cls}\{e}\OpenWithProgids") as k:
+            winreg.SetValueEx(k, PIC_PROGID, 0, winreg.REG_NONE, b"")
+        with winreg.CreateKey(winreg.HKEY_CURRENT_USER, rf"{cls}\{e}") as k:
+            winreg.SetValueEx(k, "", 0, winreg.REG_SZ, PIC_PROGID)
+        for sub in ("UserChoice", "UserChoiceLatest"):     # bỏ lựa chọn cũ (thường là Photos) -> Windows dùng PicView
+            H["run"](f'reg delete "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\{e}\\{sub}" /f', shell=True, timeout=15)
+    # chính sách liên kết mặc định: Windows tự áp dụng lại mỗi lần đăng nhập
+    xml = Path(os.environ.get("ProgramData", r"C:\ProgramData")) / "WinAIO" / "DefaultAssociations.xml"
+    xml.parent.mkdir(parents=True, exist_ok=True)
+    xml.write_text('<?xml version="1.0" encoding="UTF-8"?>\n<DefaultAssociations>\n'
+                   + "".join(f'  <Association Identifier="{e}" ProgId="{PIC_PROGID}" ApplicationName="PicView" />\n' for e in PIC_EXT)
+                   + "</DefaultAssociations>\n", encoding="utf-8")
+    with winreg.CreateKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Policies\Microsoft\Windows\System") as k:
+        winreg.SetValueEx(k, "DefaultAssociationsConfiguration", 0, winreg.REG_SZ, str(xml))
+    try:
+        ctypes.windll.shell32.SHChangeNotify(0x08000000, 0, None, None)
+    except Exception:                                   # noqa: BLE001
+        pass
+    return "Đã đặt PicView làm trình xem ảnh mặc định (jpg, png, gif, webp, heic...). Nếu ảnh vẫn mở bằng Photos: đăng xuất rồi đăng nhập lại."

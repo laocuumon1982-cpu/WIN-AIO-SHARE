@@ -35,7 +35,7 @@ import apple
 import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v3.1"
+APP_VERSION = "v3.2"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -78,6 +78,17 @@ CAIWINDAO = ("🧰", "Tiện ích cài Win dạo", r"github:minhhaibuitt/Caiwind
 # Tiện ích văn phòng (Hải Đỗ): file mới nhất trong bản phát hành "vanphong" (tool đó tự đọc version.txt cùng chỗ)
 VANPHONG = ("🧾", "Tiện ích văn phòng", r"github:minhhaibuitt/Caiwindao@vanphong|^Tien\.ich\.van\.phong\.v[\d.]+\.exe$", "",
             "Tiện ích văn phòng của Hải Đỗ - luôn tải bản mới nhất")
+# Nhóm gỡ phần mềm cứng đầu (v3.2). codeberg: giống github: (Forgejo có API phát hành giống GitHub)
+UNINSTALLER = ("UNINSTALLER TOOL", [
+    ("🧽", "WPS Office Utility & Cleaner", r"codeberg:yansuogaming/wps-utility|portable.*\.(exe|zip)$|\.exe$", "",
+     "Gỡ sạch / chặn WPS Office (Yansuo, bản Portable mới nhất từ Codeberg)"),
+    ("🛡️", "360 Total Security Remover", r"codeberg:yansuogaming/360totalremove|portable.*\.(exe|zip)$|\.exe$", "",
+     "Gỡ sạch 360 Total Security (Yansuo, bản Portable mới nhất từ Codeberg)"),
+    ("🧹", "360 Security Uninstaller Tool", r"github:ThanhNguyenVN93/360-Security-Uninstaller-Tool|\.(exe|zip)$", "",
+     "Gỡ 360 Security (ThanhNguyenVN93, bản mới nhất từ GitHub)"),
+    ("🅰️", "Avast Clear", "https://files.avast.com/iavs9x/avastclear.exe", "", "Công cụ gỡ Avast chính hãng (trang chủ Avast)"),
+])
+PICVIEW = ("🖼️", "PicView (xem ảnh)", "winget:Ruben2776.PicView", "", "Cài vào ổ C và tự đặt làm trình xem ảnh mặc định")
 FONT_PACK = "https://github.com/minhhaibuitt/Caiwindao/releases/download/Tonghop/fontchu.zip"     # bộ font đầy đủ (VNI, TCVN3, SVN...)
 
 # Link cũ đã chết -> nguồn mới (tự sửa trong dữ liệu đã lưu và lúc cài)
@@ -233,6 +244,7 @@ DEFAULT_GROUPS = [     # (tên nhóm, cột, [nút...]) - thứ tự & cột the
         ("🎮", "LDPlayer", "https://www.ldplayer.net/", "", "Mở trang tải"),
     ]),
     ("ĐA PHƯƠNG TIỆN", 3, [
+        PICVIEW,
         ("🎬", "K-Lite Codec Pack", "winget:CodecGuide.K-LiteCodecPack.Standard", "", ""),
         ("🎬", "VLC Media Player", "winget:VideoLAN.VLC", "", ""),
         ("🎞️", "OBS Studio", "winget:OBSProject.OBSStudio", "", ""),
@@ -248,6 +260,7 @@ DEFAULT_GROUPS = [     # (tên nhóm, cột, [nút...]) - thứ tự & cột the
         ("🎞️", "Subtitle Translator", GH_SUBTR, "", ""),
         ("🎞️", "YouTube Downloader Pro", GH_YTDL, "", ""),
     ]),
+    (UNINSTALLER[0], 4, UNINSTALLER[1]),
     ("LẬP TRÌNH", 4, [
         ("🐍", "Python 3.12", "winget:Python.Python.3.12", "", ""),
         ("📝", "VS Code", "winget:Microsoft.VisualStudioCode", "", ""),
@@ -449,7 +462,7 @@ def src_kind(src):
         return "office"
     if s.lower().startswith("open:"):
         return "open"
-    if s.lower().startswith("github:"):
+    if s.lower().startswith(("github:", "codeberg:")):
         return "github"
     if re.match(r"^https?://", s, re.I):
         return "web"
@@ -458,18 +471,23 @@ def src_kind(src):
 
 def resolve_github(src):
     """github:chủ/repo|mẫu-tên-file  ->  (link tải file mới nhất, tên bản). Link không bao giờ cũ vì luôn hỏi bản mới nhất."""
-    body = src.split(":", 1)[1].strip()
-    repo, _, pat = body.partition("|")
+    site, body = src.split(":", 1)
+    cb = site.strip().lower() == "codeberg"
+    repo, _, pat = body.strip().partition("|")
     repo, _, tag = repo.strip().strip("/").partition("@")      # github:chủ/repo@tên-bản|mẫu -> lấy trong bản phát hành cố định
+    host = "Codeberg" if cb else "GitHub"
     if FAKE:
-        return f"https://github.com/{repo}/releases/download/v9.9.9/demo-windows-x64.zip", "v9.9.9"
+        return f"https://{host.lower()}.org/{repo}/releases/download/v9.9.9/demo-windows-x64.zip", "v9.9.9"
     import requests
     hdr = {"User-Agent": "WinAIO", "Accept": "application/vnd.github+json"}
     if os.environ.get("GH_TOKEN"):
         hdr["Authorization"] = "Bearer " + os.environ["GH_TOKEN"]
-    r = requests.get(f"https://api.github.com/repos/{repo}/releases/" + (f"tags/{tag}" if tag else "latest"), headers=hdr, timeout=20)
+    api = "https://codeberg.org/api/v1" if cb else "https://api.github.com"
+    if cb:
+        hdr = {"User-Agent": "WinAIO", "Accept": "application/json"}
+    r = requests.get(f"{api}/repos/{repo}/releases/" + (f"tags/{tag}" if tag else "latest"), headers=hdr, timeout=20)
     if r.status_code == 404:
-        raise RuntimeError(f"Không thấy bản phát hành nào của {repo} trên GitHub.")
+        raise RuntimeError(f"Không thấy bản phát hành nào của {repo} trên {host}.")
     if r.status_code == 403:
         raise RuntimeError("GitHub tạm chặn vì hỏi quá nhiều lần (60 lần / giờ) - đợi ít phút rồi thử lại.")
     r.raise_for_status()
@@ -477,6 +495,8 @@ def resolve_github(src):
     assets = js.get("assets") or []
     rx = re.compile(pat.strip() or r"\.(exe|msi|zip)$", re.I)
     hits = [a for a in assets if rx.search(a.get("name", ""))]
+    if "portable" in pat.lower():        # mẫu có chữ portable -> ưu tiên file portable
+        hits.sort(key=lambda a: "portable" not in a.get("name", "").lower())
     if tag and hits:                     # bản phát hành chứa nhiều phiên bản -> lấy số phiên bản lớn nhất
         a = max(hits, key=lambda a: [int(x) for x in re.findall(r"\d+", a["name"])])
         return a["browser_download_url"], ".".join(re.findall(r"\d+", a["name"]))
@@ -484,6 +504,25 @@ def resolve_github(src):
         return a["browser_download_url"], js.get("tag_name", "")
     raise RuntimeError(f"Bản {js.get('tag_name', '')} của {repo} không có file khớp mẫu '{pat}'. "
                        "Admin bấm ✎ để sửa mẫu tên file.")
+
+
+def _try(f):
+    try:
+        return f()
+    except Exception as e:                  # noqa: BLE001
+        return "LỖI: " + str(e)[:200]
+
+
+def _assets(src):
+    """Selftest: tên các file trong bản phát hành mới nhất (để chỉnh mẫu tên file)."""
+    import requests
+    site, repo = src.split(":", 1)
+    api = "https://codeberg.org/api/v1" if site == "codeberg" else "https://api.github.com"
+    try:
+        js = requests.get(f"{api}/repos/{repo}/releases/latest", timeout=20, headers={"User-Agent": "WinAIO"}).json()
+        return [repo, js.get("tag_name"), [a.get("name") for a in js.get("assets") or []]]
+    except Exception as e:                  # noqa: BLE001
+        return [repo, "LỖI " + str(e)[:150]]
 
 
 def requests_head(url):
@@ -656,6 +695,23 @@ class Store:
                                     (n, ic, json.dumps(apps, ensure_ascii=False), json.dumps(tools), json.dumps(opts), i))
                 self.commit(persist=False)
             done.add("presets")
+            self.cfg["migrated"] = sorted(done)
+            self.save_config(persist=False)
+        if "v32" not in done:
+            has = lambda src: self.db.execute("SELECT 1 FROM apps WHERE src=?", (src,)).fetchone()     # noqa: E731
+            if not any(has(a[2]) for a in UNINSTALLER[1]):
+                pos = self.db.execute("SELECT COALESCE(MAX(gpos),0)+1, COALESCE(MAX(ord),0)+1 FROM groups").fetchone()
+                col = self.db.execute("SELECT col FROM groups GROUP BY col ORDER BY COUNT(*), col LIMIT 1").fetchone()
+                gid = self.db.execute("INSERT INTO groups(name, ord, col, gpos) VALUES(?,?,?,?)",
+                                      (UNINSTALLER[0], pos[1], col[0] if col else 0, pos[0])).lastrowid
+                for i, a in enumerate(UNINSTALLER[1]):
+                    self.db.execute("INSERT INTO apps(group_id, icon, name, src, args, note, ord) VALUES(?,?,?,?,?,?,?)", (gid,) + a + (i,))
+            if not has(PICVIEW[2]):
+                g = self.db.execute("SELECT id FROM groups WHERE name LIKE 'ĐA PHƯƠNG TIỆN%' ORDER BY id LIMIT 1").fetchone()
+                if g:
+                    self.db.execute("INSERT INTO apps(group_id, icon, name, src, args, note, ord) VALUES(?,?,?,?,?,?,?)", (g[0],) + PICVIEW + (-1,))
+            self.commit(persist=False)
+            done.add("v32")
             self.cfg["migrated"] = sorted(done)
             self.save_config(persist=False)
         if "v31" not in done:
@@ -1317,6 +1373,11 @@ Remove-Item $d -Recurse -Force; 'OK'
                 self.cur.update(inst=100, est=False, phase="Xong")
                 time.sleep(0.6)                      # để thanh % kịp hiện 100%
             self.results[aid] = "ok" if status in ("ok", "web") else "err"
+            if status == "ok" and "picview" in (a.get("src") or "").lower():
+                try:
+                    self.log("🖼️ " + extra.picview_default())
+                except Exception as e:      # noqa: BLE001
+                    self.log("Chưa đặt được PicView làm mặc định: " + nice_err(e), "warn")
             label = {"ok": "Xong", "web": "Đã mở trang web", "err": "Lỗi", "stop": "Đã dừng"}.get(status, status)
             self.log(f"{'✔' if status in ('ok', 'web') else '✖'} {a['name']}: {label}{(' - ' + detail) if detail else ''}",
                      "ok" if status in ("ok", "web") else "err")
@@ -3416,6 +3477,12 @@ class App:
                           ("gh_ytdl", lambda: resolve_github(GH_YTDL)),
                           ("gh_ventoy", lambda: resolve_github(r"github:ventoy/Ventoy|windows\.zip$")),
                           ("gh_caiwindao", lambda: resolve_github(CAIWINDAO[2])), ("gh_vanphong", lambda: resolve_github(VANPHONG[2])), ("gh_rufus", lambda: resolve_github(extra.RUFUS)),
+                          ("uninst_links", lambda: [(a[1], _try(lambda a=a: resolve_github(a[2]) if src_kind(a[2]) == "github" else requests_head(a[2])))
+                                                    for a in UNINSTALLER[1]]),
+                          ("wg_picview", lambda: run_hidden(["winget", "show", "--id", "Ruben2776.PicView", "-e", "--source", "winget",
+                                                             "--accept-source-agreements"], timeout=180)[1][-300:]),
+                          ("uninst_assets", lambda: [_assets(x) for x in ("codeberg:yansuogaming/wps-utility", "codeberg:yansuogaming/360totalremove",
+                                                                           "github:ThanhNguyenVN93/360-Security-Uninstaller-Tool", "github:ruben2776/picview")]),
                           ("off_scan", officex.off_scan), ("crack_check", officex.crack_check), ("lic_oem", officex.lic_oem),
                           ("lic_win", lambda: officex.lic_status("windows")["out"][:400]), ("odt_latest", odt_latest_url), ("irst_info", extra.irst_info),
                           ("irst_links", lambda: [(v["file"], requests_head(v["url"])) for v in extra.irst_info()["list"]] + [("font", requests_head(FONT_PACK))]),

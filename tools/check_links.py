@@ -18,8 +18,8 @@ ua = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.3
 bad = 0
 for gname, _col, apps in groups:
     for icon, name, link, args, note in apps:
-        if link.startswith("github:"):
-            body = link.split(":", 1)[1]
+        if link.startswith(("github:", "codeberg:")):
+            site, body = link.split(":", 1)
             repo, _, pat = body.partition("|")
             repo, _, tag = repo.partition("@")
             try:
@@ -27,7 +27,8 @@ for gname, _col, apps in groups:
                 h = {"User-Agent": "WinAIO"}
                 if os.environ.get("GH_TOKEN"):
                     h["Authorization"] = "Bearer " + os.environ["GH_TOKEN"]
-                js = requests.get(f"https://api.github.com/repos/{repo}/releases/" + (f"tags/{tag}" if tag else "latest"), headers=h, timeout=25).json()
+                api = "https://codeberg.org/api/v1" if site == "codeberg" else "https://api.github.com"
+                js = requests.get(f"{api}/repos/{repo}/releases/" + (f"tags/{tag}" if tag else "latest"), headers=h, timeout=25).json()
                 hit = [a["name"] for a in js.get("assets", []) if _re.search(pat, a["name"], _re.I)]
                 ok, info = bool(hit), f"{js.get('tag_name')} -> {hit[:1] or 'KHONG CO FILE KHOP'}"
             except Exception as e:  # noqa: BLE001

@@ -1,4 +1,4 @@
-﻿WIN AIO BY DUY ANH - v3.1
+﻿WIN AIO BY DUY ANH - v3.2
 =========================
 
 CHỈ 1 FILE EXE
@@ -195,4 +195,7 @@ MS OFFICE (v3.0) - Cài phần mềm › nhóm Văn phòng › MS Office
 - 🔑 Bản quyền: nhập key của khách → Kích hoạt. Không có mạng: bấm "Lấy Installation ID", gọi Microsoft
   lấy Confirmation ID rồi dán vào. Máy từng dùng crack: bấm "Dọn crack KMS / Ohook" trước khi nhập key.
 - 📝 Thiết lập Office: đóng hết Word / Excel rồi bấm Áp dụng - văn bản mới sẽ là A4, lề chuẩn, Times New Roman 14.
+
+PICVIEW (v3.2) - Cài phần mềm › Đa phương tiện › PicView
+- Bấm cài: PicView vào ổ C và thành trình xem ảnh mặc định. Ảnh vẫn mở bằng Photos thì đăng xuất / đăng nhập lại.
 

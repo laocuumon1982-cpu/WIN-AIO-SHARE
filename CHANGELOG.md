@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v3.2
+- Nhóm UNINSTALLER TOOL (WPS Utility, 360 Remover, 360 Security Uninstaller, Avast Clear); nút PicView tự đặt làm trình xem ảnh mặc định; nguồn codeberg:.
+
 ## v3.1
 - Nút Tiện ích văn phòng (luôn tải bản mới nhất).
 
