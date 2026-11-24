@@ -545,6 +545,20 @@ def _rar_selftest():
     return out
 
 
+def _probe_3u():
+    import requests
+    out = []
+    for u in ("https://www.3u.com/", "https://www.3u.com/download", "https://www.3u.com/en/", "https://dl.3u.com/update/v900/dl/version.txt"):
+        try:
+            r = requests.get(u, timeout=20, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
+            out.append([u, r.status_code, r.url, sorted(set(re.findall(r"https?://[^\"'\s<>]*3uTools[^\"'\s<>]*\.exe", r.text)))[:10],
+                        sorted(set(re.findall(r"[^\"'\s<>]*(?:dl\.3u\.com|url\.3u\.com)[^\"'\s<>]*", r.text)))[:10]])
+        except Exception as e:      # noqa: BLE001
+            out.append([u, str(e)[:100]])
+    out.append(run_hidden(["winget", "search", "3uTools", "--source", "winget", "--accept-source-agreements"], timeout=120)[1][-400:])
+    return out
+
+
 def _try(f):
     try:
         return f()
@@ -3567,7 +3581,8 @@ class App:
                                                     for a in UNINSTALLER[1]]),
                           ("wg_picview", lambda: run_hidden(["winget", "show", "--id", "Ruben2776.PicView", "-e", "--source", "winget",
                                                              "--accept-source-agreements"], timeout=180)[1][-300:]),
-                          ("rar_test", _rar_selftest), 
+                          ("probe_3u", _probe_3u),
+
                           ("off_scan", officex.off_scan), ("crack_check", officex.crack_check), ("lic_oem", officex.lic_oem),
                           ("lic_win", lambda: officex.lic_status("windows")["out"][:400]), ("odt_latest", odt_latest_url), ("irst_info", extra.irst_info),
                           ("irst_links", lambda: [(v["file"], requests_head(v["url"])) for v in extra.irst_info()["list"]] + [("font", requests_head(FONT_PACK))]),
@@ -3590,7 +3605,7 @@ class App:
                           ("ios_devices", lambda: [len(apple.ios_devices())] + apple.ios_devices()[:4]),
                           ("ios_fw", lambda: [(f["version"], f["build"], f["signed"], f["size"], f["url"]) for f in apple.ios_firmwares("iPhone15,2")["fw"][:3]])]:
                 try:
-                    lines.append(f"{nm}: " + json.dumps(f(), ensure_ascii=False, default=str)[:4000 if nm == "mac_list" else 1200])
+                    lines.append(f"{nm}: " + json.dumps(f(), ensure_ascii=False, default=str)[:4000 if nm in ("mac_list", "probe_3u") else 1200])
                 except Exception as e:      # noqa: BLE001
                     lines.append(f"{nm}: ERROR {e!r}")
             lines.append("Data folder exists: " + str(DATA.exists()))
