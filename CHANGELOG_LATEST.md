@@ -1,5 +1,6 @@
-Win AIO by Duy Anh v3.6
+Win AIO by Duy Anh v3.7
 
-- Nút HiBit Uninstaller chuyển xuống nhóm UNINSTALLER TOOL.
-- 3uTools chuyển từ tab Cài phần mềm sang tab Kho iOS: bấm "Tải & cài 3uTools" - luôn lấy bản 64-bit mới nhất trên trang chủ 3u.com.
-- Bản cũ cập nhật lên tự chuyển 2 nút này, các nút khác giữ nguyên.
+- Bộ nút mặc định (khi tải tool mới / bấm Khôi phục mặc định) giờ y như bản sắp xếp của Duy Anh ngày 24/11/2026: 15 nhóm, 5 cột, đúng thứ tự nhóm trong từng cột, vị trí ở kiểu Lưới, tên nút, icon, link, ghi chú.
+- Tab Web mặc định có sẵn 6 nút: HHTQ 4K (Google Drive, PikPak), HHTQ 4K - KIMNGON (PikPak, Fshare), Hoàng Phát 360, BEEUNLOCK.
+- Nhóm 2026 (IDM, ADOBE, MAS AIO) đứng đúng chỗ nhưng để trống link - hiện "CHƯA CÓ NGUỒN", Admin tự gắn.
+- Máy đang dùng tool (cập nhật lên) giữ nguyên nút và link đã gắn.

@@ -35,7 +35,7 @@ import apple
 import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v3.6"
+APP_VERSION = "v3.7"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -82,17 +82,17 @@ VANPHONG = ("🧾", "Tiện ích văn phòng", r"github:minhhaibuitt/Caiwindao@v
 HIBIT = ("🧹", "HiBit Uninstaller", "winget:HiBitSoftware.HiBitUninstaller", "", "")
 UNINSTALLER = ("UNINSTALLER TOOL", [
     HIBIT,
-    ("🧽", "WPS Office Utility & Cleaner", r"codeberg:yansuogaming/wps-utility|portable.*\.(exe|zip|rar|7z)$", "pass=123",
-     "Gỡ sạch / chặn WPS Office (Yansuo, bản Portable mới nhất từ Codeberg)"),
-    ("🛡️", "360 Total Security Remover", r"codeberg:yansuogaming/360totalremove|portable.*\.(exe|zip|rar|7z)$", "pass=123",
-     "Gỡ sạch 360 Total Security (Yansuo, bản Portable mới nhất từ Codeberg)"),
+    ("🅰️", "Avast Clear", "https://files.avast.com/iavs9x/avastclear.exe", "", "Công cụ gỡ Avast chính hãng (trang chủ Avast)"),
     ("🧹", "360 Security Uninstaller Tool", r"github:ThanhNguyenVN93/360-Security-Uninstaller-Tool|\.(exe|zip)$", "",
      "Gỡ 360 Security (ThanhNguyenVN93, bản mới nhất từ GitHub)"),
-    ("🅰️", "Avast Clear", "https://files.avast.com/iavs9x/avastclear.exe", "", "Công cụ gỡ Avast chính hãng (trang chủ Avast)"),
+    ("🛡️", "360 Total Security Remover", r"codeberg:yansuogaming/360totalremove|portable.*\.(exe|zip|rar|7z)$", "pass=123",
+     "Gỡ sạch 360 Total Security (Yansuo, bản Portable mới nhất từ Codeberg)"),
+    ("🧽", "WPS Office Utility & Cleaner", r"codeberg:yansuogaming/wps-utility|portable.*\.(exe|zip|rar|7z)$", "pass=123",
+     "Gỡ sạch / chặn WPS Office (Yansuo, bản Portable mới nhất từ Codeberg)"),
 ])
 TOOLS_3U = ("📱", "3uTools (64-bit)", r"page:https://www.3u.com/|https?://dl\.3u\.com/[^\"'\s<>]*3uTools_v[\d.]+_Setup_x64\.exe", "",
             "Quản lý iPhone / iPad, flash iOS - luôn lấy bản 64-bit mới nhất trên trang chủ 3u.com")
-PICVIEW = ("🖼️", "PicView (xem ảnh)", "winget:Ruben2776.PicView", "", "Cài vào ổ C và tự đặt làm trình xem ảnh mặc định")
+PICVIEW = ("🖼️", "PicView", "winget:Ruben2776.PicView", "", "Cài vào ổ C và tự đặt làm trình xem ảnh mặc định")
 FONT_PACK = "https://github.com/minhhaibuitt/Caiwindao/releases/download/Tonghop/fontchu.zip"     # bộ font đầy đủ (VNI, TCVN3, SVN...)
 
 # Link cũ đã chết -> nguồn mới (tự sửa trong dữ liệu đã lưu và lúc cài)
@@ -179,7 +179,14 @@ ISO_MG_PAGES = [
     ("📋", "Danh sách đầy đủ", "genuine-installation-media", "Windows, Office + mã kiểm tra"),
 ]
 # Tab Web: nút mở trang web hay dùng (Admin sửa / thêm / xóa)
-DEFAULT_WEB = [("HAY DÙNG", "🌐", "", "")] * 12     # 12 nút trống - Admin bấm ✎ để đặt tên, gắn link
+DEFAULT_WEB = [     # (nhóm, icon, tên, link) - theo file sao lưu của Duy Anh (24/11/2026)
+    ("HHTQ", "🌐", "HHTQ 4K", "https://drive.google.com/drive/folders/18dpeUzn7emXhJ2pGNNgNXVHuHewF32xY"),
+    ("HHTQ", "🌐", "HHTQ 4K", "https://mypikpak.com/s/VP6-HTClWBLhBU15uGQieClio2"),
+    ("HHTQ", "🌐", "HHTQ 4K - KIMNGON", "https://mypikpak.com/s/VOyELoBfemkzMwlEob9EwA-Ho2/AADm8sjD8JFVYb_SKu4oEKPko2_VOx"),
+    ("HHTQ", "🌐", "HHTQ 4K - KIMNGON", "https://www.fshare.vn/folder/1CENU2DFSGMG"),
+    ("HAY DÙNG", "🌐", "Hoàng Phát 360", "https://hoangphat360.vn/"),
+    ("HAY DÙNG", "🌐", "BEEUNLOCK", "https://beeunlock.com/"),
+]
 
 # Hồ sơ cài đặt (preset): bấm 1 lần cài các phần mềm + chạy tiện ích Windows. Lưu tên phần mềm (không lưu id -> đổi nút vẫn khớp).
 DEFAULT_PRESETS = [
@@ -195,14 +202,15 @@ DEFAULT_PRESETS = [
 DEFAULT_PW = "HP360"          # mật khẩu Admin mặc định
 KHO_FSHARE = "open:https://www.fshare.vn/folder/BESIWSY4GNO7"
 KHO_GDRIVE = "open:https://drive.google.com/drive/u/3/folders/173Ouz2LQQcrVr9SbirV68wgJvXP2Svz2"
-DEFAULT_GROUPS = [     # (tên nhóm, cột, [nút...]) - thứ tự & cột theo cách Duy Anh đã sắp (21/11/2026)
-    ("KHO PHẦN MỀM", 0, [
-        ("🗄️", "Kho Fshare", KHO_FSHARE, "", "Mở thư mục phần mềm trên Fshare"),
-        ("🗂️", "Kho Google Drive", KHO_GDRIVE, "", "Mở thư mục phần mềm trên Google Drive"),
+DEFAULT_GROUPS = [     # (tên nhóm, cột, [nút...]) - thứ tự trong cột, vị trí & link theo file sao lưu của Duy Anh (24/11/2026)
+    ("2026", 0, [
+        ("🔑", "IDM", "", "", ""),
+        ("🔑", "ADOBE", "", "", ""),
+        ("🔑", "MAS AIO", "", "", ""),
     ]),
-    ("TỰ THÊM", 0, [
-        ("⬇️", "IDM", "winget:Tonec.InternetDownloadManager", "", "Internet Download Manager bản chính hãng (dùng thử 30 ngày, nhập key của bạn)"),
-        ("📕", "Adobe Acrobat Reader", "winget:Adobe.Acrobat.Reader.64-bit", "", "Đọc PDF miễn phí của Adobe"),
+    ("KHO PHẦN MỀM", 0, [
+        ("🗄️", "Kho Fshare", "open:https://www.fshare.vn/folder/BESIWSY4GNO7", "", "Mở thư mục phần mềm trên Fshare"),
+        ("🗂️", "Kho Google Drive", "open:https://drive.google.com/drive/u/3/folders/173Ouz2LQQcrVr9SbirV68wgJvXP2Svz2", "", "Mở thư mục phần mềm trên Google Drive"),
     ]),
     ("TRÌNH DUYỆT WEB", 0, [
         ("🌐", "Google Chrome", "winget:Google.Chrome", "", ""),
@@ -217,15 +225,19 @@ DEFAULT_GROUPS = [     # (tên nhóm, cột, [nút...]) - thứ tự & cột the
     ]),
     ("VĂN PHÒNG - PDF", 1, [
         ("🏢", "MS Office", "office:", "", "Cài Office 2016 / 2019 / 2021 / 2024 / 365 chính chủ từ Microsoft (Online hoặc Offline)"),
-        VANPHONG,
+        ("🧾", "Tiện ích văn phòng", r"github:minhhaibuitt/Caiwindao@vanphong|^Tien\.ich\.van\.phong\.v[\d.]+\.exe$", "", "Tiện ích văn phòng của Hải Đỗ - luôn tải bản mới nhất"),
         ("📄", "Foxit PDF Reader", "winget:Foxit.FoxitReader", "", ""),
         ("📄", "Sumatra PDF", "winget:SumatraPDF.SumatraPDF", "", ""),
         ("📝", "Notepad++", "winget:Notepad++.Notepad++", "", ""),
         ("📝", "LibreOffice", "winget:TheDocumentFoundation.LibreOffice", "", ""),
         ("📝", "WPS Office", "winget:Kingsoft.WPSOffice", "", ""),
-        ONLYOFFICE,
+        ("📝", "ONLYOFFICE", "winget:ONLYOFFICE.DesktopEditors", "", "Bộ văn phòng miễn phí, mở tốt file Word / Excel / PowerPoint"),
     ]),
-    ("ARTCRAFT OFFICE", 1, ARTCRAFT[1]),
+    ("ARTCRAFT OFFICE", 1, [
+        ("📝", "WordCraft", r"github:storytold/wordcraft|windows-x64-portable\.zip$", "", "ArtCraft - soạn thảo văn bản, bản portable"),
+        ("📊", "GridCraft", r"github:storytold/gridcraft|windows-x64-portable\.zip$", "", "ArtCraft - bảng tính, bản portable"),
+        ("📽️", "DeckCraft", r"github:storytold/deckcraft|windows-x64-portable\.zip$", "", "ArtCraft - trình chiếu, bản portable"),
+    ]),
     ("BỘ GÕ TIẾNG VIỆT", 1, [
         ("⌨️", "UniKey", "winget:UniKey.UniKey", "", ""),
         ("⌨️", "EVKey", "winget:lamquangminh.EVKey", "", ""),
@@ -233,37 +245,43 @@ DEFAULT_GROUPS = [     # (tên nhóm, cột, [nút...]) - thứ tự & cột the
     ("NHẮN TIN - HỌP", 2, [
         ("💬", "Zalo PC", "winget:VNGCorp.Zalo", "", ""),
         ("📞", "Viber", "winget:Rakuten.Viber", "", ""),
-        WHATSAPP,
+        ("🟢", "WhatsApp", "winget:9NKSQGP7F2NH", "", "Cài từ Microsoft Store"),
         ("✈️", "Telegram", "winget:Telegram.TelegramDesktop", "", ""),
         ("🎮", "Discord", "winget:Discord.Discord", "", ""),
         ("📹", "Zoom", "winget:Zoom.Zoom", "", ""),
         ("👥", "Microsoft Teams", "winget:Microsoft.Teams", "", ""),
     ]),
-    ("NÉN - GIẢI NÉN", 2, [
-        ("📦", "WinRAR", "winget:RARLab.WinRAR", "", ""),
-        ("📦", "7-Zip", "winget:7zip.7zip", "", ""),
-    ]),
-    ("GIẢ LẬP ANDROID", 2, [
-        ("📱", "BlueStacks 5", "winget:BlueStack.BlueStacks", "", ""),
-        ("🎮", "LDPlayer", "https://www.ldplayer.net/", "", "Mở trang tải"),
-    ]),
-    ("ĐA PHƯƠNG TIỆN", 3, [
-        PICVIEW,
+    ("ĐA PHƯƠNG TIỆN", 2, [
+        ("🖼️", "PicView", "winget:Ruben2776.PicView", "", "Cài vào ổ C và tự đặt làm trình xem ảnh mặc định"),
         ("🎬", "K-Lite Codec Pack", "winget:CodecGuide.K-LiteCodecPack.Standard", "", ""),
         ("🎬", "VLC Media Player", "winget:VideoLAN.VLC", "", ""),
         ("🎞️", "OBS Studio", "winget:OBSProject.OBSStudio", "", ""),
+    ]),
+    ("NÉN - GIẢI NÉN", 2, [
+        ("📦", "WinRAR", "winget:RARLab.WinRAR", "", ""),
+        ("📦", "7-Zip", "winget:7zip.7zip", "", ""),
     ]),
     ("TIỆN ÍCH", 3, [
         ("🔎", "Everything", "winget:voidtools.Everything", "", "Tìm file siêu nhanh"),
         ("📸", "ShareX", "winget:ShareX.ShareX", "", "Chụp màn hình"),
         ("📊", "TreeSize Free", "winget:JAMSoftware.TreeSize.Free", "", ""),
         ("🛠️", "Snappy Driver Installer", "winget:GlennDelahoy.SnappyDriverInstallerOrigin", "", ""),
-        CAIWINDAO,
-        ("🎞️", "CIT Voice Studio", GH_CIT, "", ""),
-        ("🎞️", "Subtitle Translator", GH_SUBTR, "", ""),
-        ("🎞️", "YouTube Downloader Pro", GH_YTDL, "", ""),
+        ("🎞️", "CIT Voice Studio", r"github:Cuongyd196/cit-voice-studio|win-x86_64\.exe$", "", ""),
+        ("🎞️", "Subtitle Translator", r"github:rockbenben/subtitle-translator|x64_portable\.exe$", "", ""),
+        ("🎞️", "YouTube Downloader Pro", r"github:duckmartians/YouTube_Downloader|windows\.zip$", "", ""),
+        ("🧰", "Tiện ích cài Win dạo", r"github:minhhaibuitt/Caiwindao@caiwindao|^Tien\.ich\.cai\.Win\.dao\.v[\d.]+\.exe$", "", "Tool cài Win dạo của Hải Đỗ - luôn tải bản mới nhất (mật khẩu: haido)"),
     ]),
-    (UNINSTALLER[0], 4, UNINSTALLER[1]),
+    ("UNINSTALLER TOOL", 3, [
+        ("🧹", "HiBit Uninstaller", "winget:HiBitSoftware.HiBitUninstaller", "", ""),
+        ("🅰️", "Avast Clear", "https://files.avast.com/iavs9x/avastclear.exe", "", "Công cụ gỡ Avast chính hãng (trang chủ Avast)"),
+        ("🧹", "360 Security Uninstaller Tool", r"github:ThanhNguyenVN93/360-Security-Uninstaller-Tool|\.(exe|zip)$", "", "Gỡ 360 Security (ThanhNguyenVN93, bản mới nhất từ GitHub)"),
+        ("🛡️", "360 Total Security Remover", r"codeberg:yansuogaming/360totalremove|portable.*\.(exe|zip|rar|7z)$", "pass=123", "Gỡ sạch 360 Total Security (Yansuo, bản Portable mới nhất từ Codeberg)"),
+        ("🧽", "WPS Office Utility & Cleaner", r"codeberg:yansuogaming/wps-utility|portable.*\.(exe|zip|rar|7z)$", "pass=123", "Gỡ sạch / chặn WPS Office (Yansuo, bản Portable mới nhất từ Codeberg)"),
+    ]),
+    ("GIẢ LẬP ANDROID", 4, [
+        ("📱", "BlueStacks 5", "winget:BlueStack.BlueStacks", "", ""),
+        ("🎮", "LDPlayer", "https://www.ldplayer.net/", "", "Mở trang tải"),
+    ]),
     ("LẬP TRÌNH", 4, [
         ("🐍", "Python 3.12", "winget:Python.Python.3.12", "", ""),
         ("📝", "VS Code", "winget:Microsoft.VisualStudioCode", "", ""),
@@ -275,10 +293,11 @@ DEFAULT_GROUPS = [     # (tên nhóm, cột, [nút...]) - thứ tự & cột the
         ("⚙️", "Visual C++ 2015-2022 x64", "winget:Microsoft.VCRedist.2015+.x64", "", ""),
         ("⚙️", "Visual C++ 2015-2022 x86", "winget:Microsoft.VCRedist.2015+.x86", "", ""),
         ("⚙️", ".NET Framework 3.5", "cmd:DISM /Online /Enable-Feature /FeatureName:NetFx3 /All /NoRestart", "", "Bật tính năng có sẵn của Windows (cần mạng)"),
-        ("⚙️", ".NET Framework 4.8.1", "winget:Microsoft.DotNet.Framework.DeveloperPack_4", "", ""),
+        ("⚙️", ".NET Framework 4.8", "winget:Microsoft.DotNet.Framework.DeveloperPack_4", "", ""),
         ("🎮", "DirectX Runtime", "winget:Microsoft.DirectX", "", ""),
     ]),
 ]
+DEFAULT_GPOS = {"2026": 1, "KHO PHẦN MỀM": 0, "TRÌNH DUYỆT WEB": 7, "HỖ TRỢ TỪ XA": 9, "VĂN PHÒNG - PDF": 2, "ARTCRAFT OFFICE": 3, "BỘ GÕ TIẾNG VIỆT": 4, "NHẮN TIN - HỌP": 8, "ĐA PHƯƠNG TIỆN": 6, "NÉN - GIẢI NÉN": 5, "TIỆN ÍCH": 11, "UNINSTALLER TOOL": 14, "GIẢ LẬP ANDROID": 12, "LẬP TRÌNH": 13, "THƯ VIỆN HỆ THỐNG": 10}     # vị trí ở kiểu Lưới
 DEFAULT_FIT_N = 5
 
 # ---------------------------------------------------------------- tiện ích Windows cố định
@@ -848,7 +867,8 @@ class Store:
                 self.db.execute("UPDATE groups SET gpos=COALESCE(gpos,0)+1")
                 self.db.execute("UPDATE groups SET ord=ord+1 WHERE col=0")
                 gid = self.db.execute("INSERT INTO groups(name, ord, col, gpos) VALUES(?,?,?,?)", ("KHO PHẦN MỀM", 0, 0, 0)).lastrowid
-                for i, (icon, name, src, args, note) in enumerate(DEFAULT_GROUPS[0][2]):
+                kho = next(g[2] for g in DEFAULT_GROUPS if g[0] == "KHO PHẦN MỀM")
+                for i, (icon, name, src, args, note) in enumerate(kho):
                     self.db.execute("INSERT INTO apps(group_id, icon, name, src, args, note, ord) VALUES(?,?,?,?,?,?,?)",
                                     (gid, icon, name, src, args, note, i))
                 self.commit(persist=False)
@@ -923,7 +943,8 @@ class Store:
             for gi, (gname, col, apps) in enumerate(DEFAULT_GROUPS):
                 o = per_col.get(col, 0)
                 per_col[col] = o + 1
-                gid = self.db.execute("INSERT INTO groups(name, ord, col, gpos) VALUES(?,?,?,?)", (gname, o, col, gi)).lastrowid
+                gid = self.db.execute("INSERT INTO groups(name, ord, col, gpos) VALUES(?,?,?,?)",
+                                      (gname, o, col, DEFAULT_GPOS.get(gname, gi))).lastrowid
                 for ai, (icon, name, src, args, note) in enumerate(apps):
                     self.db.execute("INSERT INTO apps(group_id, icon, name, src, args, note, ord) VALUES(?,?,?,?,?,?,?)",
                                     (gid, icon, name, src, args, note, ai))

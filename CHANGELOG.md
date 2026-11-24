@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v3.7
+- Bộ nút mặc định + tab Web mặc định theo file sao lưu của Duy Anh (24/11/2026).
+
 ## v3.6
 - HiBit Uninstaller về nhóm UNINSTALLER TOOL; 3uTools chuyển sang tab Kho iOS.
 
