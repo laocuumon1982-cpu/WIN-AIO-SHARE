@@ -525,7 +525,8 @@ def _forge_tree_file(api, repo, pat, hdr):
         files = [f for f in files if "portable" in f.lower()] or files
     best = max(files, key=lambda f: [int(x) for x in re.findall(r"\d+", f.rsplit("/", 1)[-1])] or [0])
     from urllib.parse import quote
-    return f"https://codeberg.org/{repo}/raw/branch/{br}/{quote(best)}", ".".join(re.findall(r"\d+", best.rsplit("/", 1)[-1])) or br
+    mv = re.search(r"[vV](\d+(?:\.\d+)*)", best.rsplit("/", 1)[-1])
+    return f"https://codeberg.org/{repo}/raw/branch/{br}/{quote(best)}", (mv.group(1) if mv else br)
 
 
 def _rar_selftest():
@@ -3558,7 +3559,8 @@ class App:
                                                     for a in UNINSTALLER[1]]),
                           ("wg_picview", lambda: run_hidden(["winget", "show", "--id", "Ruben2776.PicView", "-e", "--source", "winget",
                                                              "--accept-source-agreements"], timeout=180)[1][-300:]),
-                          ("rar_test", _rar_selftest),
+                          ("rar_test", _rar_selftest), ("cb_readme", lambda: [__import__("requests").get(f"https://codeberg.org/yansuogaming/{r}/raw/branch/main/README.md", timeout=20).text[:3000]
+                                                     for r in ("wps-utility", "360totalremove")]),
                           ("off_scan", officex.off_scan), ("crack_check", officex.crack_check), ("lic_oem", officex.lic_oem),
                           ("lic_win", lambda: officex.lic_status("windows")["out"][:400]), ("odt_latest", odt_latest_url), ("irst_info", extra.irst_info),
                           ("irst_links", lambda: [(v["file"], requests_head(v["url"])) for v in extra.irst_info()["list"]] + [("font", requests_head(FONT_PACK))]),
