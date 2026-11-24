@@ -153,6 +153,7 @@ NHÓM UNINSTALLER TOOL & PICVIEW (v3.2)
 - 360 Security Uninstaller Tool: bản mới nhất từ GitHub (ThanhNguyenVN93).
 - Avast Clear: công cụ gỡ Avast chính hãng.
 - PicView (nhóm Đa phương tiện): cài vào ổ C, tự đặt làm trình xem ảnh mặc định.
+- 3uTools 64-bit (nhóm Tiện ích, v3.5): luôn lấy link bản mới nhất trên trang chủ 3u.com.
 
 
 ---------------------------------------------------------------------
