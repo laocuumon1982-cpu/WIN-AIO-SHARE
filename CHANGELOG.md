@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v3.6
+- HiBit Uninstaller về nhóm UNINSTALLER TOOL; 3uTools chuyển sang tab Kho iOS.
+
 ## v3.5
 - Nút 3uTools (64-bit) luôn lấy bản mới nhất trên 3u.com; nguồn page:.
 

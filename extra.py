@@ -1130,3 +1130,24 @@ def picview_default():
     except Exception:                                   # noqa: BLE001
         pass
     return "Đã đặt PicView làm trình xem ảnh mặc định (jpg, png, gif, webp, heic...). Nếu ảnh vẫn mở bằng Photos: đăng xuất rồi đăng nhập lại."
+
+
+# ================================================================ 3uTools (tab Kho iOS)
+def tools3u_run(j):
+    """Đọc trang chủ 3u.com lấy bộ cài 64-bit mới nhất, tải (đã có thì dùng lại) rồi mở bộ cài."""
+    j["pct"], j["text"] = -1, "Đang hỏi bản 3uTools mới nhất trên 3u.com..."
+    url, ver = H["gh"](H["src3u"])
+    name = url.rsplit("/", 1)[-1]
+    if fake():
+        time.sleep(0.8)
+        return {"text": f"Đã mở bộ cài 3uTools {ver} (chạy thử).", "ver": ver}
+    d = data_dir("Soft", "3uTools")
+    exe = d / name
+    if not exe.exists():
+        import apple
+        apple.dl_files(j, [{"name": name, "url": url, "size": 0}], d, "3uTools " + ver)
+        for old in d.glob("3uTools_*.exe"):
+            if old.name != name:
+                old.unlink(missing_ok=True)
+    subprocess.Popen([str(exe)], cwd=str(d))
+    return {"text": f"Đã mở bộ cài 3uTools {ver} (64-bit) - bấm cài đặt trong cửa sổ vừa hiện.", "ver": ver}

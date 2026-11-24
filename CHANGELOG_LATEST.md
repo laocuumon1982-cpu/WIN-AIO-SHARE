@@ -1,4 +1,5 @@
-Win AIO by Duy Anh v3.5
+Win AIO by Duy Anh v3.6
 
-- Mới: nút "3uTools (64-bit)" trong nhóm Tiện ích - mỗi lần bấm tool đọc trang chủ 3u.com lấy link bản 64-bit mới nhất rồi tải và cài.
-- Nguồn mới dạng page:trang-web|mẫu-link: đọc trang của hãng, lấy link tải có số phiên bản lớn nhất (nhãn MỚI NHẤT). Nút nguồn Codeberg có nhãn CODEBERG.
+- Nút HiBit Uninstaller chuyển xuống nhóm UNINSTALLER TOOL.
+- 3uTools chuyển từ tab Cài phần mềm sang tab Kho iOS: bấm "Tải & cài 3uTools" - luôn lấy bản 64-bit mới nhất trên trang chủ 3u.com.
+- Bản cũ cập nhật lên tự chuyển 2 nút này, các nút khác giữ nguyên.

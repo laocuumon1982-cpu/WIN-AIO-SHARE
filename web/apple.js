@@ -72,9 +72,13 @@ async function iosShow() {
       <label class="grow">Tìm máy <input type="search" id="iQ" placeholder="VD: 15 Pro Max, iPad Air, iPhone15,2..."></label>
       <label class="grow">Lưu vào <span class="row2"><input id="iDest" placeholder="Data\\iOS (kế bên tool)"><button class="btn sm" id="iPick">📂</button></span></label></div>
     <div class="idevs" id="iDevs"><div class="empty"><span class="spin"></span> Đang tải danh sách thiết bị...</div></div></div>
+    <div class="tcard isosec" style="--ac:#e0262a"><div class="sh"><span class="si">📲</span><div><b>3uTools (64-bit)</b>
+      <small>Quản lý iPhone / iPad, flash / khôi phục iOS, sao lưu, kiểm tra máy - luôn lấy bản mới nhất trên trang chủ 3u.com</small></div>
+      <span class="sp"></span><button class="btn red shine" id="i3u">⬇ Tải &amp; cài 3uTools</button></div></div>
     <div class="tcard isosec" style="--ac:#16a34a" id="iFwC" hidden><div class="sh"><span class="si">📦</span><div><b id="iFwT"></b><small id="iFwS"></small></div>
       <span class="sp"></span><label class="ck"><input type="checkbox" id="iSig"> Chỉ bản Apple còn ký (cài được)</label></div><div id="iFw"></div>
       <div class="logl">Chỉ bản <b>CÒN KÝ</b> mới khôi phục được bằng iTunes / Finder. Bản hết ký chỉ để lưu trữ. Khôi phục: giữ Shift (Windows) / Option (Mac) rồi bấm Restore trong iTunes / Finder, chọn file .ipsw.</div></div>`;
+  $("i3u").onclick = async () => { const r = await runJob("tools3u_run", "Tải & cài 3uTools", []); if (r.ok) toast(r.result.text); };
   $("iPick").onclick = async () => { const p = await api("pick_folder_abs"); if (p) $("iDest").value = p; };
   let qt; $("iQ").oninput = () => { clearTimeout(qt); qt = setTimeout(iDevRender, 120); };
   $("iSig").onchange = e => { iSigned = e.target.checked; iFwRender(); };

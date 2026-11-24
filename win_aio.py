@@ -35,7 +35,7 @@ import apple
 import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v3.5"
+APP_VERSION = "v3.6"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -79,7 +79,9 @@ CAIWINDAO = ("🧰", "Tiện ích cài Win dạo", r"github:minhhaibuitt/Caiwind
 VANPHONG = ("🧾", "Tiện ích văn phòng", r"github:minhhaibuitt/Caiwindao@vanphong|^Tien\.ich\.van\.phong\.v[\d.]+\.exe$", "",
             "Tiện ích văn phòng của Hải Đỗ - luôn tải bản mới nhất")
 # Nhóm gỡ phần mềm cứng đầu (v3.2). codeberg: giống github: (Forgejo có API phát hành giống GitHub)
+HIBIT = ("🧹", "HiBit Uninstaller", "winget:HiBitSoftware.HiBitUninstaller", "", "")
 UNINSTALLER = ("UNINSTALLER TOOL", [
+    HIBIT,
     ("🧽", "WPS Office Utility & Cleaner", r"codeberg:yansuogaming/wps-utility|portable.*\.(exe|zip|rar|7z)$", "pass=123",
      "Gỡ sạch / chặn WPS Office (Yansuo, bản Portable mới nhất từ Codeberg)"),
     ("🛡️", "360 Total Security Remover", r"codeberg:yansuogaming/360totalremove|portable.*\.(exe|zip|rar|7z)$", "pass=123",
@@ -253,12 +255,10 @@ DEFAULT_GROUPS = [     # (tên nhóm, cột, [nút...]) - thứ tự & cột the
     ]),
     ("TIỆN ÍCH", 3, [
         ("🔎", "Everything", "winget:voidtools.Everything", "", "Tìm file siêu nhanh"),
-        ("🧹", "HiBit Uninstaller", "winget:HiBitSoftware.HiBitUninstaller", "", ""),
         ("📸", "ShareX", "winget:ShareX.ShareX", "", "Chụp màn hình"),
         ("📊", "TreeSize Free", "winget:JAMSoftware.TreeSize.Free", "", ""),
         ("🛠️", "Snappy Driver Installer", "winget:GlennDelahoy.SnappyDriverInstallerOrigin", "", ""),
         CAIWINDAO,
-        TOOLS_3U,
         ("🎞️", "CIT Voice Studio", GH_CIT, "", ""),
         ("🎞️", "Subtitle Translator", GH_SUBTR, "", ""),
         ("🎞️", "YouTube Downloader Pro", GH_YTDL, "", ""),
@@ -763,19 +763,9 @@ class Store:
             done.add("presets")
             self.cfg["migrated"] = sorted(done)
             self.save_config(persist=False)
-        if "v35" not in done:
-            if not self.db.execute("SELECT 1 FROM apps WHERE src=?", (TOOLS_3U[2],)).fetchone():
-                g = self.db.execute("SELECT id FROM groups WHERE name LIKE 'TIỆN ÍCH%' ORDER BY id LIMIT 1").fetchone()
-                if g:
-                    o = self.db.execute("SELECT COALESCE(MAX(ord),0)+1 FROM apps WHERE group_id=?", (g[0],)).fetchone()[0]
-                    self.db.execute("INSERT INTO apps(group_id, icon, name, src, args, note, ord) VALUES(?,?,?,?,?,?,?)", (g[0],) + TOOLS_3U + (o,))
-                    self.commit(persist=False)
-            done.add("v35")
-            self.cfg["migrated"] = sorted(done)
-            self.save_config(persist=False)
         if "v32" not in done:
             has = lambda src: self.db.execute("SELECT 1 FROM apps WHERE src=?", (src,)).fetchone()     # noqa: E731
-            if not any(has(a[2]) for a in UNINSTALLER[1]):
+            if not any(has(a[2]) for a in UNINSTALLER[1] if a is not HIBIT):
                 pos = self.db.execute("SELECT COALESCE(MAX(gpos),0)+1, COALESCE(MAX(ord),0)+1 FROM groups").fetchone()
                 col = self.db.execute("SELECT col FROM groups GROUP BY col ORDER BY COUNT(*), col LIMIT 1").fetchone()
                 gid = self.db.execute("INSERT INTO groups(name, ord, col, gpos) VALUES(?,?,?,?)",
@@ -788,6 +778,19 @@ class Store:
                     self.db.execute("INSERT INTO apps(group_id, icon, name, src, args, note, ord) VALUES(?,?,?,?,?,?,?)", (g[0],) + PICVIEW + (-1,))
             self.commit(persist=False)
             done.add("v32")
+            self.cfg["migrated"] = sorted(done)
+            self.save_config(persist=False)
+        if "v36" not in done:
+            # 3uTools chuyển sang tab Kho iOS; HiBit Uninstaller về nhóm UNINSTALLER TOOL
+            self.db.execute("DELETE FROM apps WHERE src=?", (TOOLS_3U[2],))
+            g = self.db.execute("SELECT id FROM groups WHERE name=? ORDER BY id LIMIT 1", (UNINSTALLER[0],)).fetchone()
+            if g:
+                if self.db.execute("SELECT 1 FROM apps WHERE group_id=? AND src=?", (g[0], HIBIT[2])).fetchone():
+                    self.db.execute("DELETE FROM apps WHERE src=? AND group_id<>?", (HIBIT[2], g[0]))
+                else:
+                    self.db.execute("UPDATE apps SET group_id=?, ord=-1 WHERE src=?", (g[0], HIBIT[2]))
+            self.commit(persist=False)
+            done.update({"v35", "v36"})
             self.cfg["migrated"] = sorted(done)
             self.save_config(persist=False)
         if "v31" not in done:
@@ -1045,7 +1048,7 @@ class Engine:
         self.wg_ready.set()
         self.power = Power(self)
         self.office = OfficeSetup(self)
-        mgr.init(ps=ps, run=run_hidden, fake=FAKE, base=BASE, data=DATA, ensure_disk=store.ensure_disk, log=self.log, live=self.live, gh=resolve_github, odt=self.office._setup_exe,
+        mgr.init(ps=ps, run=run_hidden, fake=FAKE, base=BASE, data=DATA, ensure_disk=store.ensure_disk, log=self.log, live=self.live, gh=resolve_github, odt=self.office._setup_exe, src3u=TOOLS_3U[2],
                  history=lambda n, src, st, d="": store.add_history(n, src, st, d or ""))
         threading.Thread(target=self._bg_checks, daemon=True).start()
 
@@ -3324,7 +3327,7 @@ class Api:
              "restore_user", "zalo_backup", "zalo_restore", "browser_backup", "browser_restore", "sha256_file", "iso_download", "wg_upgrades", "wg_upgrade",
              "fix_sfc", "fix_dism", "fix_wu", "fix_store", "fix_printer", "fix_all", "win11_tidy", "font_install", "apps_export",
              "apps_import", "drv_wu_scan", "drv_wu_install", "bench_disk", "bench_cpu", "ventoy_install", "ventoy_copy", "preset_run",
-             "mac_list", "mac_download", "ios_download", "irst_get", "rufus_run",
+             "mac_list", "mac_download", "ios_download", "irst_get", "rufus_run", "tools3u_run",
              "lic_key", "lic_cid", "crack_clear", "win_clear_key", "to_volume", "off_remove", "off_tune"}
 
     def set_upg_n(self, n):

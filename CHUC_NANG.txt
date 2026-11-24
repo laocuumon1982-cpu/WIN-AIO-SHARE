@@ -1,5 +1,5 @@
 ﻿=====================================================================
-           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v3.5)
+           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v3.6)
 =====================================================================
 Tool cài Win dạo 1 file exe portable (không cần cài đặt), giao diện tiếng Việt.
 Tải: https://github.com/laocuumon1982-cpu/WIN-AIO-SHARE/releases/latest
@@ -148,12 +148,12 @@ DỌN DẸP & SAO LƯU
 ---------------------------------------------------------------------
 NHÓM UNINSTALLER TOOL & PICVIEW (v3.2)
 ---------------------------------------------------------------------
+- HiBit Uninstaller (v3.6 chuyển về nhóm này).
 - WPS Office Utility & Cleaner (Portable), 360 Total Security Remover (Portable):
   bản mới nhất từ Codeberg (yansuogaming), tự giải nén (mật khẩu 123) rồi mở.
 - 360 Security Uninstaller Tool: bản mới nhất từ GitHub (ThanhNguyenVN93).
 - Avast Clear: công cụ gỡ Avast chính hãng.
 - PicView (nhóm Đa phương tiện): cài vào ổ C, tự đặt làm trình xem ảnh mặc định.
-- 3uTools 64-bit (nhóm Tiện ích, v3.5): luôn lấy link bản mới nhất trên trang chủ 3u.com.
 
 
 ---------------------------------------------------------------------
@@ -214,6 +214,7 @@ SỬA LỖI & THIẾT LẬP (v2.6)
 - Mặc định hiện bản mới nhất mỗi đời; bấm 1 đời để xem các bản cũ. Tải có %, tải tiếp, hoặc chép link cho IDM.
 
 [Kho iOS] (v2.7)
+- 3uTools 64-bit (v3.6): nút Tải & cài, luôn lấy bản mới nhất trên trang chủ 3u.com.
 - Danh sách thiết bị và firmware IPSW theo ipsw.me: iPhone, iPad, iPod, Apple TV, HomePod, Mac chip M.
 - Tìm máy theo tên / mã máy; xem phiên bản, build, ngày, dung lượng, bản Apple còn ký.
 - Tải file IPSW từ máy chủ Apple (có %, tải tiếp) hoặc chép link.
