@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v3.4
+- Sửa: nút WPS Utility / 360 Remover giải nén được file rar có mật khẩu.
+
 ## v3.3
 - Nút WPS Utility / 360 Remover lấy file .rar trong kho Codeberg; tự giải nén .rar / .7z.
 
