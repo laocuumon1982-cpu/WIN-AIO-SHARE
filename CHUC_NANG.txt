@@ -1,5 +1,5 @@
 ﻿=====================================================================
-           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v3.8)
+           WIN AIO BY DUY ANH - DANH SÁCH CHỨC NĂNG (v3.9)
 =====================================================================
 Tool cài Win dạo 1 file exe portable (không cần cài đặt), giao diện tiếng Việt.
 Tải: https://github.com/laocuumon1982-cpu/WIN-AIO-SHARE/releases/latest
@@ -154,6 +154,7 @@ NHÓM UNINSTALLER TOOL & PICVIEW (v3.2)
 - 360 Security Uninstaller Tool: bản mới nhất từ GitHub (ThanhNguyenVN93).
 - Avast Clear: công cụ gỡ Avast chính hãng.
 - PicView (nhóm Đa phương tiện): cài vào ổ C, tự đặt làm trình xem ảnh mặc định.
+- Transub-Player (nhóm Đa phương tiện, v3.9): xem phim tự dịch phụ đề sang tiếng Việt, luôn tải bản mới nhất.
 
 
 ---------------------------------------------------------------------

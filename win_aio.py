@@ -35,7 +35,7 @@ import apple
 import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v3.8"
+APP_VERSION = "v3.9"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -92,6 +92,9 @@ UNINSTALLER = ("UNINSTALLER TOOL", [
 ])
 TOOLS_3U = ("📱", "3uTools (64-bit)", r"page:https://www.3u.com/|https?://dl\.3u\.com/[^\"'\s<>]*3uTools_v[\d.]+_Setup_x64\.exe", "",
             "Quản lý iPhone / iPad, flash iOS - luôn lấy bản 64-bit mới nhất trên trang chủ 3u.com")
+# Transub-Player bản Việt hóa của Duy Anh: lấy bộ cài trong bản phát hành mới nhất của repo fork
+TRANSUB = ("🎬", "Transub-Player", r"github:laocuumon1982-cpu/Transub-Player|win-x64-setup\.exe$", "",
+           "Trình xem phim tự dịch phụ đề sang tiếng Việt (bản của Duy Anh)")
 PICVIEW = ("🖼️", "PicView", "winget:Ruben2776.PicView", "", "Cài vào ổ C và tự đặt làm trình xem ảnh mặc định")
 FONT_PACK = "https://github.com/minhhaibuitt/Caiwindao/releases/download/Tonghop/fontchu.zip"     # bộ font đầy đủ (VNI, TCVN3, SVN...)
 
@@ -269,6 +272,7 @@ DEFAULT_GROUPS = [     # (tên nhóm, cột, [nút...]) - thứ tự trong cột
         ("🎬", "K-Lite Codec Pack", "winget:CodecGuide.K-LiteCodecPack.Standard", "", ""),
         ("🎬", "VLC Media Player", "winget:VideoLAN.VLC", "", ""),
         ("🎞️", "OBS Studio", "winget:OBSProject.OBSStudio", "", ""),
+        TRANSUB,
     ]),
     ("NÉN - GIẢI NÉN", 2, [
         ("📦", "WinRAR", "winget:RARLab.WinRAR", "", ""),
@@ -810,6 +814,16 @@ class Store:
                     self.db.execute("INSERT INTO apps(group_id, icon, name, src, args, note, ord) VALUES(?,?,?,?,?,?,?)", (g[0],) + PICVIEW + (-1,))
             self.commit(persist=False)
             done.add("v32")
+            self.cfg["migrated"] = sorted(done)
+            self.save_config(persist=False)
+        if "v39" not in done:
+            if not self.db.execute("SELECT 1 FROM apps WHERE src=?", (TRANSUB[2],)).fetchone():
+                g = self.db.execute("SELECT id FROM groups WHERE name LIKE 'ĐA PHƯƠNG TIỆN%' ORDER BY id LIMIT 1").fetchone()
+                if g:
+                    o = self.db.execute("SELECT COALESCE(MAX(ord),0)+1 FROM apps WHERE group_id=?", (g[0],)).fetchone()[0]
+                    self.db.execute("INSERT INTO apps(group_id, icon, name, src, args, note, ord) VALUES(?,?,?,?,?,?,?)", (g[0],) + TRANSUB + (o,))
+                    self.commit(persist=False)
+            done.add("v39")
             self.cfg["migrated"] = sorted(done)
             self.save_config(persist=False)
         if "v36" not in done:
@@ -3632,7 +3646,7 @@ class App:
                           ("gh_wordcraft", lambda: resolve_github(ARTCRAFT[1][0][2])),
                           ("gh_ytdl", lambda: resolve_github(GH_YTDL)),
                           ("gh_ventoy", lambda: resolve_github(r"github:ventoy/Ventoy|windows\.zip$")),
-                          ("gh_caiwindao", lambda: resolve_github(CAIWINDAO[2])), ("gh_vanphong", lambda: resolve_github(VANPHONG[2])), ("gh_rufus", lambda: resolve_github(extra.RUFUS)),
+                          ("gh_caiwindao", lambda: resolve_github(CAIWINDAO[2])), ("gh_vanphong", lambda: resolve_github(VANPHONG[2])), ("gh_rufus", lambda: resolve_github(extra.RUFUS)), ("gh_transub", lambda: _try(lambda: resolve_github(TRANSUB[2]))),
                           ("uninst_links", lambda: [(a[1], _try(lambda a=a: resolve_github(a[2]) if src_kind(a[2]) == "github" else requests_head(a[2])))
                                                     for a in UNINSTALLER[1]]),
                           ("wg_picview", lambda: run_hidden(["winget", "show", "--id", "Ruben2776.PicView", "-e", "--source", "winget",

@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v3.9
+- Nút Transub-Player (nhóm Đa phương tiện).
+
 ## v3.8
 - Bộ nút mặc định + tab Web mặc định theo file sao lưu mới của Duy Anh (24/11/2026 17:18).
 
