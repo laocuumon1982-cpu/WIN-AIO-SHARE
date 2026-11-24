@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v3.5
+- Nút 3uTools (64-bit) luôn lấy bản mới nhất trên 3u.com; nguồn page:.
+
 ## v3.4
 - Sửa: nút WPS Utility / 360 Remover giải nén được file rar có mật khẩu.
 

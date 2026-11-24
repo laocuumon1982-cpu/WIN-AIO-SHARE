@@ -169,7 +169,7 @@ function renderGroups() {
       return `<div class="arow${hit ? "" : " hide"}" data-a="${a.id}"${ADMIN ? ' draggable="true"' : ""}>
         <span class="chk${picked.has(a.id) ? " on" : ""}" data-act="pick"></span>
         <button class="btn abtn" data-act="run" title="${esc(a.name + "\n" + (a.note ? a.note + "\n" : "") + (a.src || "Chưa có nguồn") + wver + (wbad ? "\n⚠ ID winget này không còn trong kho - Admin bấm ✎ để sửa" : ""))}">
-          <span class="ai">${esc(a.icon || "▫")}</span><span class="an">${esc(a.name)}</span>${l}<span class="tag ${wbad ? "bad" : a.kind}">${wbad ? "ID LỖI" : KIND[a.kind]}</span></button>
+          <span class="ai">${esc(a.icon || "▫")}</span><span class="an">${esc(a.name)}</span>${l}<span class="tag ${wbad ? "bad" : a.kind}">${wbad ? "ID LỖI" : /^codeberg:/i.test(a.src || "") ? "CODEBERG" : /^page:/i.test(a.src || "") ? "MỚI NHẤT" : KIND[a.kind]}</span></button>
         <span class="mv adm"><button class="ed xs" data-act="aup" title="Đưa nút lên">▲</button><button class="ed xs" data-act="adown" title="Đưa nút xuống">▼</button></span>
         <button class="ed adm" data-act="edit" title="Sửa tên / nguồn">✎</button></div>`;
     }).join("");
@@ -416,7 +416,7 @@ function editApp(a, gid) {
         <code>https://...</code> link tải trực tiếp file .exe / .msi / .zip (link Google Drive dạng /file/d/... cũng được). Nếu là trang web, tool mở trang bằng trình duyệt.<br>
         <code>Soft\\Ten file.exe</code> file nằm trong thư mục tool (để chạy từ USB), hoặc đường dẫn đầy đủ <code>D:\\Setup\\app.exe</code>.<br>
         <code>winget:Google.Chrome</code> cài bản mới nhất bằng winget của Windows.<br>
-        <code>cmd:lệnh</code> chạy lệnh Windows bằng quyền Admin. <code>office:</code> mở cửa sổ cài MS Office.<br>
+        <code>cmd:lệnh</code> chạy lệnh Windows bằng quyền Admin. <code>page:trang-web|mẫu-link</code> đọc trang web lấy link tải mới nhất. <code>office:</code> mở cửa sổ cài MS Office.<br>
         <code>open:https://...</code> chỉ mở link bằng trình duyệt (kho phần mềm, trang tải...).<br>
         <code>github:chủ/repo|mẫu-tên-file</code> luôn tải file mới nhất trên GitHub, VD <code>github:storytold/wordcraft|windows-x64-portable\.zip$</code>.<br>
         <code>winget:9NKSQGP7F2NH</code> (ID 12 ký tự) cài từ Microsoft Store.</div>

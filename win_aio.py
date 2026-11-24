@@ -35,7 +35,7 @@ import apple
 import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v3.4"
+APP_VERSION = "v3.5"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -88,6 +88,8 @@ UNINSTALLER = ("UNINSTALLER TOOL", [
      "Gỡ 360 Security (ThanhNguyenVN93, bản mới nhất từ GitHub)"),
     ("🅰️", "Avast Clear", "https://files.avast.com/iavs9x/avastclear.exe", "", "Công cụ gỡ Avast chính hãng (trang chủ Avast)"),
 ])
+TOOLS_3U = ("📱", "3uTools (64-bit)", r"page:https://www.3u.com/|https?://dl\.3u\.com/[^\"'\s<>]*3uTools_v[\d.]+_Setup_x64\.exe", "",
+            "Quản lý iPhone / iPad, flash iOS - luôn lấy bản 64-bit mới nhất trên trang chủ 3u.com")
 PICVIEW = ("🖼️", "PicView (xem ảnh)", "winget:Ruben2776.PicView", "", "Cài vào ổ C và tự đặt làm trình xem ảnh mặc định")
 FONT_PACK = "https://github.com/minhhaibuitt/Caiwindao/releases/download/Tonghop/fontchu.zip"     # bộ font đầy đủ (VNI, TCVN3, SVN...)
 
@@ -256,6 +258,7 @@ DEFAULT_GROUPS = [     # (tên nhóm, cột, [nút...]) - thứ tự & cột the
         ("📊", "TreeSize Free", "winget:JAMSoftware.TreeSize.Free", "", ""),
         ("🛠️", "Snappy Driver Installer", "winget:GlennDelahoy.SnappyDriverInstallerOrigin", "", ""),
         CAIWINDAO,
+        TOOLS_3U,
         ("🎞️", "CIT Voice Studio", GH_CIT, "", ""),
         ("🎞️", "Subtitle Translator", GH_SUBTR, "", ""),
         ("🎞️", "YouTube Downloader Pro", GH_YTDL, "", ""),
@@ -462,7 +465,7 @@ def src_kind(src):
         return "office"
     if s.lower().startswith("open:"):
         return "open"
-    if s.lower().startswith(("github:", "codeberg:")):
+    if s.lower().startswith(("github:", "codeberg:", "page:")):
         return "github"
     if re.match(r"^https?://", s, re.I):
         return "web"
@@ -471,6 +474,8 @@ def src_kind(src):
 
 def resolve_github(src):
     """github:chủ/repo|mẫu-tên-file  ->  (link tải file mới nhất, tên bản). Link không bao giờ cũ vì luôn hỏi bản mới nhất."""
+    if src.lower().startswith("page:"):
+        return resolve_page(src)
     site, body = src.split(":", 1)
     cb = site.strip().lower() == "codeberg"
     repo, _, pat = body.strip().partition("|")
@@ -508,6 +513,24 @@ def resolve_github(src):
                        "Admin bấm ✎ để sửa mẫu tên file.")
 
 
+def resolve_page(src):
+    """page:https://trang-tải|mẫu-link  ->  đọc trang chủ của hãng, lấy link tải có số phiên bản lớn nhất (khi hãng đổi bản là có link mới)."""
+    body = src.split(":", 1)[1].strip()
+    url, _, pat = body.partition("|")
+    if FAKE:
+        return "https://dl.example.com/demo_v9.9.9_Setup_x64.exe", "9.9.9"
+    import requests
+    r = requests.get(url.strip(), timeout=20, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/130"})
+    r.raise_for_status()
+    rx = re.compile(pat.strip() or r"https?://[^\"'\s<>]+\.exe", re.I)
+    links = sorted({m.group(0) for m in rx.finditer(r.text)})
+    if not links:
+        raise RuntimeError(f"Trang {url} không còn link tải khớp mẫu - Admin bấm ✎ để sửa.")
+    best = max(links, key=lambda u: [int(x) for x in re.findall(r"\d+", u.rsplit("/", 1)[-1])] or [0])
+    mv = re.search(r"[vV]?(\d+(?:\.\d+)+)", best.rsplit("/", 1)[-1])
+    return best, mv.group(1) if mv else ""
+
+
 def _forge_tree_file(api, repo, pat, hdr):
     """Kho Codeberg không dùng mục Releases mà để thẳng file exe/zip trong mã nguồn: lấy file khớp mẫu, số phiên bản lớn nhất."""
     import requests
@@ -542,20 +565,6 @@ def _rar_selftest():
         ok = Engine._unarchive(f, d / "x", "123")
         tc, to = run_hidden(["tar", "-xf", str(f), "-C", str(d)], timeout=300)
         out.append([a[1], url, f.stat().st_size, ok, [x.name for x in (d / "x").rglob("*.exe")] if ok else [], "tar", tc, to[-120:]])
-    return out
-
-
-def _probe_3u():
-    import requests
-    out = []
-    for u in ("https://www.3u.com/", "https://www.3u.com/download", "https://www.3u.com/en/", "https://dl.3u.com/update/v900/dl/version.txt"):
-        try:
-            r = requests.get(u, timeout=20, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
-            out.append([u, r.status_code, r.url, sorted(set(re.findall(r"https?://[^\"'\s<>]*3uTools[^\"'\s<>]*\.exe", r.text)))[:10],
-                        sorted(set(re.findall(r"[^\"'\s<>]*(?:dl\.3u\.com|url\.3u\.com)[^\"'\s<>]*", r.text)))[:10]])
-        except Exception as e:      # noqa: BLE001
-            out.append([u, str(e)[:100]])
-    out.append(run_hidden(["winget", "search", "3uTools", "--source", "winget", "--accept-source-agreements"], timeout=120)[1][-400:])
     return out
 
 
@@ -752,6 +761,16 @@ class Store:
                                     (n, ic, json.dumps(apps, ensure_ascii=False), json.dumps(tools), json.dumps(opts), i))
                 self.commit(persist=False)
             done.add("presets")
+            self.cfg["migrated"] = sorted(done)
+            self.save_config(persist=False)
+        if "v35" not in done:
+            if not self.db.execute("SELECT 1 FROM apps WHERE src=?", (TOOLS_3U[2],)).fetchone():
+                g = self.db.execute("SELECT id FROM groups WHERE name LIKE 'TIỆN ÍCH%' ORDER BY id LIMIT 1").fetchone()
+                if g:
+                    o = self.db.execute("SELECT COALESCE(MAX(ord),0)+1 FROM apps WHERE group_id=?", (g[0],)).fetchone()[0]
+                    self.db.execute("INSERT INTO apps(group_id, icon, name, src, args, note, ord) VALUES(?,?,?,?,?,?,?)", (g[0],) + TOOLS_3U + (o,))
+                    self.commit(persist=False)
+            done.add("v35")
             self.cfg["migrated"] = sorted(done)
             self.save_config(persist=False)
         if "v32" not in done:
@@ -1470,9 +1489,9 @@ Remove-Item $d -Recurse -Force; 'OK'
                 return "err", f"Không thấy file: {p}"
             return self._run_file(p, args)
         if kind == "github":
-            self.cur.update(phase="Hỏi GitHub bản mới nhất", pct=-1)
+            self.cur.update(phase="Hỏi bản mới nhất", pct=-1)
             src, tag = resolve_github(src)
-            self.log(f"GitHub: bản mới nhất {tag} → {src.rsplit('/', 1)[-1]}", "dim")
+            self.log(f"Bản mới nhất {tag} → {src.rsplit('/', 1)[-1]}", "dim")
         # web
         path = self._download(src)
         if path == "web":
@@ -3117,7 +3136,7 @@ class Api:
         if kind == "github":
             try:
                 url, tag = resolve_github(src)
-                return f"GitHub - bản mới nhất {tag}: {url.rsplit('/', 1)[-1]}"
+                return f"Bản mới nhất {tag}: {url.rsplit('/', 1)[-1]}"
             except Exception as e:          # noqa: BLE001
                 return "Lỗi: " + nice_err(e)
         if kind != "web":
@@ -3581,7 +3600,7 @@ class App:
                                                     for a in UNINSTALLER[1]]),
                           ("wg_picview", lambda: run_hidden(["winget", "show", "--id", "Ruben2776.PicView", "-e", "--source", "winget",
                                                              "--accept-source-agreements"], timeout=180)[1][-300:]),
-                          ("probe_3u", _probe_3u),
+                          ("page_3u", lambda: resolve_page(TOOLS_3U[2])),
 
                           ("off_scan", officex.off_scan), ("crack_check", officex.crack_check), ("lic_oem", officex.lic_oem),
                           ("lic_win", lambda: officex.lic_status("windows")["out"][:400]), ("odt_latest", odt_latest_url), ("irst_info", extra.irst_info),
