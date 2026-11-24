@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v3.3
+- Nút WPS Utility / 360 Remover lấy file .rar trong kho Codeberg; tự giải nén .rar / .7z.
+
 ## v3.2
 - Nhóm UNINSTALLER TOOL (WPS Utility, 360 Remover, 360 Security Uninstaller, Avast Clear); nút PicView tự đặt làm trình xem ảnh mặc định; nguồn codeberg:.
 

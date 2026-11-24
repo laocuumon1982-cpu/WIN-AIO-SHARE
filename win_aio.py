@@ -35,7 +35,7 @@ import apple
 import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v3.2"
+APP_VERSION = "v3.3"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -80,9 +80,9 @@ VANPHONG = ("🧾", "Tiện ích văn phòng", r"github:minhhaibuitt/Caiwindao@v
             "Tiện ích văn phòng của Hải Đỗ - luôn tải bản mới nhất")
 # Nhóm gỡ phần mềm cứng đầu (v3.2). codeberg: giống github: (Forgejo có API phát hành giống GitHub)
 UNINSTALLER = ("UNINSTALLER TOOL", [
-    ("🧽", "WPS Office Utility & Cleaner", r"codeberg:yansuogaming/wps-utility|portable.*\.(exe|zip)$|\.exe$", "",
+    ("🧽", "WPS Office Utility & Cleaner", r"codeberg:yansuogaming/wps-utility|portable.*\.(exe|zip|rar|7z)$", "",
      "Gỡ sạch / chặn WPS Office (Yansuo, bản Portable mới nhất từ Codeberg)"),
-    ("🛡️", "360 Total Security Remover", r"codeberg:yansuogaming/360totalremove|portable.*\.(exe|zip)$|\.exe$", "",
+    ("🛡️", "360 Total Security Remover", r"codeberg:yansuogaming/360totalremove|portable.*\.(exe|zip|rar|7z)$", "",
      "Gỡ sạch 360 Total Security (Yansuo, bản Portable mới nhất từ Codeberg)"),
     ("🧹", "360 Security Uninstaller Tool", r"github:ThanhNguyenVN93/360-Security-Uninstaller-Tool|\.(exe|zip)$", "",
      "Gỡ 360 Security (ThanhNguyenVN93, bản mới nhất từ GitHub)"),
@@ -526,6 +526,22 @@ def _forge_tree_file(api, repo, pat, hdr):
     best = max(files, key=lambda f: [int(x) for x in re.findall(r"\d+", f.rsplit("/", 1)[-1])] or [0])
     from urllib.parse import quote
     return f"https://codeberg.org/{repo}/raw/branch/{br}/{quote(best)}", ".".join(re.findall(r"\d+", best.rsplit("/", 1)[-1])) or br
+
+
+def _rar_selftest():
+    """Selftest: tải file .rar của Codeberg, giải nén thử (tar.exe / 7-Zip), liệt kê exe bên trong."""
+    import requests
+    import tempfile
+    out = []
+    for a in UNINSTALLER[1][:2]:
+        url, ver = resolve_github(a[2])
+        d = Path(tempfile.mkdtemp())
+        f = d / url.rsplit("/", 1)[-1]
+        f.write_bytes(requests.get(url, timeout=120).content)
+        ok = Engine._unarchive(f, d / "x")
+        tc, to = run_hidden(["tar", "-xf", str(f), "-C", str(d)], timeout=300)
+        out.append([a[1], url, f.stat().st_size, ok, [x.name for x in (d / "x").rglob("*.exe")] if ok else [], "tar", tc, to[-120:]])
+    return out
 
 
 def _try(f):
@@ -1660,6 +1676,25 @@ Remove-Item $d -Recurse -Force; 'OK'
         self.log(f"Đã tải {out.name} ({human(done)})")
         return out
 
+    @staticmethod
+    def _unarchive(p, dest):
+        """Giải nén .rar / .7z: 7-Zip -> WinRAR -> tar.exe của Windows 11 (đọc được rar)."""
+        Path(dest).mkdir(parents=True, exist_ok=True)
+        pf = [os.environ.get("ProgramW6432", ""), os.environ.get("ProgramFiles", ""), os.environ.get("ProgramFiles(x86)", "")]
+        tries = []
+        for b in pf:
+            if b:
+                tries.append([str(Path(b) / "7-Zip" / "7z.exe"), "x", "-y", f"-o{dest}", str(p)])
+                tries.append([str(Path(b) / "WinRAR" / "UnRAR.exe"), "x", "-y", "-o+", str(p), str(dest) + "\\"])
+        tries.append([str(Path(os.environ.get("SystemRoot", r"C:\Windows")) / "System32" / "tar.exe"), "-xf", str(p), "-C", str(dest)])
+        for cmd in tries:
+            if not Path(cmd[0]).exists():
+                continue
+            code, _ = run_hidden(cmd, timeout=600)
+            if code == 0 and any(dest.iterdir()):
+                return True
+        return False
+
     def _run_file(self, p, args):
         ext = p.suffix.lower()
         if FAKE:
@@ -1676,6 +1711,22 @@ Remove-Item $d -Recurse -Force; 'OK'
                 for i, it in enumerate(items, 1):             # % giải nén là % thật
                     z.extract(it, dest)
                     self.cur["inst"] = int(i * 100 / max(1, len(items)))
+            exes = [x for x in dest.rglob("*.exe")]
+            self.log(f"Đã giải nén vào {dest}")
+            if len(exes) == 1:
+                subprocess.Popen([str(exes[0])] + a, cwd=str(exes[0].parent))
+            else:
+                os.startfile(dest)            # noqa: S606
+            return "ok", ""
+        if ext in (".rar", ".7z"):
+            dest = self.dl_dir() / p.stem
+            dest.mkdir(parents=True, exist_ok=True)
+            stop = self._est_start(8.0, "Đang giải nén")
+            ok = self._unarchive(p, dest)
+            stop.set()
+            if not ok:
+                os.startfile(str(p))          # noqa: S606
+                return "err", f"Không giải nén được {p.name} (cài 7-Zip / WinRAR rồi thử lại) - đã mở file để giải nén tay"
             exes = [x for x in dest.rglob("*.exe")]
             self.log(f"Đã giải nén vào {dest}")
             if len(exes) == 1:
@@ -3507,7 +3558,7 @@ class App:
                                                     for a in UNINSTALLER[1]]),
                           ("wg_picview", lambda: run_hidden(["winget", "show", "--id", "Ruben2776.PicView", "-e", "--source", "winget",
                                                              "--accept-source-agreements"], timeout=180)[1][-300:]),
-                          ("uninst_assets", lambda: [_assets(x) for x in ("codeberg:yansuogaming/wps-utility", "codeberg:yansuogaming/360totalremove")]),
+                          ("rar_test", _rar_selftest),
                           ("off_scan", officex.off_scan), ("crack_check", officex.crack_check), ("lic_oem", officex.lic_oem),
                           ("lic_win", lambda: officex.lic_status("windows")["out"][:400]), ("odt_latest", odt_latest_url), ("irst_info", extra.irst_info),
                           ("irst_links", lambda: [(v["file"], requests_head(v["url"])) for v in extra.irst_info()["list"]] + [("font", requests_head(FONT_PACK))]),
