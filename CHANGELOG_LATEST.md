@@ -1,6 +1,5 @@
-Win AIO by Duy Anh v3.7
+Win AIO by Duy Anh v3.8
 
-- Bộ nút mặc định (khi tải tool mới / bấm Khôi phục mặc định) giờ y như bản sắp xếp của Duy Anh ngày 24/11/2026: 15 nhóm, 5 cột, đúng thứ tự nhóm trong từng cột, vị trí ở kiểu Lưới, tên nút, icon, link, ghi chú.
-- Tab Web mặc định có sẵn 6 nút: HHTQ 4K (Google Drive, PikPak), HHTQ 4K - KIMNGON (PikPak, Fshare), Hoàng Phát 360, BEEUNLOCK.
-- Nhóm 2026 (IDM, ADOBE, MAS AIO) đứng đúng chỗ nhưng để trống link - hiện "CHƯA CÓ NGUỒN", Admin tự gắn.
+- Bộ nút mặc định cập nhật theo bản sắp xếp mới của Duy Anh (24/11/2026 17:18): cột 4 là Giả lập Android, Lập trình, Thư viện hệ thống; cột 5 là Tiện ích, Uninstaller Tool; nhóm Kho phần mềm thêm nút "Kho PITVNcommunity" (để trống link, Admin tự gắn).
+- Tab Web mặc định thêm nhóm GITHUB 12 nút: Canon LBP2900 driver for Mac, macUSB, StabilityMatrix, FreeVideo, MangaForge, YouTube Downloader, Subtitle Translator, pyVideoTrans, Transub-Player, CIT Voice Studio, ViFastTts, VieNeu-TTS.
 - Máy đang dùng tool (cập nhật lên) giữ nguyên nút và link đã gắn.

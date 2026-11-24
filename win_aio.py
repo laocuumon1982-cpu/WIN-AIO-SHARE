@@ -35,7 +35,7 @@ import apple
 import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v3.7"
+APP_VERSION = "v3.8"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -179,13 +179,25 @@ ISO_MG_PAGES = [
     ("📋", "Danh sách đầy đủ", "genuine-installation-media", "Windows, Office + mã kiểm tra"),
 ]
 # Tab Web: nút mở trang web hay dùng (Admin sửa / thêm / xóa)
-DEFAULT_WEB = [     # (nhóm, icon, tên, link) - theo file sao lưu của Duy Anh (24/11/2026)
+DEFAULT_WEB = [     # (nhóm, icon, tên, link) - theo file sao lưu của Duy Anh (24/11/2026 17:18)
     ("HHTQ", "🌐", "HHTQ 4K", "https://drive.google.com/drive/folders/18dpeUzn7emXhJ2pGNNgNXVHuHewF32xY"),
     ("HHTQ", "🌐", "HHTQ 4K", "https://mypikpak.com/s/VP6-HTClWBLhBU15uGQieClio2"),
     ("HHTQ", "🌐", "HHTQ 4K - KIMNGON", "https://mypikpak.com/s/VOyELoBfemkzMwlEob9EwA-Ho2/AADm8sjD8JFVYb_SKu4oEKPko2_VOx"),
     ("HHTQ", "🌐", "HHTQ 4K - KIMNGON", "https://www.fshare.vn/folder/1CENU2DFSGMG"),
     ("HAY DÙNG", "🌐", "Hoàng Phát 360", "https://hoangphat360.vn/"),
     ("HAY DÙNG", "🌐", "BEEUNLOCK", "https://beeunlock.com/"),
+    ("GITHUB", "🌐", "Canon LBP2900 driver for Mac", "https://github.com/maclifevn/Canon-2900-Driver-MacLife"),
+    ("GITHUB", "🌐", "macUSB", "https://github.com/Kruszoneq/macUSB"),
+    ("GITHUB", "🌐", "StabilityMatrix", "https://github.com/LykosAI/StabilityMatrix"),
+    ("GITHUB", "🌐", "FreeVideo", "https://github.com/FlashML-org/FreeVideo"),
+    ("GITHUB", "🌐", "MangaForge", "https://github.com/PhamTienThang2510/MangaForge"),
+    ("GITHUB", "🌐", "YouTube Downloader", "https://github.com/duckmartians/YouTube_Downloader"),
+    ("GITHUB", "🌐", "Subtitle Translator", "https://github.com/rockbenben/subtitle-translator"),
+    ("GITHUB", "🌐", "pyVideoTrans", "https://github.com/jianchang512/pyvideotrans"),
+    ("GITHUB", "🌐", "Transub-Player", "https://github.com/dlsandy/Transub-Player"),
+    ("GITHUB", "🌐", "CIT Voice Studio", "https://github.com/Cuongyd196/cit-voice-studio"),
+    ("GITHUB", "🌐", "ViFastTts", "https://github.com/vifast-oss/ViFastTts"),
+    ("GITHUB", "🌐", "VieNeu-TTS", "https://github.com/pnnbao97/VieNeu-TTS"),
 ]
 
 # Hồ sơ cài đặt (preset): bấm 1 lần cài các phần mềm + chạy tiện ích Windows. Lưu tên phần mềm (không lưu id -> đổi nút vẫn khớp).
@@ -202,7 +214,7 @@ DEFAULT_PRESETS = [
 DEFAULT_PW = "HP360"          # mật khẩu Admin mặc định
 KHO_FSHARE = "open:https://www.fshare.vn/folder/BESIWSY4GNO7"
 KHO_GDRIVE = "open:https://drive.google.com/drive/u/3/folders/173Ouz2LQQcrVr9SbirV68wgJvXP2Svz2"
-DEFAULT_GROUPS = [     # (tên nhóm, cột, [nút...]) - thứ tự trong cột, vị trí & link theo file sao lưu của Duy Anh (24/11/2026)
+DEFAULT_GROUPS = [     # (tên nhóm, cột, [nút...]) - thứ tự trong cột, vị trí & link theo file sao lưu của Duy Anh (24/11/2026 17:18)
     ("2026", 0, [
         ("🔑", "IDM", "", "", ""),
         ("🔑", "ADOBE", "", "", ""),
@@ -211,6 +223,7 @@ DEFAULT_GROUPS = [     # (tên nhóm, cột, [nút...]) - thứ tự trong cột
     ("KHO PHẦN MỀM", 0, [
         ("🗄️", "Kho Fshare", "open:https://www.fshare.vn/folder/BESIWSY4GNO7", "", "Mở thư mục phần mềm trên Fshare"),
         ("🗂️", "Kho Google Drive", "open:https://drive.google.com/drive/u/3/folders/173Ouz2LQQcrVr9SbirV68wgJvXP2Svz2", "", "Mở thư mục phần mềm trên Google Drive"),
+        ("📦", "Kho PITVNcommunity", "", "", ""),
     ]),
     ("TRÌNH DUYỆT WEB", 0, [
         ("🌐", "Google Chrome", "winget:Google.Chrome", "", ""),
@@ -261,7 +274,25 @@ DEFAULT_GROUPS = [     # (tên nhóm, cột, [nút...]) - thứ tự trong cột
         ("📦", "WinRAR", "winget:RARLab.WinRAR", "", ""),
         ("📦", "7-Zip", "winget:7zip.7zip", "", ""),
     ]),
-    ("TIỆN ÍCH", 3, [
+    ("GIẢ LẬP ANDROID", 3, [
+        ("📱", "BlueStacks 5", "winget:BlueStack.BlueStacks", "", ""),
+        ("🎮", "LDPlayer", "https://www.ldplayer.net/", "", "Mở trang tải"),
+    ]),
+    ("LẬP TRÌNH", 3, [
+        ("🐍", "Python 3.12", "winget:Python.Python.3.12", "", ""),
+        ("📝", "VS Code", "winget:Microsoft.VisualStudioCode", "", ""),
+        ("🟢", "Node.js LTS", "winget:OpenJS.NodeJS.LTS", "", ""),
+        ("☕", "Java JDK 21", "winget:EclipseAdoptium.Temurin.21.JDK", "", ""),
+        ("🔧", "Git", "winget:Git.Git", "", ""),
+    ]),
+    ("THƯ VIỆN HỆ THỐNG", 3, [
+        ("⚙️", "Visual C++ 2015-2022 x64", "winget:Microsoft.VCRedist.2015+.x64", "", ""),
+        ("⚙️", "Visual C++ 2015-2022 x86", "winget:Microsoft.VCRedist.2015+.x86", "", ""),
+        ("⚙️", ".NET Framework 3.5", "cmd:DISM /Online /Enable-Feature /FeatureName:NetFx3 /All /NoRestart", "", "Bật tính năng có sẵn của Windows (cần mạng)"),
+        ("⚙️", ".NET Framework 4.8", "winget:Microsoft.DotNet.Framework.DeveloperPack_4", "", ""),
+        ("🎮", "DirectX Runtime", "winget:Microsoft.DirectX", "", ""),
+    ]),
+    ("TIỆN ÍCH", 4, [
         ("🔎", "Everything", "winget:voidtools.Everything", "", "Tìm file siêu nhanh"),
         ("📸", "ShareX", "winget:ShareX.ShareX", "", "Chụp màn hình"),
         ("📊", "TreeSize Free", "winget:JAMSoftware.TreeSize.Free", "", ""),
@@ -271,33 +302,15 @@ DEFAULT_GROUPS = [     # (tên nhóm, cột, [nút...]) - thứ tự trong cột
         ("🎞️", "YouTube Downloader Pro", r"github:duckmartians/YouTube_Downloader|windows\.zip$", "", ""),
         ("🧰", "Tiện ích cài Win dạo", r"github:minhhaibuitt/Caiwindao@caiwindao|^Tien\.ich\.cai\.Win\.dao\.v[\d.]+\.exe$", "", "Tool cài Win dạo của Hải Đỗ - luôn tải bản mới nhất (mật khẩu: haido)"),
     ]),
-    ("UNINSTALLER TOOL", 3, [
+    ("UNINSTALLER TOOL", 4, [
         ("🧹", "HiBit Uninstaller", "winget:HiBitSoftware.HiBitUninstaller", "", ""),
         ("🅰️", "Avast Clear", "https://files.avast.com/iavs9x/avastclear.exe", "", "Công cụ gỡ Avast chính hãng (trang chủ Avast)"),
         ("🧹", "360 Security Uninstaller Tool", r"github:ThanhNguyenVN93/360-Security-Uninstaller-Tool|\.(exe|zip)$", "", "Gỡ 360 Security (ThanhNguyenVN93, bản mới nhất từ GitHub)"),
         ("🛡️", "360 Total Security Remover", r"codeberg:yansuogaming/360totalremove|portable.*\.(exe|zip|rar|7z)$", "pass=123", "Gỡ sạch 360 Total Security (Yansuo, bản Portable mới nhất từ Codeberg)"),
         ("🧽", "WPS Office Utility & Cleaner", r"codeberg:yansuogaming/wps-utility|portable.*\.(exe|zip|rar|7z)$", "pass=123", "Gỡ sạch / chặn WPS Office (Yansuo, bản Portable mới nhất từ Codeberg)"),
     ]),
-    ("GIẢ LẬP ANDROID", 4, [
-        ("📱", "BlueStacks 5", "winget:BlueStack.BlueStacks", "", ""),
-        ("🎮", "LDPlayer", "https://www.ldplayer.net/", "", "Mở trang tải"),
-    ]),
-    ("LẬP TRÌNH", 4, [
-        ("🐍", "Python 3.12", "winget:Python.Python.3.12", "", ""),
-        ("📝", "VS Code", "winget:Microsoft.VisualStudioCode", "", ""),
-        ("🟢", "Node.js LTS", "winget:OpenJS.NodeJS.LTS", "", ""),
-        ("☕", "Java JDK 21", "winget:EclipseAdoptium.Temurin.21.JDK", "", ""),
-        ("🔧", "Git", "winget:Git.Git", "", ""),
-    ]),
-    ("THƯ VIỆN HỆ THỐNG", 4, [
-        ("⚙️", "Visual C++ 2015-2022 x64", "winget:Microsoft.VCRedist.2015+.x64", "", ""),
-        ("⚙️", "Visual C++ 2015-2022 x86", "winget:Microsoft.VCRedist.2015+.x86", "", ""),
-        ("⚙️", ".NET Framework 3.5", "cmd:DISM /Online /Enable-Feature /FeatureName:NetFx3 /All /NoRestart", "", "Bật tính năng có sẵn của Windows (cần mạng)"),
-        ("⚙️", ".NET Framework 4.8", "winget:Microsoft.DotNet.Framework.DeveloperPack_4", "", ""),
-        ("🎮", "DirectX Runtime", "winget:Microsoft.DirectX", "", ""),
-    ]),
 ]
-DEFAULT_GPOS = {"2026": 1, "KHO PHẦN MỀM": 0, "TRÌNH DUYỆT WEB": 7, "HỖ TRỢ TỪ XA": 9, "VĂN PHÒNG - PDF": 2, "ARTCRAFT OFFICE": 3, "BỘ GÕ TIẾNG VIỆT": 4, "NHẮN TIN - HỌP": 8, "ĐA PHƯƠNG TIỆN": 6, "NÉN - GIẢI NÉN": 5, "TIỆN ÍCH": 11, "UNINSTALLER TOOL": 14, "GIẢ LẬP ANDROID": 12, "LẬP TRÌNH": 13, "THƯ VIỆN HỆ THỐNG": 10}     # vị trí ở kiểu Lưới
+DEFAULT_GPOS = {"2026": 1, "KHO PHẦN MỀM": 0, "TRÌNH DUYỆT WEB": 7, "HỖ TRỢ TỪ XA": 9, "VĂN PHÒNG - PDF": 2, "ARTCRAFT OFFICE": 3, "BỘ GÕ TIẾNG VIỆT": 4, "NHẮN TIN - HỌP": 8, "ĐA PHƯƠNG TIỆN": 6, "NÉN - GIẢI NÉN": 5, "GIẢ LẬP ANDROID": 12, "LẬP TRÌNH": 13, "THƯ VIỆN HỆ THỐNG": 10, "TIỆN ÍCH": 11, "UNINSTALLER TOOL": 14}     # vị trí ở kiểu Lưới
 DEFAULT_FIT_N = 5
 
 # ---------------------------------------------------------------- tiện ích Windows cố định

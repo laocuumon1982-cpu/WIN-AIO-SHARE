@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v3.8
+- Bộ nút mặc định + tab Web mặc định theo file sao lưu mới của Duy Anh (24/11/2026 17:18).
+
 ## v3.7
 - Bộ nút mặc định + tab Web mặc định theo file sao lưu của Duy Anh (24/11/2026).
 
