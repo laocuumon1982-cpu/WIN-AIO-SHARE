@@ -486,6 +486,8 @@ def resolve_github(src):
     if cb:
         hdr = {"User-Agent": "WinAIO", "Accept": "application/json"}
     r = requests.get(f"{api}/repos/{repo}/releases/" + (f"tags/{tag}" if tag else "latest"), headers=hdr, timeout=20)
+    if r.status_code == 404 and cb:          # Codeberg chưa có "bản phát hành" -> tìm file trong kho mã nguồn
+        return _forge_tree_file(api, repo, pat, hdr)
     if r.status_code == 404:
         raise RuntimeError(f"Không thấy bản phát hành nào của {repo} trên {host}.")
     if r.status_code == 403:
@@ -506,6 +508,26 @@ def resolve_github(src):
                        "Admin bấm ✎ để sửa mẫu tên file.")
 
 
+def _forge_tree_file(api, repo, pat, hdr):
+    """Kho Codeberg không dùng mục Releases mà để thẳng file exe/zip trong mã nguồn: lấy file khớp mẫu, số phiên bản lớn nhất."""
+    import requests
+    info = requests.get(f"{api}/repos/{repo}", headers=hdr, timeout=20)
+    if info.status_code == 404:
+        raise RuntimeError(f"Không thấy kho {repo} trên Codeberg.")
+    br = info.json().get("default_branch") or "main"
+    t = requests.get(f"{api}/repos/{repo}/git/trees/{br}?recursive=true&per_page=1000", headers=hdr, timeout=20).json()
+    rx = re.compile(pat.strip() or r"\.(exe|zip)$", re.I)
+    files = [x["path"] for x in t.get("tree") or [] if x.get("type") == "blob" and rx.search(x["path"].rsplit("/", 1)[-1])]
+    if not files:
+        raise RuntimeError(f"Kho {repo} không có file khớp mẫu '{pat}'.")
+    if "portable" in pat.lower():
+        files.sort(key=lambda f: "portable" not in f.lower())
+        files = [f for f in files if "portable" in f.lower()] or files
+    best = max(files, key=lambda f: [int(x) for x in re.findall(r"\d+", f.rsplit("/", 1)[-1])] or [0])
+    from urllib.parse import quote
+    return f"https://codeberg.org/{repo}/raw/branch/{br}/{quote(best)}", ".".join(re.findall(r"\d+", best.rsplit("/", 1)[-1])) or br
+
+
 def _try(f):
     try:
         return f()
@@ -519,6 +541,10 @@ def _assets(src):
     site, repo = src.split(":", 1)
     api = "https://codeberg.org/api/v1" if site == "codeberg" else "https://api.github.com"
     try:
+        if site == "codeberg":
+            br = requests.get(f"{api}/repos/{repo}", timeout=20).json().get("default_branch")
+            t = requests.get(f"{api}/repos/{repo}/git/trees/{br}?recursive=true", timeout=20).json()
+            return [repo, br, [(x["path"], x.get("size")) for x in t.get("tree") or [] if x.get("type") == "blob"][:40]]
         js = requests.get(f"{api}/repos/{repo}/releases/latest", timeout=20, headers={"User-Agent": "WinAIO"}).json()
         return [repo, js.get("tag_name"), [a.get("name") for a in js.get("assets") or []]]
     except Exception as e:                  # noqa: BLE001
@@ -3481,8 +3507,7 @@ class App:
                                                     for a in UNINSTALLER[1]]),
                           ("wg_picview", lambda: run_hidden(["winget", "show", "--id", "Ruben2776.PicView", "-e", "--source", "winget",
                                                              "--accept-source-agreements"], timeout=180)[1][-300:]),
-                          ("uninst_assets", lambda: [_assets(x) for x in ("codeberg:yansuogaming/wps-utility", "codeberg:yansuogaming/360totalremove",
-                                                                           "github:ThanhNguyenVN93/360-Security-Uninstaller-Tool", "github:ruben2776/picview")]),
+                          ("uninst_assets", lambda: [_assets(x) for x in ("codeberg:yansuogaming/wps-utility", "codeberg:yansuogaming/360totalremove")]),
                           ("off_scan", officex.off_scan), ("crack_check", officex.crack_check), ("lic_oem", officex.lic_oem),
                           ("lic_win", lambda: officex.lic_status("windows")["out"][:400]), ("odt_latest", odt_latest_url), ("irst_info", extra.irst_info),
                           ("irst_links", lambda: [(v["file"], requests_head(v["url"])) for v in extra.irst_info()["list"]] + [("font", requests_head(FONT_PACK))]),

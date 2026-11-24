@@ -20,6 +20,13 @@
         try {
             $tag = (Invoke-RestMethod "https://api.github.com/repos/$repo/releases/latest" -UseBasicParsing -Headers @{ 'User-Agent' = 'WinAIO' }).tag_name
         } catch { }
+        if (-not $tag) {   # API GitHub bi gioi han luot hoi -> doc ten ban tu trang releases/latest (chuyen huong toi /tag/<ban>)
+            try {
+                $rq = [Net.WebRequest]::Create("https://github.com/$repo/releases/latest"); $rq.Method = 'HEAD'; $rq.UserAgent = 'WinAIO'
+                $rs = $rq.GetResponse(); $u = $rs.ResponseUri.AbsoluteUri; $rs.Close()
+                if ($u -match '/tag/([^/?#]+)') { $tag = $Matches[1] }
+            } catch { }
+        }
         $have = if (Test-Path $verf) { (Get-Content $verf -Raw).Trim() } else { '' }
 
         if (-not (Test-Path $exe) -or ($tag -and $have -ne $tag)) {
