@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v4.1
+- Bộ nút mặc định + tab Web mặc định theo file sao lưu mới của Duy Anh (24/11/2026 22:24).
+
 ## v4.0
 - Nhóm TTS & SUB: CIT Voice Studio, Subtitle Translator, LaziBook, VieNeu-TTS.
 
