@@ -1,5 +1,9 @@
-Win AIO by Duy Anh v4.3
+Win AIO by Duy Anh v4.4
 
+- Nút Transub-Player (nhóm Đa phương tiện) đổi sang tải bản PORTABLE (.zip) trong bản phát hành mới nhất của repo Transub-Player (hiện là build-5, TransubPlayer 1.8.0). Tải xong tự giải nén và mở TransubPlayer.exe, không cần cài. Nút cũ trong máy được tự đổi link.
+- Bản portable có nhiều file .exe: tool tự chọn đúng file chạy chính thay vì chỉ mở thư mục.
+
+v4.3:
 - Tab Thông tin & khởi động (Giao diện 01) làm lại giống hình mẫu: mỗi thẻ một màu riêng (CPU tím, RAM xanh dương, Card đồ họa xanh lá, Mạng cam, Hệ điều hành xanh lá, Bo mạch tím, Lưu trữ xanh), có hình minh họa 3D (chip CPU, thanh RAM, card đồ họa, Wi-Fi / mạng, màn hình, khiên bảo mật, SSD), hình máy laptop / máy bàn lớn ở đầu trang, hành tinh phát sáng sau tiêu đề.
 - Mở nhanh: mỗi nút có ô icon màu nổi; Khởi động đặc biệt icon to hơn.
 

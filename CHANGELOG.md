@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v4.4
+- Transub-Player: tải bản portable (.zip) thay bộ cài; tự mở đúng exe chính của bản portable.
+
 ## v4.3
 - Giao diện 01: tab Thông tin & khởi động làm lại theo hình mẫu (thẻ màu riêng, hình minh họa 3D, icon Mở nhanh có ô màu).
 

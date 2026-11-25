@@ -35,7 +35,7 @@ import apple
 import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v4.3"
+APP_VERSION = "v4.4"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -93,9 +93,10 @@ UNINSTALLER = ("UNINSTALLER TOOL", [
 ])
 TOOLS_3U = ("📱", "3uTools (64-bit)", r"page:https://www.3u.com/|https?://dl\.3u\.com/[^\"'\s<>]*3uTools_v[\d.]+_Setup_x64\.exe", "",
             "Quản lý iPhone / iPad, flash iOS - luôn lấy bản 64-bit mới nhất trên trang chủ 3u.com")
-# Transub-Player bản Việt hóa của Duy Anh: lấy bộ cài trong bản phát hành mới nhất của repo fork
-TRANSUB = ("🎬", "Transub-Player", r"github:laocuumon1982-cpu/Transub-Player|win-x64-setup\.exe$", "",
-           "Trình xem phim tự dịch phụ đề sang tiếng Việt (bản của Duy Anh)")
+# Transub-Player bản Việt hóa của Duy Anh: lấy bản PORTABLE (.zip) trong bản phát hành mới nhất của repo fork (v4.4)
+TRANSUB_OLD = r"github:laocuumon1982-cpu/Transub-Player|win-x64-setup\.exe$"
+TRANSUB = ("🎬", "Transub-Player", r"github:laocuumon1982-cpu/Transub-Player|win-x64\.zip$", "",
+           "Trình xem phim tự dịch phụ đề sang tiếng Việt (bản của Duy Anh) - bản portable")
 # Nhóm đọc chữ thành giọng nói & phụ đề (v4.0)
 LAZIBOOK = ("📚", "LaziBook", "winget:9N2X9BM8R5P9", "", "Đọc truyện, nghe sách nói giọng Việt (EPUB, PDF, Word, truyện tranh) - Microsoft Store")
 VIENEU = ("🗣️", "VieNeu-TTS", r"github:pnnbao97/VieNeu-TTS|_x64-setup\.exe$", "", "Chuyển văn bản thành giọng nói tiếng Việt (bản mới nhất từ GitHub)")
@@ -252,7 +253,7 @@ DEFAULT_GROUPS = [     # (tên nhóm, cột, [nút...]) - thứ tự trong cột
     ("ĐA PHƯƠNG TIỆN", 1, [
         ("🖼️", "PicView", "winget:Ruben2776.PicView", "", "Cài vào ổ C và tự đặt làm trình xem ảnh mặc định"),
         ("🎞️", "OBS Studio", "winget:OBSProject.OBSStudio", "", ""),
-        ("🎬", "Transub-Player", r"github:laocuumon1982-cpu/Transub-Player|win-x64-setup\.exe$", "", "Trình xem phim tự dịch phụ đề sang tiếng Việt (bản của Duy Anh)"),
+        TRANSUB,
         ("🎬", "VLC Media Player", "winget:VideoLAN.VLC", "", ""),
         ("🎬", "K-Lite Codec Pack", "winget:CodecGuide.K-LiteCodecPack.Standard", "", ""),
     ]),
@@ -693,6 +694,25 @@ def open_target(t):
 
 
 # ================================================================= dữ liệu (SQLite + config.json)
+
+_HELPER_EXE = re.compile(r"^(createdump|crashpad.*|unins.*|uninstall.*|update|updater|elevate|squirrel|vc_?redist.*|dxsetup|notification_helper)$", re.I)
+
+
+def main_exe(dest, stem=""):
+    """Bản portable giải nén ra nhiều .exe -> chọn file chạy chính (bỏ exe phụ, ưu tiên exe nông nhất / trùng tên gói)."""
+    exes = [x for x in Path(dest).rglob("*.exe")]
+    if len(exes) <= 1:
+        return exes[0] if exes else None
+    exes = [x for x in exes if not _HELPER_EXE.match(x.stem)] or exes
+    top = min(len(x.relative_to(dest).parts) for x in exes)
+    exes = [x for x in exes if len(x.relative_to(dest).parts) == top]
+    if len(exes) == 1:
+        return exes[0]
+    key = re.sub(r"[^a-z0-9]", "", stem.lower())
+    hit = [x for x in exes if (k := re.sub(r"[^a-z0-9]", "", x.stem.lower())) and key.startswith(k)]
+    return hit[0] if len(hit) == 1 else None
+
+
 class Store:
     """Dữ liệu nằm trong bộ nhớ cho tới khi cần lưu (tải app, sửa nút, đổi cài đặt, sao lưu).
     Lúc đó mới tạo thư mục Data kế bên file exe -> chỉ chép 1 file exe đi là dùng được."""
@@ -827,6 +847,13 @@ class Store:
                     self.db.execute("INSERT INTO apps(group_id, icon, name, src, args, note, ord) VALUES(?,?,?,?,?,?,?)", (g[0],) + PICVIEW + (-1,))
             self.commit(persist=False)
             done.add("v32")
+            self.cfg["migrated"] = sorted(done)
+            self.save_config(persist=False)
+        if "v44" not in done:
+            # Transub-Player: đổi từ bộ cài sang bản portable (.zip)
+            self.db.execute("UPDATE apps SET src=?, note=? WHERE src=?", (TRANSUB[2], TRANSUB[4], TRANSUB_OLD))
+            self.commit(persist=False)
+            done.add("v44")
             self.cfg["migrated"] = sorted(done)
             self.save_config(persist=False)
         if "v40" not in done:
@@ -1827,10 +1854,10 @@ Remove-Item $d -Recurse -Force; 'OK'
                 for i, it in enumerate(items, 1):             # % giải nén là % thật
                     z.extract(it, dest)
                     self.cur["inst"] = int(i * 100 / max(1, len(items)))
-            exes = [x for x in dest.rglob("*.exe")]
+            exe = main_exe(dest, p.stem)
             self.log(f"Đã giải nén vào {dest}")
-            if len(exes) == 1:
-                subprocess.Popen([str(exes[0])] + a, cwd=str(exes[0].parent))
+            if exe:
+                subprocess.Popen([str(exe)] + a, cwd=str(exe.parent))
             else:
                 os.startfile(dest)            # noqa: S606
             return "ok", ""
@@ -1850,10 +1877,10 @@ Remove-Item $d -Recurse -Force; 'OK'
             if not ok:
                 os.startfile(str(p))          # noqa: S606
                 return "err", f"Không giải nén được {p.name} (cài 7-Zip / WinRAR rồi thử lại) - đã mở file để giải nén tay"
-            exes = [x for x in dest.rglob("*.exe")]
+            exe = main_exe(dest, p.stem)
             self.log(f"Đã giải nén vào {dest}")
-            if len(exes) == 1:
-                subprocess.Popen([str(exes[0])] + a, cwd=str(exes[0].parent))
+            if exe:
+                subprocess.Popen([str(exe)] + a, cwd=str(exe.parent))
             else:
                 os.startfile(dest)            # noqa: S606
             return "ok", ""
