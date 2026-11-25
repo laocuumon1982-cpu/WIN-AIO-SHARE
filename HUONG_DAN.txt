@@ -147,7 +147,7 @@ CÁC KIỂU NGUỒN APP
 
 DỮ LIỆU (thư mục Data)
   winaio.db     danh sách nhóm + nút + nhật ký (SQLite)
-  config.json   cài đặt nhỏ, sửa tay được (thư mục tải, giữ file cài, giao diện, mật khẩu đã mã hóa)
+  config.json   cài đặt nhỏ, sửa tay được (thư mục tải, giữ file cài, giao diện "skin": default / g01 / g01l, mật khẩu đã mã hóa)
   Downloads     file cài đặt đã tải       Backup   sao lưu Wifi, Driver, bản xuất danh sách nút
   Quên mật khẩu Admin: tắt tool, mở config.json, xóa trắng admin_salt và admin_hash -> mật khẩu về "HP360".
   Chép danh sách nút sang máy khác: Cài đặt -> Xuất ra file JSON; bên kia chép file vào Data\apps.json rồi mở tool.

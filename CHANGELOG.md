@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v4.2
+- Thêm "Giao diện 01" (Navy / Xanh trắng: kính mờ, viền neon, icon 3D); nút ◐ Giao diện chọn giữa Mặc định và Giao diện 01.
+
 ## v4.1
 - Bộ nút mặc định + tab Web mặc định theo file sao lưu mới của Duy Anh (24/11/2026 22:24).
 

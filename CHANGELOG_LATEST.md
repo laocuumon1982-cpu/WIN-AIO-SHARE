@@ -1,5 +1,6 @@
-Win AIO by Duy Anh v4.1
+Win AIO by Duy Anh v4.2
 
-- Bộ nút mặc định cập nhật theo bản sắp xếp mới của Duy Anh (24/11/2026 22:24): cột 2 là Đa phương tiện, TTS & SUB, Tiện ích; cột 3 Văn phòng - PDF, ArtCraft Office, Bộ gõ tiếng Việt; cột 4 Nhắn tin - Họp, Nén - Giải nén, Uninstaller Tool; cột 5 Giả lập Android, Lập trình, Thư viện hệ thống. Nhóm "2026" đổi tên thành "ACTIVE" (để trống link, Admin tự gắn).
-- Tab Web mặc định: nút Transub-Player trong nhóm GITHUB.
-- Máy đang dùng tool (cập nhật lên) giữ nguyên nút và link đã gắn.
+- Giao diện mới "Giao diện 01": kính mờ trong suốt (glassmorphism), viền sáng neon, icon 3D nổi, nút bo tròn. Có 2 màu: Navy (nền xanh navy đêm, viền neon) và Xanh trắng (nền xanh sáng).
+- Nút "◐ Giao diện" trên cùng: chọn Mặc định · Sáng, Mặc định · Tối, Giao diện 01 · Navy, Giao diện 01 · Xanh trắng. Bấm là đổi ngay, tool nhớ lựa chọn cho lần mở sau.
+- Giao diện 01: thẻ CPU, RAM, GPU, Mạng, Ổ cứng có màu riêng + hình nền lớn; khu Khởi động đặc biệt và Mở nhanh bố trí rộng, chữ to, dễ đọc; sidebar phân nhóm rõ.
+- Giao diện gốc giữ nguyên tên "Mặc định", mọi chức năng và tên gọi giữ nguyên.

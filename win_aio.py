@@ -35,7 +35,7 @@ import apple
 import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v4.1"
+APP_VERSION = "v4.2"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -57,6 +57,7 @@ DEFAULT_CONFIG = {
     "download_dir": "Data\\Downloads",
     "keep_installer": True,
     "theme": "light",
+    "skin": "default",          # giao diện: default = Mặc định, g01 = Giao diện 01 (navy), g01l = Giao diện 01 (xanh trắng)
     "admin_salt": "",
     "admin_hash": "",
     "window": {},
@@ -2757,7 +2758,7 @@ class Api:
 
     # ---- đọc
     def init(self):
-        return {"title": APP_TITLE, "version": APP_VERSION, "repo": REPO, "browser": getattr(self, "_browser", False), "theme": self._s.cfg.get("theme", "light"),
+        return {"title": APP_TITLE, "version": APP_VERSION, "repo": REPO, "browser": getattr(self, "_browser", False), "theme": self._s.cfg.get("theme", "light"), "skin": self._s.cfg.get("skin", "default"),
                 "tools": [{"id": t[0], "group": t[1], "label": t[2], "confirm": t[5], "kind": t[3], "fn": t[4]} for t in TOOLS],
                 "quick": [{"label": q[0], "target": q[1]} for q in QUICK], "is_win": IS_WIN or FAKE,
                 "iso_langs": mgr.ISO_LANGS,
@@ -2883,6 +2884,12 @@ class Api:
 
     def set_theme(self, t):
         self._s.cfg["theme"] = "dark" if t == "dark" else "light"
+        self._s.save_config()
+        return True
+
+    def set_skin(self, k):
+        """Giao diện: default (Mặc định, có Sáng / Tối) hoặc g01 (Giao diện 01 - xanh neon)."""
+        self._s.cfg["skin"] = k if k in ("default", "g01", "g01l") else "default"
         self._s.save_config()
         return True
 

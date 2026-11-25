@@ -109,6 +109,7 @@ function showPage(p) {
   document.querySelectorAll(".page").forEach(x => x.classList.toggle("on", x.id === (locked ? "pg-locked" : "pg-" + p)));
   document.querySelectorAll(".nav").forEach(x => x.classList.toggle("on", x.dataset.p === p));
   $("ptitle").textContent = PAGES[p][0];
+  const nv = document.querySelector(`.nav[data-p="${p}"] .ic`); if ($("picon") && nv) $("picon").textContent = nv.textContent;
   $("psub").textContent = PAGES[p][1];
   if (p === "history") loadHistory();
   if (p === "power") loadDisks();
@@ -128,7 +129,31 @@ function showPage(p) {
 }
 document.querySelectorAll(".nav").forEach(n => n.onclick = () => showPage(n.dataset.p));
 $("fold").onclick = () => { $("side").classList.toggle("mini"); $("fold").textContent = $("side").classList.contains("mini") ? "»" : "«"; };
-$("bTheme").onclick = () => { const d = !document.body.classList.contains("dark"); document.body.classList.toggle("dark", d); api("set_theme", d ? "dark" : "light"); };
+/* ---------------------------------------------------------------- Giao diện: Mặc định (Sáng / Tối) · Giao diện 01 */
+let SKIN = "default", THEME = "light";
+function applySkin() {
+  document.body.classList.toggle("g01", SKIN === "g01" || SKIN === "g01l");
+  document.body.classList.toggle("g01l", SKIN === "g01l");
+  document.body.classList.toggle("dark", SKIN === "g01" || (SKIN === "default" && THEME === "dark"));
+  if (typeof fitSys === "function") [30, 300].forEach(t => setTimeout(() => { try { fitSys(); if (page === "apps") renderGroups(); } catch (e) { /* bỏ qua */ } }, t));
+}
+$("bTheme").onclick = async () => {
+  const opt = (k, t, s, d) => `<label class="skopt${(k === SKIN && (k !== "default" || t === THEME)) ? " on" : ""}" data-k="${k}" data-t="${t}">
+    <span class="skprev sk-${k}${t === "dark" ? " dk" : ""}"><i></i><i></i><i></i><i></i></span><b>${s}</b><small>${d}</small></label>`;
+  await dialog({title: "◐ Chọn giao diện", width: 760, body: `<div class="skgrid">
+      ${opt("default", "light", "Mặc định · Sáng", "Giao diện gốc của tool, nền sáng")}
+      ${opt("default", "dark", "Mặc định · Tối", "Giao diện gốc của tool, nền tối")}
+      ${opt("g01", "dark", "Giao diện 01 · Navy", "Kính mờ, viền neon xanh, nền xanh navy đêm")}
+      ${opt("g01l", "light", "Giao diện 01 · Xanh trắng", "Kính mờ, viền xanh sáng, nền xanh trắng")}</div>
+    <div class="logl">Bấm để đổi ngay - tool nhớ lựa chọn cho lần mở sau.</div>`,
+    buttons: [{text: "Xong", cls: "red", def: true}],
+    onOpen: c => c.q(".skgrid").onclick = e => {
+      const o = e.target.closest(".skopt"); if (!o) return;
+      SKIN = o.dataset.k; if (SKIN === "default") THEME = o.dataset.t;
+      c.el.querySelectorAll(".skopt").forEach(x => x.classList.toggle("on", x === o));
+      applySkin(); api("set_skin", SKIN); if (SKIN === "default") api("set_theme", THEME);
+    }});
+};
 
 /* ---------------------------------------------------------------- Admin */
 function setAdmin(on) {
@@ -508,7 +533,7 @@ const goodBad = (t, good) => pill(t || "—", good === null ? "t-skip" : good ? 
 const kv = rows => `<div class="kv">${rows.filter(r => r && r[1] !== undefined && r[1] !== "").map(([k, v, raw]) =>
   `<div class="k">${esc(k)}</div><div class="v">${raw ? v : esc(v)}</div>`).join("")}</div>`;
 function scard(ic, color, title, body, wide) {
-  return `<div class="scard${wide ? " wide" : ""}" style="--ac:${color}"><div class="sh"><span class="si">${ic}</span><b>${esc(title)}</b></div>${body}</div>`;
+  return `<div class="scard${wide ? " wide" : ""}" style="--ac:${color}" data-deco="${ic}"><div class="sh"><span class="si">${ic}</span><b>${esc(title)}</b></div>${body}</div>`;
 }
 function ring(id, label, color) {
   return `<div class="ring" id="${id}" style="--c:${color};--p:0"><div class="rin"><b>0%</b><small>${label}</small></div></div>`;
@@ -950,7 +975,7 @@ async function tick() {
 async function start() {
   if (window.__started) return; window.__started = true;
   INIT = await api("init");
-  document.body.classList.toggle("dark", INIT.theme === "dark");
+  THEME = INIT.theme === "dark" ? "dark" : "light"; SKIN = ["g01", "g01l"].includes(INIT.skin) ? INIT.skin : "default"; applySkin();
   $("ver").textContent = "by Duy Anh · " + INIT.version;
   $("verfoot").textContent = INIT.title + " " + INIT.version;
   renderTools();
