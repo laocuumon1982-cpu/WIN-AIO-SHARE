@@ -1,5 +1,9 @@
-Win AIO by Duy Anh v4.2
+Win AIO by Duy Anh v4.3
 
+- Tab Thông tin & khởi động (Giao diện 01) làm lại giống hình mẫu: mỗi thẻ một màu riêng (CPU tím, RAM xanh dương, Card đồ họa xanh lá, Mạng cam, Hệ điều hành xanh lá, Bo mạch tím, Lưu trữ xanh), có hình minh họa 3D (chip CPU, thanh RAM, card đồ họa, Wi-Fi / mạng, màn hình, khiên bảo mật, SSD), hình máy laptop / máy bàn lớn ở đầu trang, hành tinh phát sáng sau tiêu đề.
+- Mở nhanh: mỗi nút có ô icon màu nổi; Khởi động đặc biệt icon to hơn.
+
+v4.2:
 - Giao diện mới "Giao diện 01": kính mờ trong suốt (glassmorphism), viền sáng neon, icon 3D nổi, nút bo tròn. Có 2 màu: Navy (nền xanh navy đêm, viền neon) và Xanh trắng (nền xanh sáng).
 - Nút "◐ Giao diện" trên cùng: chọn Mặc định · Sáng, Mặc định · Tối, Giao diện 01 · Navy, Giao diện 01 · Xanh trắng. Bấm là đổi ngay, tool nhớ lựa chọn cho lần mở sau.
 - Giao diện 01: thẻ CPU, RAM, GPU, Mạng, Ổ cứng có màu riêng + hình nền lớn; khu Khởi động đặc biệt và Mở nhanh bố trí rộng, chữ to, dễ đọc; sidebar phân nhóm rõ.

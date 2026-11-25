@@ -1233,6 +1233,55 @@ body.g01 #pg-system .sec:has(#quick) .d{margin-bottom:8px;color:#a9bce6}
 body.g01 #pg-system .qgrid{grid-template-columns:repeat(auto-fill,minmax(176px,1fr));gap:9px}
 body.g01 #pg-system .qgrid .btn{min-height:38px;padding:6px 12px;font-size:13px;border-radius:12px;font-weight:700}
 
+/* ---- Giao diện 01: hình minh họa 3D + màu riêng từng thẻ (giống mẫu) */
+.illu,.hsvg{display:none}
+.qi{margin-right:5px}
+body.g01 .hemo{display:none}
+body.g01 .hsvg{display:block;width:100%;height:100%}
+body.g01 .hsvg svg{width:100%;height:100%;filter:drop-shadow(0 0 14px rgba(90,170,255,.8))}
+body.g01 .hico,body.g01 #pg-system .hico{width:168px;height:122px;border-radius:18px;padding:4px;background:radial-gradient(circle at 50% 45%,rgba(90,170,255,.45),rgba(20,50,150,.35) 60%,rgba(8,18,60,.5))}
+body.g01 .scard::after{display:none}
+body.g01 .illu{display:block;position:absolute;right:4px;bottom:2px;width:46%;max-width:180px;pointer-events:none;z-index:0;
+  filter:drop-shadow(0 6px 14px rgba(0,0,0,.45)) drop-shadow(0 0 10px color-mix(in srgb,var(--ac) 45%,transparent))}
+body.g01 .illu svg{width:100%;height:auto;display:block}
+body.g01 .scard>:not(.illu){position:relative;z-index:1}
+body.g01 .scard .kv .v,body.g01 .scard .big{text-shadow:0 1px 3px rgba(0,0,0,.55)}
+body.g01 .scard[data-k="cpu"] .illu{width:38%;max-width:150px;bottom:14px}
+body.g01 .scard[data-k="ram"] .illu{top:4px;bottom:auto;width:34%;max-width:140px}
+body.g01 .scard[data-k="gpu"] .illu{width:40%;max-width:160px}
+body.g01 .scard[data-k="os"] .illu{left:8px;right:auto;bottom:10px;width:30%;max-width:120px}
+body.g01 .scard[data-k="os"] .kv{margin-left:31%}
+body.g01 .scard[data-k="board"] .illu{width:24%;max-width:96px;bottom:8px;right:8px}
+body.g01 .scard[data-k="wifi"] .illu,body.g01 .scard[data-k="lan"] .illu{top:6px;bottom:auto;width:24%;max-width:100px;opacity:.9}
+body.g01 .scard[data-k="disk"] .illu{width:10%;max-width:80px;right:12px;top:4px;bottom:auto}
+body.g01 .scard[data-k="cpu"]{--ac:#8a6bff!important;--g1:rgba(92,64,240,.62);--g2:rgba(20,22,88,.88)}
+body.g01 .scard[data-k="ram"]{--ac:#4a96ff!important;--g1:rgba(40,100,240,.6);--g2:rgba(12,26,90,.88)}
+body.g01 .scard[data-k="gpu"]{--ac:#2ee68f!important;--g1:rgba(22,150,90,.6);--g2:rgba(8,44,48,.9)}
+body.g01 .scard[data-k="wifi"],body.g01 .scard[data-k="lan"]{--ac:#ff8a3d!important;--g1:rgba(200,96,36,.6);--g2:rgba(52,26,44,.9)}
+body.g01 .scard[data-k="os"]{--ac:#3ddc6f!important;--g1:rgba(30,160,72,.58);--g2:rgba(8,44,34,.9)}
+body.g01 .scard[data-k="board"]{--ac:#b462ff!important;--g1:rgba(128,52,228,.6);--g2:rgba(32,16,74,.9)}
+body.g01 .scard[data-k="disk"]{--ac:#3d9bff!important;--g1:rgba(30,92,224,.55);--g2:rgba(10,22,74,.9)}
+body.g01 .scard[data-k]{background:linear-gradient(155deg,var(--g1) 0%,var(--g2) 72%,rgba(6,12,40,.92) 100%)}
+body.g01 #rGpu{--c:#c04dff!important}
+body.g01 #pg-system .bootgrid .ti{width:46px;height:46px;font-size:26px}
+body.g01 #pg-system .qgrid{grid-template-columns:repeat(auto-fill,minmax(165px,1fr))}
+body.g01 #pg-system .qgrid .btn{display:flex;align-items:center;justify-content:flex-start;gap:9px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.g01 .qi{display:inline-grid;place-items:center;width:26px;height:26px;flex:none;margin:0;border-radius:8px;font-size:15px;
+  background:linear-gradient(150deg,color-mix(in srgb,var(--qc) 85%,#fff 10%),color-mix(in srgb,var(--qc) 50%,#000 25%));
+  box-shadow:0 0 10px color-mix(in srgb,var(--qc) 60%,transparent),inset 0 1px 0 rgba(255,255,255,.4)}
+body.g01 #quick .btn{--qc:#3d8bff}
+body.g01 #quick .btn:nth-child(7n+2){--qc:#ff4d5a}
+body.g01 #quick .btn:nth-child(7n+3){--qc:#ffb020}
+body.g01 #quick .btn:nth-child(7n+4){--qc:#2fb6ff}
+body.g01 #quick .btn:nth-child(7n+5){--qc:#2ee68f}
+body.g01 #quick .btn:nth-child(7n+6){--qc:#9b5cff}
+body.g01 #quick .btn:nth-child(7n){--qc:#ff7a2f}
+/* hành tinh phát sáng sau tiêu đề */
+body.g01 .main::after{content:"";position:absolute;left:44%;top:-250px;width:560px;height:330px;border-radius:50%;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse at 50% 30%,rgba(60,120,230,.55),rgba(20,50,150,.35) 55%,rgba(10,25,90,.15) 70%);
+  box-shadow:0 0 0 2px rgba(150,210,255,.55),0 0 40px rgba(80,160,255,.75),inset 0 -20px 50px rgba(140,200,255,.45)}
+body.g01.g01l .main::after{opacity:.35}
+
 /* =====================================================================================
    GIAO DIỆN 01 · XANH TRẮNG (body.g01.g01l) - cùng bố cục kính mờ, nền sáng xanh trắng
    ===================================================================================== */

@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v4.3
+- Giao diện 01: tab Thông tin & khởi động làm lại theo hình mẫu (thẻ màu riêng, hình minh họa 3D, icon Mở nhanh có ô màu).
+
 ## v4.2
 - Thêm "Giao diện 01" (Navy / Xanh trắng: kính mờ, viền neon, icon 3D); nút ◐ Giao diện chọn giữa Mặc định và Giao diện 01.
 

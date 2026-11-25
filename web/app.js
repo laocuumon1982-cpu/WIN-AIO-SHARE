@@ -532,8 +532,75 @@ const pill = (t, cls) => `<span class="pill ${cls}">${esc(t)}</span>`;
 const goodBad = (t, good) => pill(t || "—", good === null ? "t-skip" : good ? "t-done" : "t-err");
 const kv = rows => `<div class="kv">${rows.filter(r => r && r[1] !== undefined && r[1] !== "").map(([k, v, raw]) =>
   `<div class="k">${esc(k)}</div><div class="v">${raw ? v : esc(v)}</div>`).join("")}</div>`;
-function scard(ic, color, title, body, wide) {
-  return `<div class="scard${wide ? " wide" : ""}" style="--ac:${color}" data-deco="${ic}"><div class="sh"><span class="si">${ic}</span><b>${esc(title)}</b></div>${body}</div>`;
+/* ===== Hình minh họa 3D (SVG tự vẽ) cho Giao diện 01 ===== */
+const ISO = (x, y, body) => `<g transform="translate(${x},${y}) matrix(.75,.4,-.75,.4,0,0)">${body}</g>`;
+const EXT = (x, y, h, sil) => { let o = ""; for (let i = h; i > 0; i -= 1) o += ISO(x, y + i, sil); return o; };
+const SVG = (inner, vb = "0 0 200 150") => `<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
+const ILLU = {
+  cpu: () => SVG(`<defs><linearGradient id="cpA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#34407a"/><stop offset="1" stop-color="#141a3a"/></linearGradient>
+    <linearGradient id="cpB" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#c3cbe0"/><stop offset="1" stop-color="#7f8aa8"/></linearGradient></defs>
+    <ellipse cx="100" cy="100" rx="78" ry="26" fill="var(--ac)" opacity=".35" filter="blur(8px)"/>
+    ${EXT(100, 66, 9, `<rect x="-50" y="-50" width="100" height="100" rx="6" fill="#0a0f24"/>`)}
+    ${ISO(100, 66, `<rect x="-50" y="-50" width="100" height="100" rx="6" fill="url(#cpA)" stroke="var(--ac)" stroke-width="1.5"/>` +
+      Array.from({length: 12}, (_, i) => -44 + i * 8).map(v => `<circle cx="${v}" cy="-45" r="1.6" fill="#f0c860"/><circle cx="${v}" cy="45" r="1.6" fill="#f0c860"/><circle cx="-45" cy="${v}" r="1.6" fill="#f0c860"/><circle cx="45" cy="${v}" r="1.6" fill="#f0c860"/>`).join(""))}
+    ${EXT(100, 60, 6, `<rect x="-33" y="-33" width="66" height="66" rx="8" fill="#5b6687"/>`)}
+    ${ISO(100, 60, `<rect x="-33" y="-33" width="66" height="66" rx="8" fill="url(#cpB)"/><text x="0" y="7" text-anchor="middle" font-size="19" font-weight="900" font-family="Segoe UI,Arial" fill="#46507a">CPU</text><rect x="-20" y="12" width="40" height="3" rx="1.5" fill="#8a94b4"/>`)}`),
+  ram: () => { const stick = (x, y) => EXT(x, y, 5, `<rect x="-78" y="-17" width="156" height="34" rx="3" fill="#07331c"/>`) +
+      ISO(x, y, `<rect x="-78" y="-17" width="156" height="34" rx="3" fill="url(#rmA)" stroke="#7dffb4" stroke-width=".8"/>` +
+        [-58, -29, 0, 29, 58].map(c => `<rect x="${c - 11}" y="-12" width="22" height="15" rx="1.5" fill="#10151f" stroke="#3a4458" stroke-width=".6"/>`).join("") +
+        Array.from({length: 30}, (_, i) => `<rect x="${-74 + i * 5}" y="9" width="3" height="7" fill="#f2c95b"/>`).join(""));
+    return SVG(`<defs><linearGradient id="rmA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2fbf6a"/><stop offset="1" stop-color="#0d6b38"/></linearGradient></defs>
+      <ellipse cx="100" cy="104" rx="80" ry="24" fill="var(--ac)" opacity=".35" filter="blur(8px)"/>${stick(92, 58)}${stick(108, 84)}`); },
+  gpu: () => { const fan = (cx) => `<circle cx="${cx}" cy="0" r="30" fill="#0a0d14" stroke="#3c475c" stroke-width="2"/>` +
+      Array.from({length: 9}, (_, i) => `<path d="M${cx} 0 q 10 -14 0 -27 q -6 12 0 27z" fill="#262f40" transform="rotate(${i * 40} ${cx} 0)"/>`).join("") +
+      `<circle cx="${cx}" cy="0" r="8" fill="#1c2433" stroke="var(--ac)" stroke-width="1.5"/>`;
+    return SVG(`<defs><linearGradient id="gpA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3a4357"/><stop offset="1" stop-color="#11151f"/></linearGradient></defs>
+      <ellipse cx="100" cy="106" rx="82" ry="26" fill="var(--ac)" opacity=".35" filter="blur(8px)"/>
+      ${EXT(100, 66, 14, `<rect x="-72" y="-40" width="144" height="80" rx="9" fill="#06080d"/>`)}
+      ${ISO(100, 66, `<rect x="-72" y="-40" width="144" height="80" rx="9" fill="url(#gpA)" stroke="var(--ac)" stroke-width="1.5"/>${fan(-34)}${fan(34)}<rect x="-66" y="-37" width="132" height="3" rx="1.5" fill="var(--ac)"/>`)}`); },
+  wifi: () => SVG(`<g fill="none" stroke="url(#wfA)" stroke-linecap="round" stroke-width="13" filter="drop-shadow(0 0 6px var(--ac))">
+      <path d="M58 82 A60 60 0 0 1 142 82"/><path d="M76 98 A34 34 0 0 1 124 98"/></g>
+      <path d="M38 64 A88 88 0 0 1 162 64" fill="none" stroke="url(#wfA)" stroke-width="13" stroke-linecap="round" filter="drop-shadow(0 0 6px var(--ac))"/>
+      <circle cx="100" cy="118" r="10" fill="#bff1ff" filter="drop-shadow(0 0 8px var(--ac))"/>
+      <defs><linearGradient id="wfA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9fbff"/><stop offset="1" stop-color="#4cc3ff"/></linearGradient></defs>`),
+  lan: () => SVG(`<defs><radialGradient id="lnA" cx=".35" cy=".3"><stop offset="0" stop-color="#bfe9ff"/><stop offset=".5" stop-color="#3b8cff"/><stop offset="1" stop-color="#123a9a"/></radialGradient></defs>
+      <circle cx="100" cy="74" r="52" fill="url(#lnA)" filter="drop-shadow(0 0 10px var(--ac))"/>
+      <g fill="none" stroke="#e6f6ff" stroke-width="2.4" opacity=".85"><ellipse cx="100" cy="74" rx="22" ry="52"/><path d="M48 74 H152 M56 48 H144 M56 100 H144 M100 22 V126"/></g>`),
+  os: () => SVG(`<defs><linearGradient id="osA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#42e08a"/><stop offset=".5" stop-color="#1b8fd0"/><stop offset="1" stop-color="#173d9a"/></linearGradient></defs>
+      <ellipse cx="100" cy="136" rx="70" ry="10" fill="var(--ac)" opacity=".4" filter="blur(6px)"/>
+      <path d="M86 112 h28 l6 18 h-40z" fill="#9aa6c0"/><rect x="66" y="128" width="68" height="6" rx="3" fill="#c9d2e6"/>
+      <rect x="26" y="14" width="148" height="100" rx="9" fill="#0b1430" stroke="var(--ac)" stroke-width="2"/>
+      <rect x="34" y="22" width="132" height="84" rx="4" fill="url(#osA)"/>
+      <rect x="44" y="34" width="66" height="44" rx="4" fill="#fff" opacity=".92"/><rect x="44" y="34" width="66" height="8" rx="4" fill="#d7e3ff"/>
+      <rect x="92" y="54" width="62" height="42" rx="4" fill="#fff" opacity=".7"/><rect x="92" y="54" width="62" height="8" rx="4" fill="#c4d6ff"/>
+      <rect x="50" y="48" width="40" height="4" rx="2" fill="#9fb4e0"/><rect x="50" y="56" width="30" height="4" rx="2" fill="#9fb4e0"/>`),
+  board: () => SVG(`<defs><linearGradient id="bdA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d59bff"/><stop offset=".5" stop-color="#8a3cf0"/><stop offset="1" stop-color="#3c138a"/></linearGradient></defs>
+      <g stroke="var(--ac)" stroke-width="2.5" fill="none" opacity=".75"><path d="M20 60 H48 M20 84 H40 L48 92 M180 60 H152 M180 84 H160 L152 92"/></g>
+      <g fill="var(--ac)"><circle cx="20" cy="60" r="4"/><circle cx="20" cy="84" r="4"/><circle cx="180" cy="60" r="4"/><circle cx="180" cy="84" r="4"/></g>
+      <path d="M100 14 L152 32 V72 C152 104 130 124 100 136 C70 124 48 104 48 72 V32 Z" fill="url(#bdA)" stroke="#f1dcff" stroke-width="2" filter="drop-shadow(0 0 10px var(--ac))"/>
+      <path d="M100 26 L142 40 V72 C142 98 124 114 100 124 Z" fill="#fff" opacity=".12"/>
+      <path d="M76 74 L94 92 L126 58" fill="none" stroke="#fff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>`),
+  disk: () => SVG(`<defs><linearGradient id="sdA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4f7ff"/><stop offset=".6" stop-color="#b4bfd8"/><stop offset="1" stop-color="#7d89a8"/></linearGradient></defs>
+      <ellipse cx="100" cy="104" rx="76" ry="24" fill="var(--ac)" opacity=".35" filter="blur(8px)"/>
+      ${EXT(100, 66, 10, `<rect x="-56" y="-38" width="112" height="76" rx="6" fill="#4f5a78"/>`)}
+      ${ISO(100, 66, `<rect x="-56" y="-38" width="112" height="76" rx="6" fill="url(#sdA)"/><rect x="-42" y="-24" width="84" height="48" rx="4" fill="#1b2a52"/>
+        <text x="0" y="4" text-anchor="middle" font-size="20" font-weight="900" font-family="Segoe UI,Arial" fill="#8fb4ff">SSD</text><rect x="-26" y="10" width="52" height="3" rx="1.5" fill="var(--ac)"/>`)}`),
+  laptop: () => SVG(`<defs><linearGradient id="lpA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7fd0ff"/><stop offset=".45" stop-color="#2a7bff"/><stop offset="1" stop-color="#0d2a8a"/></linearGradient>
+      <linearGradient id="lpB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9eef8"/><stop offset="1" stop-color="#8d98b3"/></linearGradient></defs>
+      <rect x="42" y="12" width="136" height="90" rx="8" fill="#141c33" stroke="#9cc4ff" stroke-width="1.5"/>
+      <rect x="49" y="19" width="122" height="76" rx="3" fill="url(#lpA)"/>
+      <path d="M49 80 C90 60 120 92 171 48 V95 H49z" fill="#fff" opacity=".14"/><path d="M49 62 C88 40 130 70 171 30" stroke="#d6f0ff" stroke-width="2" fill="none" opacity=".7"/>
+      <rect x="92" y="38" width="36" height="36" rx="8" fill="#fff" opacity=".18" stroke="#e7f5ff" stroke-width="1.5"/>
+      <path d="M22 104 H198 L184 124 Q182 128 176 128 H44 Q38 128 36 124Z" fill="url(#lpB)"/><rect x="96" y="104" width="28" height="4" rx="2" fill="#7b86a2"/>`, "0 0 220 140"),
+  desktop: () => SVG(`<defs><linearGradient id="dkA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7fd0ff"/><stop offset=".45" stop-color="#2a7bff"/><stop offset="1" stop-color="#0d2a8a"/></linearGradient></defs>
+      <rect x="150" y="26" width="44" height="98" rx="6" fill="#1a2440" stroke="#9cc4ff" stroke-width="1.5"/><circle cx="172" cy="42" r="5" fill="#6fd0ff"/>
+      <rect x="158" y="56" width="28" height="3" rx="1.5" fill="#4b5c8a"/><rect x="158" y="64" width="28" height="3" rx="1.5" fill="#4b5c8a"/>
+      <rect x="18" y="14" width="132" height="88" rx="8" fill="#141c33" stroke="#9cc4ff" stroke-width="1.5"/>
+      <rect x="25" y="21" width="118" height="74" rx="3" fill="url(#dkA)"/><path d="M25 78 C64 58 96 90 143 46 V95 H25z" fill="#fff" opacity=".14"/>
+      <path d="M72 102 h24 l6 16 h-36z" fill="#9aa6c0"/><rect x="56" y="116" width="56" height="6" rx="3" fill="#c9d2e6"/>`, "0 0 210 130"),
+};
+function scard(ic, color, title, body, wide, k) {
+  return `<div class="scard${wide ? " wide" : ""}" style="--ac:${color}" data-deco="${ic}"${k ? ` data-k="${k}"` : ""}>${k && ILLU[k] ? `<div class="illu">${ILLU[k]()}</div>` : ""}<div class="sh"><span class="si">${ic}</span><b>${esc(title)}</b></div>${body}</div>`;
 }
 function ring(id, label, color) {
   return `<div class="ring" id="${id}" style="--c:${color};--p:0"><div class="rin"><b>0%</b><small>${label}</small></div></div>`;
@@ -545,7 +612,7 @@ function renderInfo() {
   const pc = si.pc || {}, os = si.os || {}, cpu = si.cpu || {}, ram = si.ram || {}, bd = si.board || {};
   const ip = (si.net || []).map(n => n.ip).filter(Boolean).join(", ");
   $("hero").innerHTML = `
-    <div class="hl"><div class="hico">${pc.type === "Laptop" ? "💻" : "🖥️"}</div>
+    <div class="hl"><div class="hico"><span class="hemo">${pc.type === "Laptop" ? "💻" : "🖥️"}</span><span class="hsvg">${ILLU[pc.type === "Laptop" ? "laptop" : "desktop"]()}</span></div>
       <div class="hx"><div class="hn">${esc(pc.name)}</div>
         <div class="hs">${esc([pc.maker, pc.model].filter(Boolean).join(" · "))} <span class="pill t-new">${pc.type === "Laptop" ? "Laptop" : "Desktop"}</span></div>
         <div class="chips2">
@@ -564,27 +631,27 @@ function renderInfo() {
   const cards = [
     scard("⚙️", "#e0262a", "BỘ XỬ LÝ", `<div class="big">${esc(cpu.name)}</div>` + kv([
       ["Nhân / Luồng", `${cpu.cores} nhân · ${cpu.threads} luồng`], ["Xung tối đa", cpu.mhz ? (cpu.mhz / 1000).toFixed(2) + " GHz" : ""], ["Socket", cpu.socket]]) +
-      `<div class="lbar"><span>Đang dùng</span><div class="bar"><div class="b-red" id="lCpu"></div></div><b id="lCpuT">0%</b></div>`),
+      `<div class="lbar"><span>Đang dùng</span><div class="bar"><div class="b-red" id="lCpu"></div></div><b id="lCpuT">0%</b></div>`, false, "cpu"),
     scard("🧠", "#2f7fa3", "BỘ NHỚ RAM", `<div class="big">${ram.total} GB ${esc(ram.type || "")}${ram.speed ? ` <em>· ${ram.speed} MT/s</em>` : ""}</div>` +
       kv([["Đã gắn", `${(ram.sticks || []).length} thanh${slots ? " / " + slots + " khe" : ""}`]]) + slotHtml +
-      `<div class="lbar"><span>Đang dùng</span><div class="bar"><div class="b-blue" id="lRam"></div></div><b id="lRamT">0%</b></div>`),
+      `<div class="lbar"><span>Đang dùng</span><div class="bar"><div class="b-blue" id="lRam"></div></div><b id="lRamT">0%</b></div>`, false, "ram"),
     scard("🎮", "#7c3aed", "CARD ĐỒ HỌA", (si.gpu || []).map(g => `<div class="gpu"><div class="big sm2">${esc(g.name)}</div><div class="chips3">
-      ${g.vram ? `<span>${g.vram} GB VRAM</span>` : ""}${g.res ? `<span>${esc(g.res)}${g.hz > 1 ? " @ " + g.hz + " Hz" : ""}</span>` : ""}${g.driver ? `<span>Driver ${esc(g.driver)}</span>` : ""}</div></div>`).join("") || '<div class="logl">Không đọc được</div>'),
+      ${g.vram ? `<span>${g.vram} GB VRAM</span>` : ""}${g.res ? `<span>${esc(g.res)}${g.hz > 1 ? " @ " + g.hz + " Hz" : ""}</span>` : ""}${g.driver ? `<span>Driver ${esc(g.driver)}</span>` : ""}</div></div>`).join("") || '<div class="logl">Không đọc được</div>', false, "gpu"),
     scard("🌐", "#16a34a", "MẠNG", (si.net || []).map(n => `<div class="nic"><div class="big sm2">${esc(n.name)} <em>${esc(n.speed)}</em></div>
-      <div class="logl" style="margin:0 0 4px">${esc(n.desc)}</div>${kv([["IPv4", n.ip], ["MAC", n.mac]])}</div>`).join("") || '<div class="logl">Không có mạng đang kết nối</div>'),
+      <div class="logl" style="margin:0 0 4px">${esc(n.desc)}</div>${kv([["IPv4", n.ip], ["MAC", n.mac]])}</div>`).join("") || '<div class="logl">Không có mạng đang kết nối</div>', false, /wi-?fi|wireless|wlan|802\.11/i.test(((si.net || [])[0] || {}).name + " " + ((si.net || [])[0] || {}).desc) ? "wifi" : "lan"),
     scard("🪟", "#0f8fd8", "HỆ ĐIỀU HÀNH", kv([["Phiên bản", `${os.name} ${os.ver}`], ["Build", os.build], ["Kiến trúc", os.arch], ["Ngày cài Win", os.installed],
       ["Khởi động lúc", os.boot], ["Bản quyền", goodBad(os.license, /Đã/.test(os.license || "") ? true : /Chưa/.test(os.license || "") ? false : null), true],
-      ["BitLocker ổ C", goodBad(os.bitlocker, /BẬT/.test(os.bitlocker || "") ? false : /Tắt/.test(os.bitlocker || "") ? true : null), true]])),
+      ["BitLocker ổ C", goodBad(os.bitlocker, /BẬT/.test(os.bitlocker || "") ? false : /Tắt/.test(os.bitlocker || "") ? true : null), true]]), false, "os"),
     scard("🧩", "#d97706", "BO MẠCH & BẢO MẬT", kv([["Mainboard", [bd.maker, bd.product].filter(Boolean).join(" ")], ["BIOS", [bd.bios, bd.bios_date].filter(Boolean).join(" · ")],
       ["Chế độ khởi động", bd.mode ? pill(bd.mode, bd.mode === "UEFI" ? "t-done" : "t-skip") : "", true],
       ["Secure Boot", goodBad(bd.secure, bd.secure === "Bật" ? true : bd.secure === "Tắt" ? false : null), true],
-      ["TPM", goodBad(bd.tpm && bd.tpm !== "Không có" ? "TPM " + bd.tpm : "Không có", bd.tpm && bd.tpm !== "Không có" ? true : null), true]])),
+      ["TPM", goodBad(bd.tpm && bd.tpm !== "Không có" ? "TPM " + bd.tpm : "Không có", bd.tpm && bd.tpm !== "Không có" ? true : null), true]]), false, "board"),
     scard("💽", "#0d9488", "LƯU TRỮ", `<div class="dgrid"><div>${(si.disks || []).map(d => `<div class="pdisk"><span class="di">${d.media === "HDD" ? "🗄️" : "⚡"}</span>
         <div class="dx"><b>${esc(d.name)}</b><div class="chips3"><span>${esc([d.bus, d.media].filter(Boolean).join(" "))}</span><span>${gb(d.size)}</span></div></div>
         ${goodBad(d.health || "?", d.health === "Tốt" ? true : d.health ? false : null)}</div>`).join("")}</div>
       <div>${(si.vols || []).map(v => { const used = v.size - v.free, pct = v.size ? Math.round(used / v.size * 100) : 0;
         return `<div class="vol"><div class="vt"><b>${esc(v.l)}:</b> ${esc(v.label || "Local Disk")} <em>${esc(v.fs)}</em><span>${v.free.toFixed(1)} GB trống / ${gb(Math.round(v.size))}</span></div>
-          <div class="bar"><div class="${pct >= 90 ? "b-red" : pct >= 75 ? "b-orange" : "b-green"}" style="width:${pct}%"></div></div></div>`; }).join("")}</div></div>`, true),
+          <div class="bar"><div class="${pct >= 90 ? "b-red" : pct >= 75 ? "b-orange" : "b-green"}" style="width:${pct}%"></div></div></div>`; }).join("")}</div></div>`, true, "disk"),
   ];
   $("info").innerHTML = cards.join("");
   [30, 400, 1500].forEach(t => setTimeout(fitSys, t));
@@ -714,7 +781,8 @@ function renderTools() {
   };
   el.style.zoom = "";
   bestFit(el, put, Math.max(1, Math.floor(w / 480)), Math.max(1, Math.floor(w / 250)), w, 290, .72, 1.4);
-  $("quick").innerHTML = INIT.quick.map((q, i) => `<button class="btn" data-q="${i}">${esc(q.label)}</button>`).join("");
+  $("quick").innerHTML = INIT.quick.map((q, i) => { const m = q.label.match(/^(\S+)\s+(.+)$/), emo = m && !/[0-9A-Za-zÀ-ỹ]/.test(m[1]);
+    return `<button class="btn" data-q="${i}">${emo ? `<span class="qi">${m[1]}</span>${esc(m[2])}` : esc(q.label)}</button>`; }).join("");
 }
 let toolT;
 window.addEventListener("resize", () => { clearTimeout(toolT); toolT = setTimeout(() => { if (page === "tools") renderTools(); }, 150); });
