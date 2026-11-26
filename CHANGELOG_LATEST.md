@@ -1,5 +1,11 @@
-Win AIO by Duy Anh v5.6
+Win AIO by Duy Anh v5.7
 
+- Mở tool phải nhập mật khẩu Admin (không có gợi ý mật khẩu). Nhập sai báo "Mật khẩu không đúng"; chưa đăng nhập thì mọi chức năng của tool đều bị khóa.
+- Đăng nhập xong tool tự kiểm tra bản mới trên GitHub: có bản mới là tự tải, thay file exe và mở lại luôn (dữ liệu Data giữ nguyên).
+- Vào tab Cài đặt luôn hỏi lại mật khẩu Admin (cùng mật khẩu lúc mở tool).
+- Bỏ mục đổi mật khẩu trong Cài đặt; máy đã đổi mật khẩu ở bản cũ được đưa về mật khẩu mặc định.
+
+v5.6:
 - Đổi tên tab "Bảo trì Windows" thành "Thiết lập Windows" (nội dung giữ nguyên).
 
 v5.5:

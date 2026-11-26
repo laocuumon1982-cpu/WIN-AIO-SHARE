@@ -35,7 +35,7 @@ import apple
 import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v5.6"
+APP_VERSION = "v5.7"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -225,7 +225,8 @@ DEFAULT_PRESETS = [
                       "OBS Studio"],
      ["faststart", "hiber", "tz"], {"tidy": True}),
 ]
-DEFAULT_PW = "HP360"          # mật khẩu Admin mặc định
+DEFAULT_PW_SALT = "winaio57"   # mật khẩu Admin (v5.7: hỏi khi mở tool, không đổi được trong tool) - chỉ lưu mã băm, không ghi mật khẩu trong mã nguồn
+DEFAULT_PW_HASH = "0a431617ee200f53e19161aec01333b0ca3f94537ec9379b9c1836548e887ce3"
 KHO_FSHARE = "open:https://www.fshare.vn/folder/BESIWSY4GNO7"
 KHO_GDRIVE = "open:https://drive.google.com/drive/u/3/folders/173Ouz2LQQcrVr9SbirV68wgJvXP2Svz2"
 DEFAULT_GROUPS = [     # (tên nhóm, cột, [nút...]) - thứ tự trong cột, vị trí & link theo file sao lưu của Duy Anh (24/11/2026 22:24)
@@ -726,11 +727,7 @@ class Store:
         self.cfg = dict(DEFAULT_CONFIG)
         self.cfg.update(load_json(CONFIG_FILE, {}))
         if not self.cfg.get("admin_hash"):
-            self.cfg["admin_salt"] = secrets.token_hex(8)
-            self.cfg["admin_hash"] = hash_pw(DEFAULT_PW, self.cfg["admin_salt"])
-        elif self.cfg["admin_hash"] == hash_pw("admin", self.cfg.get("admin_salt", "")):
-            self.cfg["admin_hash"] = hash_pw(DEFAULT_PW, self.cfg["admin_salt"])   # mật khẩu mặc định cũ "admin" -> HP360
-            self._pw_migrated = True
+            self.cfg["admin_salt"], self.cfg["admin_hash"] = DEFAULT_PW_SALT, DEFAULT_PW_HASH
         if self.on_disk:
             DATA.mkdir(parents=True, exist_ok=True)
         self.db = sqlite3.connect(str(DB_FILE) if self.on_disk else ":memory:", check_same_thread=False)
@@ -810,6 +807,12 @@ class Store:
         done = set(self.cfg.get("migrated") or [])
         self.fix_dead_links()
         if getattr(self, "_pw_migrated", False):
+            self.save_config(persist=False)
+        if "pw57" not in done:
+            # v5.7: bỏ chức năng đổi mật khẩu - mọi máy dùng chung mật khẩu Admin mặc định
+            self.cfg["admin_salt"], self.cfg["admin_hash"] = DEFAULT_PW_SALT, DEFAULT_PW_HASH
+            done.add("pw57")
+            self.cfg["migrated"] = sorted(done)
             self.save_config(persist=False)
         if "noclaude52" not in done:
             # v5.2: bỏ tab Claude - xóa luôn phiên đăng nhập Claude mà bản 5.0 / 5.1 đã tạo trên máy này
@@ -2842,6 +2845,7 @@ class Api:
         self._s = eng.st
         self._app = app
         self._admin = False
+        self._logged = False                 # v5.7: phải nhập mật khẩu Admin khi mở tool
         self._upd = {}
         self._quit_fn = None
 
@@ -2856,7 +2860,7 @@ class Api:
                 "quick": [{"label": q[0], "target": q[1]} for q in QUICK], "is_win": IS_WIN or FAKE,
                 "iso_langs": mgr.ISO_LANGS,
                 "iso_mg": [{"icon": i, "name": n, "url": ISO_MG + u, "note": d} for i, n, u, d in ISO_MG_PAGES],
-                "default_pw": self._s.cfg.get("admin_hash") == hash_pw(DEFAULT_PW, self._s.cfg.get("admin_salt", ""))}
+                }
 
     def groups(self):
         return {"columns": self._s.columns(), "layout": self._s.layout(), "groups": self._s.groups(),
@@ -2941,6 +2945,22 @@ class Api:
         return {"download_dir": c.get("download_dir"), "keep_installer": c.get("keep_installer", True),
                 "winget_auto": c.get("winget_auto", True), "winget": self._e.winget, "data_dir": str(DATA), "dl_path": str(self._e.dl_path()), "on_disk": self._s.on_disk}
 
+    # ---- đăng nhập khi mở tool (v5.7)
+    def login_info(self):
+        return {"title": APP_TITLE, "version": APP_VERSION, "logged": self._logged}
+
+    def login(self, pw):
+        c = self._s.cfg
+        if hash_pw(pw or "", c.get("admin_salt", "")) != c.get("admin_hash"):
+            time.sleep(0.6)                 # chậm lại khi đoán mò
+            return {"ok": False}
+        self._logged = True
+        return {"ok": True, "auto_update": "--selftest" not in sys.argv}
+
+    def check_pw(self, pw):
+        """Hỏi lại mật khẩu khi vào tab Cài đặt: đúng thì mở khóa Admin luôn."""
+        return self.unlock(pw)
+
     # ---- admin
     def unlock(self, pw):
         c = self._s.cfg
@@ -2954,18 +2974,6 @@ class Api:
         self._admin = False
         self._e.log("🔒 Đã khóa Admin.")
         return True
-
-    def change_password(self, old, new):
-        self._need_admin()
-        c = self._s.cfg
-        if hash_pw(old or "", c.get("admin_salt", "")) != c.get("admin_hash"):
-            return "Mật khẩu cũ không đúng"
-        if len(new or "") < 4:
-            return "Mật khẩu mới cần ít nhất 4 ký tự"
-        c["admin_salt"] = secrets.token_hex(8)
-        c["admin_hash"] = hash_pw(new, c["admin_salt"])
-        self._s.save_config()
-        return ""
 
     def save_settings(self, d):
         self._need_admin()
@@ -3609,6 +3617,26 @@ class Api:
 _PAGE = {}
 
 
+def _login_gate(cls, open_names=("login", "login_info")):
+    """v5.7: mọi chức năng của giao diện chỉ chạy sau khi nhập đúng mật khẩu Admin lúc mở tool."""
+    import functools
+    for name, fn in list(vars(cls).items()):
+        if name.startswith("_") or name in open_names or not callable(fn):
+            continue
+
+        def wrap(f):
+            @functools.wraps(f)
+            def g(self, *a, **k):
+                if not self._logged:
+                    raise PermissionError("Chưa đăng nhập - nhập mật khẩu Admin để dùng tool")
+                return f(self, *a, **k)
+            return g
+        setattr(cls, name, wrap(fn))
+
+
+_login_gate(Api)
+
+
 def page_html(token=""):
     """Ghép index.html + css + js thành 1 trang. Bản exe: đọc file 1 lần rồi giữ trong RAM (mở lại trang không đọc đĩa)."""
     key = token if getattr(sys, "frozen", False) else None
@@ -3744,7 +3772,10 @@ class App:
         """Dùng khi build trên GitHub: mở cửa sổ, đọc giao diện, ghi kết quả ra selftest.txt rồi thoát."""
         lines = []
         try:
-            time.sleep(10)
+            time.sleep(6)
+            self.api._logged = True             # selftest trên GitHub: bỏ qua màn hình đăng nhập
+            lines.append("login: " + str(self.win.evaluate_js("window.__selftestStart ? (window.__selftestStart(), 'ok') : 'no form'")))
+            time.sleep(6)
             for _ in range(60):                     # chờ đọc xong thông tin máy (PowerShell lần đầu hơi chậm)
                 if self.eng.sysinfo:
                     break

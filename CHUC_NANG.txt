@@ -15,7 +15,7 @@ CHUNG
 - Giao diện tự co giãn vừa 1 màn hình (không phải kéo). Nút ◐ Giao diện chọn: Mặc định (sáng / tối) hoặc Giao diện 01 (Navy / Xanh trắng, kính mờ, viền neon, icon 3D).
 - Thư mục Data (kế bên exe) chỉ tạo khi cần: lưu file tải về, sao lưu, nhật ký.
 - Nút ⟳ Cập nhật: tải bản mới từ GitHub và tự mở lại.
-- Không cần mật khẩu khi mở tool. Mật khẩu Admin (mặc định: HP360) để:
+- Mở tool phải nhập mật khẩu Admin (v5.7). Mật khẩu Admin còn dùng để:
     sửa tên / biểu tượng / link nguồn từng nút, thêm / xóa nút và nhóm,
     kéo thả nhóm và nút để sắp xếp (chuyển nút sang nhóm khác), đổi kiểu xếp,
     sao lưu / nhập danh sách nút (JSON).

@@ -98,7 +98,7 @@ const PAGES = {
   iso: ["Kho bộ cài WIN", "Tải ISO gốc Microsoft · Rufus · AVL Win Master · USB boot Ventoy · Driver IRST · Kiểm tra SHA-256 file ISO"],
   web: ["Web", "Trang web hay dùng - bấm để mở · Admin bấm ✎ để sửa, ＋ để thêm link"],
   history: ["Nhật ký", "Những gì tool đã cài / đã chạy"],
-  settings: ["Cài đặt", "Mật khẩu Admin, thư mục tải, sao lưu danh sách nút"]};
+  settings: ["Cài đặt", "Thư mục tải, sao lưu danh sách nút"]};
 const KIND = {web: "WEB", winget: "WINGET", file: "FILE", cmd: "LỆNH", office: "OFFICE", open: "LINK", github: "GITHUB", none: "CHƯA CÓ NGUỒN"};
 let INIT = {}, G = [], NCOL = 4, LAYOUT = "grid", page = "system", ADMIN = false, picked = new Set(), logSeq = 0, ST = {}, HIST = [];
 
@@ -126,7 +126,19 @@ function showPage(p) {
   if (p === "testmac") testMacShow();
   if (p === "settings" && ADMIN) renderSettings();
 }
-document.querySelectorAll(".nav").forEach(n => n.onclick = () => showPage(n.dataset.p));
+document.querySelectorAll(".nav").forEach(n => n.onclick = () => n.dataset.p === "settings" ? openSettings() : showPage(n.dataset.p));
+/* v5.7: vào tab Cài đặt luôn hỏi mật khẩu Admin (cùng mật khẩu lúc mở tool) */
+async function openSettings() {
+  const ok = await dialog({title: "⚙ Cài đặt", width: 420,
+    body: `<div class="msg">Nhập mật khẩu Admin để vào Cài đặt.</div>
+      <input id="pw" type="password" style="width:100%;margin-top:10px" placeholder="Mật khẩu Admin"><div class="err"></div>`,
+    buttons: [{text: "Hủy", value: false}, {text: "🔑 Vào Cài đặt", cls: "red", def: true, click: async c => {
+      if (await api("check_pw", c.q("#pw").value)) return true;
+      c.err("Mật khẩu không đúng"); c.q("#pw").select(); return false; }}]});
+  if (!ok) return;
+  if (!ADMIN) setAdmin(true);
+  showPage("settings");
+}
 $("fold").onclick = () => { $("side").classList.toggle("mini"); $("fold").textContent = $("side").classList.contains("mini") ? "»" : "«"; };
 /* ---------------------------------------------------------------- Giao diện: chỉ còn Mặc định · Sáng (v4.8) */
 function applySkin() {
@@ -147,7 +159,6 @@ async function unlock() {
   const ok = await dialog({title: "Mở khóa Admin", width: 440,
     body: `<div class="msg">Nhập mật khẩu Admin để sửa tên nút, đổi link nguồn, thêm / xóa phần mềm.</div>
       <input id="pw" type="password" style="width:100%;margin-top:10px" placeholder="Mật khẩu Admin">
-      ${INIT.default_pw ? '<div class="pwwarn">Mật khẩu mặc định là <b>HP360</b>. Nên đổi trong Cài đặt sau khi mở khóa.</div>' : ""}
       <div class="err"></div>`,
     buttons: [{text: "Hủy", value: false}, {text: "🔑 Mở khóa", cls: "red", def: true, click: async c => {
       if (await api("unlock", c.q("#pw").value)) return true;
@@ -156,7 +167,7 @@ async function unlock() {
   return !!ok;
 }
 $("bLock").onclick = async () => { if (ADMIN) { await api("lock_admin"); setAdmin(false); toast("Đã khóa Admin"); } else unlock(); };
-$("lkOpen").onclick = unlock;
+$("lkOpen").onclick = openSettings;
 
 /* ---------------------------------------------------------------- Cài phần mềm */
 let FIT_N = 0;
@@ -813,11 +824,6 @@ $("hRows").ondblclick = e => { const tr = e.target.closest("tr[data-i]"); if (!t
 async function renderSettings() {
   const s = await api("settings");
   $("sets").innerHTML = `
-    <div class="sec"><h4>MẬT KHẨU ADMIN</h4><div class="d">Mật khẩu để mở chế độ sửa nút. Mở tool thì không cần mật khẩu.</div>
-      <div class="fr"><label>Mật khẩu hiện tại</label><input id="pOld" type="password" style="width:260px"></div>
-      <div class="fr"><label>Mật khẩu mới</label><input id="pNew" type="password" style="width:260px"></div>
-      <div class="fr"><label>Nhập lại mật khẩu mới</label><input id="pNew2" type="password" style="width:260px">
-        <button class="btn red" id="pSave">✓ Đổi mật khẩu</button></div></div>
     <div class="sec"><h4>TẢI VỀ</h4>
       <div class="fr"><label>Thư mục lưu file cài đặt</label><input id="sDir" value="${esc(s.download_dir)}"><button class="btn sm" id="sDirPick">📂 Chọn</button><button class="btn sm" id="sDirOpen">▸ Mở</button></div>
       <div class="hint">Đường dẫn tương đối tính theo thư mục tool (hiện tại: ${esc(s.dl_path)}).</div>
@@ -829,11 +835,6 @@ async function renderSettings() {
       <div class="row-acts" style="margin-top:4px"><button class="btn" id="dExp">⇩ Xuất ra file JSON</button>
         <button class="btn" id="dImp">⇧ Nhập từ file JSON</button><button class="btn out" id="dReset">↺ Khôi phục danh sách mặc định</button></div>
       <div class="hint" style="margin-left:0;margin-top:8px">Mẹo: chép file JSON vào Data\\apps.json rồi mở tool, tool sẽ tự nhập (bản cũ được giữ trong Data\\Backup).</div></div>`;
-  $("pSave").onclick = async () => {
-    if ($("pNew").value !== $("pNew2").value) return toast("Hai lần nhập mật khẩu mới không khớp", "err");
-    const m = await api("change_password", $("pOld").value, $("pNew").value);
-    if (m) toast(m, "err"); else { toast("Đã đổi mật khẩu Admin"); INIT.default_pw = false; ["pOld", "pNew", "pNew2"].forEach(i => $(i).value = ""); }
-  };
   $("sDirPick").onclick = async () => { const p = await api("pick_folder"); if (p) $("sDir").value = p; };
   $("sDirOpen").onclick = () => api("open_path", $("sDir").value);
   $("sSave").onclick = async () => { await api("save_settings", {download_dir: $("sDir").value.trim(), keep_installer: $("sKeep").checked, winget_auto: $("sWg").checked}); toast("Đã lưu cài đặt"); renderSettings(); };
@@ -1032,10 +1033,48 @@ async function start() {
   initTests();
   if (INIT.browser) $("ptitle").parentElement.insertAdjacentHTML("beforeend", '<div class="browserbar">Đang chạy bằng trình duyệt (máy chưa có Edge WebView2). Đóng tab này là tool tự thoát.</div>');
   await loadGroups();
-  setTimeout(() => checkUpd(true).catch(() => {}), 4000);
   showPage("system");
   tick(); setInterval(tick, 700);
 }
-window.addEventListener("pywebviewready", start);
-if (location.protocol.startsWith("http")) start();
-else setTimeout(() => { if (window.pywebview && window.pywebview.api) start(); }, 1500);
+
+/* ---------------------------------------------------------------- v5.7: đăng nhập khi mở tool + tự cập nhật */
+async function boot() {
+  if (window.__booted) return; window.__booted = true;
+  let info = {};
+  try { info = await api("login_info"); } catch (e) { /* bỏ qua */ }
+  if (info.version) $("lgVer").textContent = info.version;
+  if (info.logged) return afterLogin(false);
+  const L = $("login"); L.hidden = false;
+  setTimeout(() => $("lgPw").focus(), 50);
+}
+async function doLogin(pw) {
+  const btn = $("lgGo"); btn.disabled = true; $("lgErr").textContent = "";
+  let r = {ok: false};
+  try { r = await api("login", pw); } catch (e) { r = {ok: false}; }
+  btn.disabled = false;
+  if (!r.ok) { $("lgErr").textContent = "Mật khẩu không đúng"; $("lgPw").select(); $("lgBox").classList.remove("shake"); void $("lgBox").offsetWidth; $("lgBox").classList.add("shake"); return false; }
+  $("login").hidden = true; $("lgPw").value = "";
+  afterLogin(r.auto_update !== false);
+  return true;
+}
+window.__doLogin = doLogin;
+window.__selftestStart = () => { $("login").hidden = true; afterLogin(false); };   // chỉ dùng khi build trên GitHub
+async function afterLogin(autoUpd) {
+  await start();
+  if (autoUpd) autoUpdate().catch(() => {});
+}
+async function autoUpdate() {
+  const r = await api("check_update", true);
+  if (!r || !r.ok || !r.has) return;
+  const b = $("bUpd"); b.textContent = "⟳ Có bản " + r.latest; b.classList.add("hot2");
+  let upd = null;
+  dialog({title: `⟳ Đang cập nhật lên ${r.latest}`, width: 520, body: `<div class="msg">Có bản mới <b>${esc(r.latest)}</b> (đang dùng ${esc(r.current)}). Tool đang tải bản mới, tự thay file exe rồi mở lại - không cần làm gì.</div>
+      <div class="logl" style="margin-top:10px"><span class="spin"></span> Đang tải ${(r.size / 1048576).toFixed(1)} MB... Dữ liệu trong thư mục Data giữ nguyên.</div>`, buttons: [], onOpen: c => { upd = c; }});
+  let m = "";
+  try { m = await api("do_update"); } catch (e) { m = String(e); }
+  if (m) { if (upd) upd.close(null); toast("Cập nhật chưa được: " + m, "err"); }
+}
+$("lgForm").onsubmit = e => { e.preventDefault(); doLogin($("lgPw").value); };
+window.addEventListener("pywebviewready", boot);
+if (location.protocol.startsWith("http")) boot();
+else setTimeout(() => { if (window.pywebview && window.pywebview.api) boot(); }, 1500);

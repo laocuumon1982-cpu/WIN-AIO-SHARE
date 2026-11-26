@@ -1404,3 +1404,19 @@ body.dark .keynote{color:#fbbf24;background:#1f1807;border-color:#5b4310}
 .smopt .flist{margin:4px 0 0}
 .smurl{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.smurl code{flex:1;min-width:0;padding:5px 9px;border-radius:7px;background:var(--card);border:1px solid var(--border);font-size:12.5px;user-select:text;color:#0a62f0}
 .smopt .flist{padding-left:20px}
+
+/* v5.7: màn hình đăng nhập khi mở tool */
+.login{position:fixed;inset:0;z-index:9000;display:grid;place-items:center;
+  background:radial-gradient(900px 500px at 50% 20%,#ffffff 0%,#e4f1fd 55%,#cfe3f7 100%)}
+.login[hidden]{display:none}
+.lgin{width:340px;padding:28px 28px 24px;border-radius:18px;background:var(--card);border:1px solid var(--border);text-align:center;
+  box-shadow:0 20px 50px rgba(30,60,100,.18),0 4px 0 var(--key-sh)}
+.lglogo{width:58px;height:58px;margin:0 auto 10px;border-radius:15px;display:grid;place-items:center;color:#fff;font-weight:900;font-size:28px;
+  background:linear-gradient(180deg,#ff6b6e,#d61f23);box-shadow:0 6px 16px rgba(214,31,35,.35)}
+.lgin h2{margin:0;font-size:20px;letter-spacing:.5px}
+.lgsub{color:var(--muted);font-size:12.5px;margin:2px 0 16px}
+.lgin input{width:100%;font-size:15px;padding:10px 12px;text-align:center}
+.lgerr{min-height:18px;color:#dc2626;font-weight:700;font-size:12.5px;margin:6px 0 8px}
+.lgin .btn{width:100%;padding:10px}
+.lgin.shake{animation:lgshake .35s}
+@keyframes lgshake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
