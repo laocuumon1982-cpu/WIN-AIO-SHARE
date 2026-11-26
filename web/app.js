@@ -95,7 +95,6 @@ const PAGES = {
   mac: ["Kho bộ cài MAC", "Bộ cài macOS chính chủ Apple: Tahoe, Sequoia, Sonoma, Ventura... về tới Lion - tải thẳng từ máy chủ Apple · macUSB · Apple Configurator 2"],
   ios: ["Kho Firmware iOS", "3uTools · Firmware IPSW cho iPhone, iPad, iPod, Apple TV, Mac chip M - danh sách theo ipsw.me, tải từ máy chủ Apple"],
   iso: ["Kho bộ cài WIN", "Tải ISO gốc Microsoft · Rufus · AVL Win Master · USB boot Ventoy · Driver IRST · Kiểm tra SHA-256 file ISO"],
-  claude: ["Claude", "Mở app Claude · cửa sổ Claude riêng (Chrome / Edge, không thanh địa chỉ) - không lưu tài khoản vào tool"],
   web: ["Web", "Trang web hay dùng - bấm để mở · Admin bấm ✎ để sửa, ＋ để thêm link"],
   history: ["Nhật ký", "Những gì tool đã cài / đã chạy"],
   settings: ["Cài đặt", "Mật khẩu Admin, thư mục tải, sao lưu danh sách nút"]};
@@ -123,7 +122,6 @@ function showPage(p) {
   if (p === "mac") macShow();
   if (p === "ios") iosShow();
   if (p === "web") webShow();
-  if (p === "claude") claudeShow();
   if (p === "settings" && ADMIN) renderSettings();
 }
 document.querySelectorAll(".nav").forEach(n => n.onclick = () => showPage(n.dataset.p));

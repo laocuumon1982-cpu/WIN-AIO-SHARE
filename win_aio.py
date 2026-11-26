@@ -35,7 +35,7 @@ import apple
 import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v5.1"
+APP_VERSION = "v5.2"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -807,6 +807,18 @@ class Store:
         done = set(self.cfg.get("migrated") or [])
         self.fix_dead_links()
         if getattr(self, "_pw_migrated", False):
+            self.save_config(persist=False)
+        if "noclaude52" not in done:
+            # v5.2: bỏ tab Claude - xóa luôn phiên đăng nhập Claude mà bản 5.0 / 5.1 đã tạo trên máy này
+            if IS_WIN and not FAKE:
+                la = Path(os.environ.get("LOCALAPPDATA") or Path.home() / "AppData" / "Local") / "WinAIO"
+                shutil.rmtree(la / "Claude", ignore_errors=True)
+                try:
+                    (la / "Claude (Win AIO).lnk").unlink(missing_ok=True)
+                except OSError:
+                    pass
+            done.add("noclaude52")
+            self.cfg["migrated"] = sorted(done)
             self.save_config(persist=False)
         if "skin48" not in done:
             # v4.8: bỏ giao diện Robot AI - mọi máy về Mặc định · Sáng
@@ -3442,9 +3454,7 @@ class Api:
               # apple.py (v2.7)
               "ios_devices", "ios_firmwares", "irst_info",
               # officex.py (v3.0)
-              "off_scan", "lic_status", "lic_iid", "lic_oem", "crack_check",
-              # extra.py (v5.0) - Claude
-              "claude_status", "claude_open_app", "claude_web", "claude_clear"}
+              "off_scan", "lic_status", "lic_iid", "lic_oem", "crack_check"}
     M_JOB = {"uninstall_run", "appx_remove", "clean_scan", "clean_run", "folder_sizes", "capcut_clean", "metadata_strip", "backup_user",
              "restore_user", "zalo_backup", "zalo_restore", "browser_backup", "browser_restore", "sha256_file", "iso_download", "wg_upgrades", "wg_upgrade",
              "fix_sfc", "fix_dism", "fix_wu", "fix_store", "fix_printer", "fix_all", "win11_tidy", "font_install", "apps_export",

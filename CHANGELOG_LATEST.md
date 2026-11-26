@@ -1,5 +1,8 @@
-Win AIO by Duy Anh v5.1
+Win AIO by Duy Anh v5.2
 
+- Bỏ tab Claude (mục Khác). Phiên đăng nhập Claude mà bản 5.0 / 5.1 đã tạo trên máy (%LOCALAPPDATA%\WinAIO\Claude) được tự xóa khi mở bản này.
+
+v5.1:
 - Tab Claude: bỏ nút "Xem gói & mức dùng". Cửa sổ Claude giờ ưu tiên mở bằng Google Chrome (chế độ ứng dụng, không thanh địa chỉ), máy không có Chrome thì dùng Microsoft Edge; mỗi trình duyệt một hồ sơ riêng trong %LOCALAPPDATA%\WinAIO\Claude, không đụng tới Chrome / Edge đang dùng. Đăng xuất & xóa phiên đóng được cả cửa sổ Chrome lẫn Edge của tool.
 
 v5.0:

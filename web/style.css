@@ -1386,10 +1386,3 @@ body.dark .keynote{color:#fbbf24;background:#1f1807;border-color:#5b4310}
 .vol.locked .blk{color:#dc2626;letter-spacing:.4px}
 .blon{color:#b45309!important;font-style:normal}
 
-/* v5.0: tab Claude */
-.clgrid{display:grid;grid-template-columns:1fr;gap:14px}
-.clst{display:flex;flex-wrap:wrap;gap:8px 22px;margin:2px 0 12px}
-.clst > div{display:flex;align-items:center;gap:8px}
-.clst b{font-size:12.5px;color:var(--muted)}
-.cl4 .bt4b .btn{flex:1}
-.cl4{grid-template-columns:repeat(3,minmax(0,1fr))}
