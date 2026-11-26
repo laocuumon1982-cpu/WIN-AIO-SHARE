@@ -35,7 +35,7 @@ import apple
 import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v4.8"
+APP_VERSION = "v4.9"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -1198,8 +1198,9 @@ class Engine:
                 {"name": "Intel(R) UHD Graphics 630", "vram": 1, "res": "", "hz": 0, "driver": "31.0.101.2125"}],
         "disks": [{"name": "Samsung SSD 980 PRO 1TB", "bus": "NVMe", "media": "SSD", "size": 1000, "health": "Tốt"},
                   {"name": "WDC WD20EZBX-00AYRA0", "bus": "SATA", "media": "HDD", "size": 2000, "health": "Tốt"}],
-        "vols": [{"l": "C", "label": "Windows", "fs": "NTFS", "size": 476.3, "free": 120.5},
-                 {"l": "D", "label": "Data", "fs": "NTFS", "size": 931.5, "free": 800.1}],
+        "vols": [{"l": "C", "label": "Windows", "fs": "NTFS", "size": 476.3, "free": 120.5, "bl": ""},
+                 {"l": "D", "label": "Data", "fs": "NTFS", "size": 931.5, "free": 800.1, "bl": ""},
+                 {"l": "E", "label": "", "fs": "", "size": 1863.0, "free": 0, "bl": "locked"}],
         "board": {"maker": "Dell Inc.", "product": "0K6CM1", "bios": "Dell Inc. 1.21.0", "bios_date": "12/03/2024",
                   "mode": "UEFI", "secure": "Bật", "tpm": "2.0"},
         "net": [{"name": "Ethernet", "desc": "Intel(R) Ethernet Connection (11) I219-LM", "ip": "192.168.1.25",
@@ -1240,8 +1241,10 @@ $hm=@{'0'='Tốt';'1'='Cảnh báo';'2'='Lỗi';'Healthy'='Tốt';'Warning'='C�
 $disks=@(Q 'SELECT FriendlyName, MediaType, BusType, Size, HealthStatus FROM MSFT_PhysicalDisk' 'root\Microsoft\Windows\Storage' | ForEach-Object {
   $m=E $_.MediaType $mt; if($m -eq 'Unspecified'){ $m='' }
   [ordered]@{ name=[string]$_.FriendlyName; bus=(E $_.BusType $bus); media=$m; size=[math]::Round($_.Size/1GB); health=[string]$hm[[string]$_.HealthStatus] } })
+$blv=@{}; try { Get-BitLockerVolume -ErrorAction Stop | ForEach-Object { $k=([string]$_.MountPoint).TrimEnd(':\\').ToUpper()
+  $blv[$k]= if([string]$_.LockStatus -eq 'Locked'){'locked'}elseif([string]$_.ProtectionStatus -eq 'On'){'on'}else{''} } } catch {}
 $vols=@(Get-Volume | Where-Object { $_.DriveLetter -and $_.Size -gt 0 -and $_.DriveType -in 'Fixed','Removable' } | Sort-Object DriveLetter | ForEach-Object {
-  [ordered]@{ l=[string]$_.DriveLetter; label=[string]$_.FileSystemLabel; fs=[string]$_.FileSystem; size=[math]::Round($_.Size/1GB,1); free=[math]::Round($_.SizeRemaining/1GB,1) } })
+  [ordered]@{ l=[string]$_.DriveLetter; label=[string]$_.FileSystemLabel; fs=[string]$_.FileSystem; size=[math]::Round($_.Size/1GB,1); free=[math]::Round($_.SizeRemaining/1GB,1); bl=[string]$blv[[string]$_.DriveLetter] } })
 $bl='Không rõ'; try { $v=Get-BitLockerVolume -MountPoint 'C:' -ErrorAction Stop; $bl= if($v.ProtectionStatus -eq 'On'){'BẬT ('+$v.VolumeStatus+')'}else{'Tắt'} } catch {}
 $lic='Không rõ'; try { $l=Get-CimInstance SoftwareLicensingProduct -Filter "PartialProductKey IS NOT NULL AND ApplicationID='55c92734-d682-4d71-983e-d6ec3f16059f'" | Select-Object -First 1; $lic= if($l.LicenseStatus -eq 1){'Đã kích hoạt'}else{'Chưa kích hoạt'} } catch {}
 $sb='Không hỗ trợ'; try { $sb= if(Confirm-SecureBootUEFI -ErrorAction Stop){'Bật'}else{'Tắt'} } catch {}

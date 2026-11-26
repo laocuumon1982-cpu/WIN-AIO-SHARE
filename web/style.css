@@ -1378,3 +1378,10 @@ body.dark .keynote{color:#fbbf24;background:#1f1807;border-color:#5b4310}
 .bchip.warn{color:#b91c1c;border-color:#f3c0c0;background:#fff1f1}
 .bt4b{display:flex;gap:6px;margin-top:auto}
 .bt4b .btn:last-child{flex:1}
+
+/* v4.8: ổ bị khóa BitLocker */
+.blwarn{margin:0 0 8px;padding:8px 11px;border-radius:9px;font-weight:800;font-size:12.3px;color:#b91c1c;background:#fff1f1;border:1px solid #f3a5a5;
+  box-shadow:0 0 0 3px rgba(220,38,38,.08);animation:tileglow 2s ease-in-out infinite}
+.vol.locked .vt{color:#b91c1c}
+.vol.locked .blk{color:#dc2626;letter-spacing:.4px}
+.blon{color:#b45309!important;font-style:normal}

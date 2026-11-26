@@ -626,8 +626,11 @@ function renderInfo() {
     scard("💽", "#0d9488", "LƯU TRỮ", `<div class="dgrid"><div>${(si.disks || []).map(d => `<div class="pdisk"><span class="di">${d.media === "HDD" ? "🗄️" : "⚡"}</span>
         <div class="dx"><b>${esc(d.name)}</b><div class="chips3"><span>${esc([d.bus, d.media].filter(Boolean).join(" "))}</span><span>${gb(d.size)}</span></div></div>
         ${goodBad(d.health || "?", d.health === "Tốt" ? true : d.health ? false : null)}</div>`).join("")}</div>
-      <div>${(si.vols || []).map(v => { const used = v.size - v.free, pct = v.size ? Math.round(used / v.size * 100) : 0;
-        return `<div class="vol"><div class="vt"><b>${esc(v.l)}:</b> ${esc(v.label || "Local Disk")} <em>${esc(v.fs)}</em><span>${v.free.toFixed(1)} GB trống / ${gb(Math.round(v.size))}</span></div>
+      <div>${(si.vols || []).filter(v => v.bl === "locked").length ? `<div class="blwarn">🔒 Ổ ${(si.vols || []).filter(v => v.bl === "locked").map(v => esc(v.l) + ":").join(", ")} đang bị KHÓA BitLocker - cần mật khẩu / Recovery Key để mở</div>` : ""}
+        ${(si.vols || []).map(v => { const used = v.size - v.free, pct = v.size ? Math.round(used / v.size * 100) : 0;
+        if (v.bl === "locked") return `<div class="vol locked"><div class="vt"><b>${esc(v.l)}:</b> 🔒 <b class="blk">ĐANG KHÓA BITLOCKER</b><span>${gb(Math.round(v.size))}</span></div>
+          <div class="bar"><div class="b-red" style="width:100%"></div></div></div>`;
+        return `<div class="vol"><div class="vt"><b>${esc(v.l)}:</b> ${esc(v.label || "Local Disk")} <em>${esc(v.fs)}</em>${v.bl === "on" ? ' <em class="blon" title="Ổ được mã hóa BitLocker (đang mở khóa)">🔐</em>' : ""}<span>${v.free.toFixed(1)} GB trống / ${gb(Math.round(v.size))}</span></div>
           <div class="bar"><div class="${pct >= 90 ? "b-red" : pct >= 75 ? "b-orange" : "b-green"}" style="width:${pct}%"></div></div></div>`; }).join("")}</div></div>`, true, "disk"),
   ];
   $("info").innerHTML = cards.join("");
