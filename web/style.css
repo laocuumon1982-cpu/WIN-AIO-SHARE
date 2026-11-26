@@ -1386,3 +1386,16 @@ body.dark .keynote{color:#fbbf24;background:#1f1807;border-color:#5b4310}
 .vol.locked .blk{color:#dc2626;letter-spacing:.4px}
 .blon{color:#b45309!important;font-style:normal}
 
+
+/* v5.4: Test máy MAC - SoiMac */
+.smgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.smgrid .wide2{grid-column:1/-1}
+.smsteps{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+@media (max-width:1250px){.smsteps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.smstep{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--border);border-radius:12px;background:linear-gradient(180deg,#f4f8ff,var(--card))}
+.smn{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-weight:800;color:#fff;background:#0a62f0;box-shadow:0 2px 6px rgba(10,98,240,.35)}
+.smstep b{display:block;font-size:13px}.smstep small{display:block;font-size:11.5px;color:var(--muted);font-weight:600;line-height:1.35;margin-top:2px}
+.smdrv{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px;margin-bottom:8px}
+.smdrv .tbtn{height:auto;padding:8px 10px}
+.smgo{flex:none;font-size:11.5px;font-weight:800;color:#15803d;background:#effaf2;border:1px solid #bbe5c8;border-radius:20px;padding:2px 8px}
+.smhow li{margin:4px 0}

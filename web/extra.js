@@ -312,3 +312,53 @@ async function pfCpu() {
   const r = await runJob("bench_cpu", `Tải CPU ${s} giây`, [s]); if (r.ok) { PF.cpu = r.result; pfRender(); }
 }
 
+
+
+/* =============================================================== TEST MÁY MAC - SoiMac (v5.4) */
+async function testMacShow() {
+  const W = $("testmacwrap");
+  if (!W.dataset.ok) {
+    W.dataset.ok = 1;
+    const stepc = (n, t, d) => `<div class="smstep"><span class="smn">${n}</span><div><b>${t}</b><small>${d}</small></div></div>`;
+    W.innerHTML = `<div class="cgrid smgrid">
+      <div class="tcard wide2" style="--ac:#0a62f0"><div class="sh"><span class="si">💻</span><div><b>SOIMAC - KIỂM TRA MAC CŨ</b>
+          <small>Trang kiểm máy như thợ sửa Mac: chạy bằng Safari ngay trên chiếc Mac định mua, đánh dấu Đạt / Lỗi từng mục, cuối cùng ra % và lời khuyên mua hay không</small></div>
+          <span class="sp"></span><button class="btn sm" id="smPrev">👁 Xem trước trên máy này</button></div>
+        <div class="smsteps">
+          ${stepc(1, "Chọn máy", "MacBook Air / Pro, iMac, Mac mini, Mac Studio - theo đời (Intel, M1…M4), kèm lỗi hay gặp của từng đời")}
+          ${stepc(2, "Kiểm tra ngoài", "Serial, iCloud / Find My, MDM, cấu hình, cổng, pin, bản lề, vỏ, Touch ID…")}
+          ${stepc(3, "Lệnh Terminal", "Bấm sao chép lệnh: Activation Lock, số lần sạc pin, MDM, SMART ổ cứng, kernel panic, SIP")}
+          ${stepc(4, "Test phần cứng", "Màn hình (điểm chết, hở sáng), bàn phím ảo sáng phím, trackpad phủ ô, loa trái / phải / âm trầm, camera & mic")}
+          ${stepc(5, "Kết quả", "% đạt, danh sách lỗi, lời khuyên; sao chép báo cáo để gửi khách / lưu lại")}
+        </div></div>
+      <div class="tcard" style="--ac:#16a34a"><div class="sh"><span class="si">💾</span><div><b>CHÉP SOIMAC RA USB</b><small>Chép file SoiMac.html vào USB rồi cắm sang máy Mac</small></div>
+          <span class="sp"></span><button class="btn sm" id="smRef">⟳ Làm mới</button></div>
+        <div id="smDrives"><div class="logl"><span class="spin"></span> Đang tìm ổ...</div></div>
+        <div class="row-acts"><button class="btn" id="smPick">📂 Chọn thư mục khác...</button></div>
+        <div id="smRes"></div></div>
+      <div class="tcard" style="--ac:#6b7280"><div class="sh"><span class="si">🍎</span><div><b>CÁCH DÙNG TRÊN MÁY MAC</b><small>Không cần cài gì, không cần mạng</small></div></div>
+        <ol class="flist smhow"><li>Cắm USB vào Mac, mở <b>Finder</b>, chọn ổ USB ở cột bên trái.</li>
+          <li>Nhấp đúp <b>SoiMac.html</b> (hoặc chuột phải › Mở bằng › <b>Safari</b>).</li>
+          <li>Làm lần lượt 5 bước trên thanh trên cùng. Tiến độ tự lưu trong Safari của máy đó.</li>
+          <li>Xong bấm <b>Sao chép báo cáo</b> để dán vào Zalo / Ghi chú. Kiểm máy khác thì bấm <b>Kiểm máy khác</b>.</li></ol>
+        <div class="logl">Có mạng thì chữ hiển thị đẹp hơn (font Be Vietnam Pro); không có mạng vẫn dùng đủ chức năng. Camera &amp; micro kiểm bằng Photo Booth / Ghi âm có sẵn trên Mac.</div></div>
+    </div>`;
+    $("smPrev").onclick = async () => { const r = await m("soimac_open"); toast(r.text, r.ok ? "" : "err"); };
+    $("smRef").onclick = smDrives;
+    $("smPick").onclick = async () => { const d = await api("pick_folder_abs"); if (d) smSave(d); };
+    $("smDrives").onclick = e => { const b = e.target.closest("[data-sml]"); if (b) smSave(b.dataset.sml); };
+  }
+  smDrives();
+}
+async function smDrives() {
+  const B = $("smDrives");
+  let L = []; try { L = await m("soimac_drives"); } catch (e) { /* bỏ qua */ }
+  B.innerHTML = L.length ? `<div class="smdrv">${L.map(d => `<button class="tbtn" data-sml="${esc(d.l)}"><span class="ti">${d.rm ? "🔌" : "🗄️"}</span>
+      <span class="tt"><b>${esc(d.l)}: ${esc(d.label || (d.rm ? "USB" : "Ổ đĩa"))}</b><small>${d.rm ? "USB / ổ rời" : "Ổ cứng"} · trống ${d.free} GB</small></span><span class="smgo">💾 Chép</span></button>`).join("")}</div>`
+    : '<div class="warnbox">Chưa thấy USB nào. Cắm USB rồi bấm ⟳ Làm mới, hoặc bấm 📂 Chọn thư mục khác.</div>';
+}
+async function smSave(dest) {
+  const r = await m("soimac_save", dest);
+  $("smRes").innerHTML = r.ok ? `<div class="okbox mt">✔ ${esc(r.text)} <span class="muted">(${esc(r.path)})</span></div>` : `<div class="warnbox mt">${esc(r.text)}</div>`;
+  toast(r.text, r.ok ? "" : "err");
+}

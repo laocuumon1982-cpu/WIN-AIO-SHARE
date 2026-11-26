@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SoiMac — Kiểm tra Mac cũ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: thợ kỹ thuật tận tâm — rõ ràng, chắc chắn, không màu mè
+   IDEA: phiếu kiểm máy của tiệm sửa Mac, đi từng bước, đánh dấu Đạt / Lỗi
+   PICTURE: công cụ đang chạy — chọn máy bằng hình vẽ máy, bàn phím ảo sáng phím, trackpad phủ ô
+   COLOUR and TYPE: nhôm bạc + mực than, một màu xanh Apple làm điểm nhấn; Be Vietnam Pro
+   LAYOUT: thanh bước dính trên cùng, một cột nội dung rộng 1100px, thẻ trắng trên nền nhôm */
+:root{color-scheme:light dark;--bg:light-dark(#eeeeea,#121315);--card:light-dark(#fff,#1c1e21);--ink:light-dark(#17181a,#ececee);--mute:light-dark(#5f636a,#9ca0a8);--line:light-dark(#d9d9d2,#2d3034);--acc:light-dark(#0a62f0,#5b95ff);--accbg:light-dark(#e6efff,#1a2742);--ok:light-dark(#18864b,#45c47f);--okbg:light-dark(#e3f4ea,#16301f);--bad:light-dark(#c8281c,#ff6b5e);--badbg:light-dark(#fbe7e5,#3a1a17);--warn:light-dark(#9a5b00,#f0b453);--warnbg:light-dark(#fdf1dc,#33270f)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Be Vietnam Pro",system-ui,-apple-system,sans-serif;overflow-x:clip}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+header{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.bar{max-width:1100px;margin:auto;padding:10px 16px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.logo{font-weight:700;font-size:18px;display:flex;gap:8px;align-items:center;text-decoration:none;color:var(--ink)}
+.steps{display:flex;gap:4px;overflow-x:auto;flex:1;scrollbar-width:none}
+.steps a{flex:none;text-decoration:none;color:var(--mute);padding:8px 12px;border-radius:999px;font-size:14px;font-weight:500;white-space:nowrap}
+.steps a b{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--line);color:var(--ink);font-size:12px;margin-right:6px}
+.steps a.on{background:var(--ink);color:var(--bg)}.steps a.on b{background:var(--bg);color:var(--ink)}
+main{max-width:1100px;margin:auto;padding:24px 16px 60px}
+h1{font-size:clamp(30px,4.4vw,46px);line-height:1.05;margin:8px 0 10px;text-wrap:balance;letter-spacing:-.02em}
+h2{font-size:24px;line-height:1.2;margin:0 0 6px}
+h3{font-size:17px;margin:0 0 4px}
+.lead{color:var(--mute);max-width:66ch;margin:0 0 22px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px}
+.grid{display:grid;gap:14px}
+.g5{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.machine{border:2px solid var(--line);background:var(--card);border-radius:16px;padding:16px 12px 14px;text-align:center;min-height:44px}
+.machine svg{width:100%;height:84px;display:block;margin-bottom:8px}
+.machine.on{border-color:var(--acc);background:var(--accbg)}
+.machine span{font-weight:600}
+.gens{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chip{border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:9px 14px;font-size:15px;min-height:44px}
+.chip.on{border-color:var(--acc);background:var(--accbg);color:var(--acc);font-weight:600}
+.detect{display:flex;gap:16px;align-items:center;flex-wrap:wrap;background:var(--accbg);border:1px solid color-mix(in srgb,var(--acc) 30%,transparent);border-radius:16px;padding:16px 18px;margin-bottom:22px}
+.detect p{margin:0;flex:1 1 320px}
+.btn{border:0;background:var(--acc);color:#fff;border-radius:12px;padding:11px 18px;font-weight:600;min-height:44px}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.warns{margin-top:18px;display:grid;gap:10px}
+.warn{background:var(--warnbg);border-radius:12px;padding:12px 14px;color:var(--ink)}
+.warn strong{color:var(--warn)}
+.row{display:flex;gap:14px;align-items:center;justify-content:space-between;padding:14px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+.row:first-child{border-top:0}
+.row .t{flex:1 1 300px}.row .t small{display:block;color:var(--mute);font-size:14px}
+.tri{display:flex;gap:6px;flex:none}
+.tri button{border:1.5px solid var(--line);background:var(--card);border-radius:10px;padding:8px 12px;font-size:14px;min-height:40px;font-weight:500}
+.tri button.ok.on{background:var(--okbg);border-color:var(--ok);color:var(--ok)}
+.tri button.bad.on{background:var(--badbg);border-color:var(--bad);color:var(--bad)}
+.tri button.skip.on{background:var(--line)}
+.sec{margin-top:22px}.sec>h3{margin-bottom:8px}
+.nav{display:flex;justify-content:space-between;gap:10px;margin-top:26px;flex-wrap:wrap}
+.cmd{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 14px;align-items:center;padding:14px 0;border-top:1px solid var(--line)}
+.cmd:first-child{border-top:0}
+.cmd pre{margin:6px 0 0;background:var(--bg);border-radius:10px;padding:10px 12px;font:14px/1.5 ui-monospace,Menlo,monospace;overflow-x:auto;grid-column:1/-1}
+.cmd p{margin:0;color:var(--mute);font-size:14px}
+.tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:16px;scrollbar-width:none}
+.tabs button{flex:none;border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:9px 16px;min-height:44px;font-weight:500}
+.tabs button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tabs button i{font-style:normal;margin-left:6px}
+.kb{display:grid;gap:6px;background:light-dark(#2a2c30,#0b0c0d);padding:12px;border-radius:14px;user-select:none;overflow-x:auto}
+.kr{display:flex;gap:6px;min-width:640px}
+.k{flex:1 1 0;height:42px;border-radius:7px;background:light-dark(#3d4046,#202226);color:#d8dade;font-size:12px;display:grid;place-items:center;transition:background .15s}
+.k.down{background:var(--acc);color:#fff}.k.done{background:light-dark(#2f7a52,#1f5f3d);color:#fff}
+.k.fn{height:30px}
+.tp{position:relative;height:340px;border-radius:16px;background:light-dark(#dcdcd6,#26282c);overflow:hidden;touch-action:none;cursor:crosshair}
+.tp canvas{position:absolute;inset:0;width:100%;height:100%}
+.tp .hint{position:absolute;inset:auto 0 12px;text-align:center;color:var(--mute);font-size:14px;pointer-events:none}
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.pill{border-radius:999px;padding:6px 12px;font-size:14px;background:var(--line);color:var(--mute)}
+.pill.ok{background:var(--okbg);color:var(--ok);font-weight:600}
+.spk{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.spk button{text-align:left;border:1.5px solid var(--line);background:var(--card);border-radius:14px;padding:14px;min-height:72px}
+.spk button.on{border-color:var(--acc);background:var(--accbg)}
+.spk small{display:block;color:var(--mute);font-size:13px}
+.meter{height:10px;border-radius:5px;background:var(--line);overflow:hidden;margin:10px 0 4px}.meter i{display:block;height:100%;background:var(--ok);transition:width .3s}
+.score{display:flex;gap:24px;align-items:center;flex-wrap:wrap}
+.big{font-size:clamp(48px,9vw,84px);font-weight:700;line-height:1;letter-spacing:-.03em}
+.verdict{font-size:20px;font-weight:600}
+.fails li{margin:6px 0}.fails b{color:var(--bad)}
+#ov{position:fixed;inset:0;z-index:99;display:none;cursor:none}
+#ov.show{display:block}
+#ov p{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);background:rgba(0,0,0,.6);color:#fff;padding:8px 14px;border-radius:999px;font-size:14px;transition:opacity .6s;white-space:nowrap}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:50}
+.toast.show{opacity:1}
+footer{max-width:1100px;margin:auto;padding:0 16px 40px;color:var(--mute);font-size:14px}
+.muted{color:var(--mute)}
+@media(max-width:600px){.card{padding:16px}.tri button{padding:8px 10px}.tp{height:260px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header><div class="bar">
+  <a class="logo" href="#may"><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><rect x="2" y="4" width="22" height="14" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M0 21h26" stroke="currentColor" stroke-width="2.4"/><path d="M8.5 11l3 3 6-6" fill="none" stroke="var(--acc)" stroke-width="2.4" stroke-linecap="round"/></svg>SoiMac</a>
+  <nav class="steps" id="steps"></nav>
+</div></header>
+<main id="app"></main>
+<footer>Công cụ chỉ để tham khảo — quyết định mua cuối cùng là của bạn. Mở trang này ngay trên chiếc Mac định mua để test trực tiếp. Tiến độ được lưu trong trình duyệt này.</footer>
+<div id="ov"><p id="ovp">Nhấn / ← → để đổi màu · Esc để thoát</p></div>
+<div class="toast" id="toast"></div>
+<script>
+{
+const $=s=>document.querySelector(s);
+const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let S={line:null,gen:null,res:{},tab:'screen',kb:[]};
+try{const o=JSON.parse(localStorage.getItem('soimac')||'null');if(o)S={...S,...o}}catch(e){}
+const save=()=>{try{localStorage.setItem('soimac',JSON.stringify(S))}catch(e){}};
+const toast=t=>{const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),1800)};
+
+const ICON={
+laptop:'<svg viewBox="0 0 120 84"><rect x="22" y="10" width="76" height="50" rx="4" fill="var(--line)"/><rect x="27" y="15" width="66" height="40" rx="1.5" fill="var(--acc)" opacity=".22"/><path d="M8 64h104l-6 8H14z" fill="var(--mute)"/><rect x="50" y="64" width="20" height="2.5" rx="1" fill="var(--card)"/></svg>',
+imac:'<svg viewBox="0 0 120 84"><rect x="18" y="6" width="84" height="54" rx="4" fill="var(--line)"/><rect x="23" y="11" width="74" height="40" rx="1.5" fill="var(--acc)" opacity=".22"/><path d="M50 60h20l4 16H46z" fill="var(--mute)"/><rect x="40" y="75" width="40" height="3" rx="1.5" fill="var(--mute)"/></svg>',
+mini:'<svg viewBox="0 0 120 84"><rect x="20" y="40" width="80" height="22" rx="6" fill="var(--line)"/><rect x="20" y="58" width="80" height="6" rx="3" fill="var(--mute)"/><circle cx="90" cy="51" r="2" fill="var(--acc)"/></svg>',
+studio:'<svg viewBox="0 0 120 84"><rect x="28" y="22" width="64" height="44" rx="8" fill="var(--line)"/><rect x="28" y="60" width="64" height="7" rx="3.5" fill="var(--mute)"/><g fill="var(--mute)"><rect x="38" y="48" width="5" height="3" rx="1"/><rect x="47" y="48" width="5" height="3" rx="1"/><circle cx="80" cy="49.5" r="2"/></g></svg>'};
+
+const LINES=[
+{id:'air',name:'MacBook Air',kind:'laptop',icon:'laptop',gens:[
+ {id:'air-i13',name:'Intel 2013–2017',chip:'intel',warn:['Màn hình không phải Retina, độ phân giải thấp.','Pin thường đã chai, nên xem số lần sạc (cycle) dưới 1000.','macOS cao nhất chỉ tới Big Sur (2013–2014) hoặc Monterey (2015–2017).']},
+ {id:'air-i18',name:'Intel Retina 2018–2020',chip:'intel',warn:['Bàn phím cánh bướm (2018–2019) hay kẹt, lặp hoặc mất phím — test kỹ từng phím.','Bản 2018–2019 từng có lỗi mạch chủ (Apple có chương trình sửa miễn phí, nay đã hết hạn).','Bản 2020 Intel rất nóng và ồn quạt khi tải nặng.']},
+ {id:'air-m1',name:'M1 (2020)',chip:'as',warn:['Màn hình dễ nứt ngầm do bị đè (vết rạn hoặc đốm loang từ mép) — xem kỹ màn hình nền đen và nền trắng.','Bản 8GB RAM dùng nhiều sẽ ghi swap nhiều, xem mức "Data Units Written" của SSD nếu có thể.']},
+ {id:'air-m2',name:'M2 / M3 / M4 (2022–2025)',chip:'as',warn:['Bản SSD 256GB của M2 chỉ có 1 chip NAND, tốc độ đọc/ghi thấp hơn hẳn bản 512GB.','Viền nhôm mỏng dễ móp góc; màu Midnight dễ trầy và bám vân tay.','Kiểm tra cổng sạc MagSafe sáng đèn và khớp hít chắc.']}]},
+{id:'pro',name:'MacBook Pro',kind:'laptop',icon:'laptop',gens:[
+ {id:'pro-i12',name:'Intel Retina 2012–2015',chip:'intel',warn:['Lỗi "staingate": lớp chống chói trên màn bị bong loang lổ — xem dưới nền trắng.','Bản 15" có GPU rời (2012–2013) dễ hỏng chip đồ hoạ: sọc màn, treo khi chơi video.','Pin phồng làm trackpad bị đội lên, khó click.']},
+ {id:'pro-i16',name:'Intel Touch Bar 2016–2019',chip:'intel',warn:['Lỗi "flexgate" (13" 2016–2017): đèn nền chiếu thành vệt như đèn sân khấu ở mép dưới, nặng hơn khi mở màn quá ~100°.','Bàn phím cánh bướm hay kẹt, lặp ký tự hoặc chết phím.','Touch Bar có thể chập chờn, tự sáng hoặc không lên.','Bản 15" i9 (2018–2019) rất nóng, dễ tụt xung.','Pin phồng thường gặp — xem mặt dưới máy có kênh không.']},
+ {id:'pro-i19',name:'Intel 16" 2019 / 13" 2020',chip:'intel',warn:['Đã dùng bàn phím Magic Keyboard (bền hơn), nhưng máy nóng và ồn quạt.','Bản 16" 2019 có GPU AMD rời — chạy video nặng xem có giật hoặc sọc màn không.']},
+ {id:'pro-as',name:'Apple Silicon M1–M4',chip:'as',warn:['Màn mini‑LED (14"/16") có quầng sáng quanh chữ trắng trên nền đen — đó là bình thường, không phải lỗi.','Xem màn có vết hằn bàn phím (do gập máy đè vật lạ).','Kiểm tra cổng HDMI và khe thẻ SD (bản 14"/16").','Bản 13" M1/M2 vẫn còn Touch Bar — test từng vùng chạm.']}]},
+{id:'imac',name:'iMac',kind:'aio',icon:'imac',gens:[
+ {id:'imac-i',name:'Intel 21.5" / 27" 2012–2019',chip:'intel',warn:['Ổ Fusion Drive hoặc HDD rất chậm — xem trong "Thông tin hệ thống", nên đổi sang SSD.','Màn 27" 5K có thể bị sọc dọc hoặc ám vàng ở viền.','Keo dán kính màn hình có thể bung, bụi lọt vào bên trong kính.','GPU AMD rời có thể lỗi khi tải nặng.']},
+ {id:'imac-pro',name:'iMac Pro 2017',chip:'intel',warn:['Máy hiếm, giá cao — kiểm tra kỹ chip T2 và lịch sử sửa chữa.','Quạt cần sạch bụi; chạy tải nặng 10 phút xem có ồn quá không.']},
+ {id:'imac-as',name:'iMac 24" M1 / M3 / M4',chip:'as',warn:['Bản rẻ nhất chỉ có 2 cổng — kiểm tra đúng cấu hình đã hỏi mua.','Bộ nguồn rời có cổng Ethernet (tuỳ bản) — kiểm tra đủ phụ kiện.','Màn bóng dễ xước; xem kỹ dưới nền đen.']}]},
+{id:'mini',name:'Mac mini',kind:'desk',icon:'mini',gens:[
+ {id:'mini-i12',name:'Intel 2012–2014',chip:'intel',warn:['Thường dùng HDD — rất chậm nếu chưa nâng SSD.','Bản 2014 có RAM hàn chết, không nâng cấp được.']},
+ {id:'mini-i18',name:'Intel 2018',chip:'intel',warn:['Máy nóng, quạt ồn khi tải nặng.','Bluetooth có thể nhiễu khi cắm thiết bị USB 3 gần đó.','RAM thay được nhưng phải tháo máy.']},
+ {id:'mini-as',name:'M1 / M2 / M4',chip:'as',warn:['Kiểm tra cổng HDMI xuất hình và tất cả cổng Thunderbolt.','Bản 8GB / 256GB nhanh đầy — xác nhận đúng cấu hình.']}]},
+{id:'studio',name:'Mac Studio',kind:'desk',icon:'studio',gens:[
+ {id:'studio-m1',name:'M1 Max / M1 Ultra (2022)',chip:'as',warn:['Một số máy có tiếng rè cuộn cảm (coil whine) khi tải — nghe gần mặt sau máy.','Quạt cần sạch bụi; chạy tải nặng xem có tiếng lạ.']},
+ {id:'studio-m2',name:'M2 / M3 / M4 Max–Ultra',chip:'as',warn:['Cấu hình RAM/SSD không nâng được — xác nhận đúng cấu hình trong "Giới thiệu về máy Mac".','Kiểm tra khe thẻ SD và các cổng phía trước.']}]}];
+
+const COMMON=[
+['serial','Số serial khớp nhau','Serial trên vỏ = trong "Giới thiệu về máy Mac" = trên hộp. Tra tại checkcoverage.apple.com.'],
+['icloud','Đã thoát iCloud / Find My','Cài đặt > Apple ID: phải trống. Với chip T2 và Apple Silicon còn Activation Lock là không dùng được.'],
+['mdm','Không dính MDM (máy doanh nghiệp)','Chạy lệnh "profiles" ở bước 3. Máy MDM sẽ bị khoá khi cài lại macOS.'],
+['config','Cấu hình đúng như quảng cáo','Chip, RAM, SSD trong "Giới thiệu về máy Mac" > "Thông tin hệ thống".'],
+['ports','Tất cả cổng hoạt động','Cắm USB/sạc vào từng cổng Thunderbolt, HDMI, khe SD, tai nghe.'],
+['wifi','Wi‑Fi và Bluetooth ổn định','Vào mạng, tải thử một trang, kết nối tai nghe Bluetooth.'],
+['screws','Ốc vít nguyên, không dấu mở máy','Ốc toét hoặc lệch màu là dấu hiệu máy đã bị mở sửa.']];
+const BYKIND={
+laptop:[
+['battery','Pin còn tốt','Cycle count < 1000 và tình trạng "Bình thường" (lệnh ở bước 3).'],
+['charge','Sạc vào nhận điện','Cắm sạc: biểu tượng pin báo đang sạc, không tắt ngang khi rút sạc.'],
+['swell','Không phồng pin','Máy đặt bàn phẳng không kênh, trackpad không bị đội, khe màn đều.'],
+['hinge','Bản lề chắc','Mở màn tới đâu đứng tới đó, không lỏng, không kêu.'],
+['body','Vỏ không móp, nứt','Xem kỹ 4 góc và mặt đáy — móp góc thường làm cong khung.'],
+['touchid','Touch ID / nút nguồn','Thêm vân tay thử trong Cài đặt > Touch ID.'],
+['backlit','Đèn bàn phím','Tăng/giảm đèn nền bàn phím, tất cả phím sáng đều.']],
+aio:[
+['fan','Quạt êm, không tiếng lạ','Mở vài ứng dụng nặng, nghe phía sau máy.'],
+['glass','Kính màn hình kín, không bụi bên trong','Nhìn nghiêng dưới đèn, xem viền keo.'],
+['stand','Chân đế chắc','Nghiêng màn lên xuống, không lỏng.'],
+['psu','Đủ phụ kiện','Dây nguồn, bàn phím, chuột (nếu có).']],
+desk:[
+['fan','Quạt êm, không tiếng lạ','Chạy tải nặng vài phút, nghe phía sau máy.'],
+['hdmi','Xuất hình HDMI / Thunderbolt','Cắm màn hình qua từng cổng xuất hình.'],
+['eth','Cổng mạng LAN','Cắm dây mạng, kiểm tra có kết nối.'],
+['body','Vỏ không móp, không ố','Xem đáy máy, khe tản nhiệt có bụi bẩn nhiều không.']]};
+
+const CMDS=[
+['Thông tin máy & Activation Lock','system_profiler SPHardwareDataType','Xem model, chip, RAM, serial và dòng "Activation Lock Status" (phải là Disabled).'],
+['Pin: số lần sạc & tình trạng','system_profiler SPPowerDataType | grep -E "Cycle Count|Condition|Maximum Capacity"','Cycle dưới 1000 và Condition là Normal là ổn.'],
+['Máy có dính MDM không','profiles status -type enrollment','Cả hai dòng phải là "No". Có chữ "Yes" là máy doanh nghiệp.'],
+['Ổ cứng: tình trạng SMART','diskutil info disk0 | grep -E "Media Name|Disk Size|SMART"','SMART Status phải là "Verified".'],
+['Có từng bị kernel panic','ls /Library/Logs/DiagnosticReports | grep -i panic','Không ra gì là tốt. Nhiều file panic là máy hay tự khởi động lại.'],
+['Bộ nhớ RAM','system_profiler SPMemoryDataType','Kiểm tra dung lượng RAM và (máy Intel) trạng thái từng thanh.'],
+['Nhiệt độ / tụt xung','pmset -g therm','Có cảnh báo CPU_Speed_Limit dưới 100 là máy đang bị nóng.'],
+['Tình trạng bảo mật SIP','csrutil status','Phải là "enabled". Bị tắt là máy từng bị can thiệp hệ thống.']];
+
+const TESTS=[['screen','Màn hình'],['keyboard','Bàn phím'],['trackpad','Trackpad'],['speaker','Loa'],['cam','Camera & mic']];
+const VIEWS=[['may','Chọn máy'],['ngoai','Kiểm tra ngoài'],['lenh','Lệnh Terminal'],['test','Test phần cứng'],['ketqua','Kết quả']];
+
+const line=()=>LINES.find(l=>l.id===S.line);
+const gen=()=>line()?.gens.find(g=>g.id===S.gen);
+const testsFor=()=>{const k=line()?.kind;return TESTS.filter(([id])=>k==='laptop'||(id!=='keyboard'&&id!=='trackpad')).filter(([id])=>!(k==='desk'&&id==='screen'))};
+const checksFor=()=>COMMON.concat(BYKIND[line()?.kind]||[]);
+
+function tri(id){const v=S.res[id];return `<div class="tri" role="group"><button class="ok${v==='ok'?' on':''}" data-set="${id}" data-v="ok">Đạt</button><button class="bad${v==='bad'?' on':''}" data-set="${id}" data-v="bad">Lỗi</button><button class="skip${v==='skip'?' on':''}" data-set="${id}" data-v="skip">Bỏ qua</button></div>`}
+
+/* ---------- auto detect ---------- */
+function detect(){
+  let gpu='';
+  try{const c=document.createElement('canvas').getContext('webgl');const d=c&&c.getExtension('WEBGL_debug_renderer_info');gpu=d?c.getParameter(d.UNMASKED_RENDERER_WEBGL):''}catch(e){}
+  const isMac=/Mac/.test(navigator.platform||navigator.userAgent);
+  const w=Math.round(screen.width*devicePixelRatio),h=Math.round(screen.height*devicePixelRatio);
+  const R={'2560x1600':['air','MacBook Air / Pro 13"'],'2560x1664':['air','MacBook Air 13.6" (M2 trở lên)'],'2880x1864':['air','MacBook Air 15"'],'3024x1964':['pro','MacBook Pro 14"'],'3456x2234':['pro','MacBook Pro 16"'],'2880x1800':['pro','MacBook Pro 15" Retina'],'3072x1920':['pro','MacBook Pro 16" 2019'],'4480x2520':['imac','iMac 24"'],'5120x2880':['imac','iMac 27" 5K'],'4096x2304':['imac','iMac 21.5" 4K'],'1440x900':['air','MacBook Air 13" (không Retina)']};
+  const m=R[w+'x'+h];
+  const chip=/Apple M\d/i.test(gpu)?(gpu.match(/Apple M\d[^,)]*/i)||[''])[0]:/Apple/i.test(gpu)?'Apple Silicon':/Intel|AMD|Radeon|NVIDIA/i.test(gpu)?'Intel':'';
+  return{isMac,w,h,model:m,chip,gpu};
+}
+function suggestGen(lineId,chip){const l=LINES.find(x=>x.id===lineId);if(!l)return null;const want=chip==='Intel'?'intel':'as';const gs=l.gens.filter(g=>g.chip===want);if(want==='as'&&/M1/.test(chip))return gs[0]?.id;return gs[gs.length-1]?.id||null}
+
+/* ---------- views ---------- */
+function vMay(){
+  const d=detect();let det='';
+  if(d.isMac){det=`<div class="detect"><p><strong>Trang đang mở trên một máy Mac.</strong> Màn hình ${d.w}×${d.h}${d.model?' → có thể là '+esc(d.model[1]):''}${d.chip?' · chip: '+esc(d.chip):''}. Đây chỉ là gợi ý, hãy đối chiếu "Giới thiệu về máy Mac".</p>${d.model?'<button class="btn" id="apply">Dùng gợi ý này</button>':''}</div>`}
+  else det=`<div class="detect"><p><strong>Mẹo:</strong> mở trang này ngay trên chiếc Mac định mua để trang gợi ý đời máy và chạy test bàn phím, loa, trackpad trực tiếp trên máy đó.</p></div>`;
+  const l=line();
+  return `<h1>Kiểm tra Mac cũ trước khi mua</h1><p class="lead">Đi từng bước như thợ kiểm máy: chọn đời máy để xem lỗi hay gặp, soát ngoại hình, chạy vài lệnh Terminal, rồi test màn hình, bàn phím, trackpad và loa.</p>${det}
+  <h2>Máy bạn định mua là dòng nào?</h2><p class="muted" style="margin:0 0 14px">Chọn dòng máy rồi chọn đời.</p>
+  <div class="grid g5">${LINES.map(x=>`<button class="machine${x.id===S.line?' on':''}" data-line="${x.id}">${ICON[x.icon]}<span>${x.name}</span></button>`).join('')}</div>
+  ${l?`<div class="card sec"><h3>${l.name} — đời máy</h3><div class="gens">${l.gens.map(g=>`<button class="chip${g.id===S.gen?' on':''}" data-gen="${g.id}">${g.name}</button>`).join('')}</div>
+  ${gen()?`<div class="warns"><h3 style="margin-top:6px">Lỗi hay gặp ở đời này</h3>${gen().warn.map(w=>`<div class="warn"><strong>Chú ý:</strong> ${w}</div>`).join('')}</div>`:''}</div>`:''}
+  <div class="nav"><span></span><a class="btn" href="#ngoai" style="text-decoration:none;${gen()?'':'opacity:.45;pointer-events:none'}">Tiếp: kiểm tra ngoài →</a></div>`;
+}
+function vNgoai(){
+  if(!gen())return need();
+  const c=checksFor();
+  return `<h1>Soát ngoại hình & giấy tờ</h1><p class="lead">${esc(line().name)} · ${esc(gen().name)}. Đánh dấu từng mục. Hai mục iCloud và MDM là quan trọng nhất — dính một trong hai thì không nên mua.</p>
+  <div class="card">${c.map(([id,t,d])=>`<div class="row"><div class="t"><h3>${t}</h3><small>${d}</small></div>${tri('c_'+id)}</div>`).join('')}</div>
+  <div class="nav"><a class="btn ghost" href="#may" style="text-decoration:none">← Chọn máy</a><a class="btn" href="#lenh" style="text-decoration:none">Tiếp: lệnh Terminal →</a></div>`;
+}
+function vLenh(){
+  if(!gen())return need();
+  return `<h1>Lệnh Terminal để soi sâu</h1><p class="lead">Mở Terminal (Cmd + Space, gõ "Terminal"), bấm Sao chép rồi dán vào. Các lệnh chỉ đọc thông tin, không thay đổi gì trên máy.</p>
+  <div class="card">${CMDS.map(([t,c,d],i)=>`<div class="cmd"><div><h3>${t}</h3><p>${d}</p></div><button class="btn ghost" data-copy="${i}">Sao chép</button><pre>${esc(c)}</pre></div>`).join('')}</div>
+  <div class="card sec"><h3>Chạy Apple Diagnostics</h3><p class="muted" style="margin:0">Máy Intel: tắt máy, bật lên và giữ phím <b>D</b>. Máy Apple Silicon: giữ nút nguồn tới khi hiện "Tuỳ chọn khởi động", rồi nhấn <b>Cmd + D</b>. Có mã lỗi (ví dụ PPT = pin, VFD = màn hình) thì ghi lại.</p><div class="row" style="border-top:0;padding-bottom:0"><div class="t"><h3>Kết quả Apple Diagnostics</h3></div>${tri('c_diag')}</div></div>
+  <div class="nav"><a class="btn ghost" href="#ngoai" style="text-decoration:none">← Kiểm tra ngoài</a><a class="btn" href="#test" style="text-decoration:none">Tiếp: test phần cứng →</a></div>`;
+}
+function vTest(){
+  if(!gen())return need();
+  const ts=testsFor();if(!ts.find(t=>t[0]===S.tab))S.tab=ts[0][0];
+  const mark=id=>S.res['t_'+id]==='ok'?'✓':S.res['t_'+id]==='bad'?'✕':'';
+  return `<h1>Test phần cứng trực tiếp</h1><p class="lead">Chạy từng bài test ngay trên máy, xong thì đánh dấu kết quả.</p>
+  <div class="tabs">${ts.map(([id,n])=>`<button class="${id===S.tab?'on':''}" data-tab="${id}">${n}<i>${mark(id)}</i></button>`).join('')}</div>
+  <div class="card" id="testbox">${T[S.tab]()}</div>
+  <div class="nav"><a class="btn ghost" href="#lenh" style="text-decoration:none">← Lệnh Terminal</a><a class="btn" href="#ketqua" style="text-decoration:none">Xem kết quả →</a></div>`;
+}
+const need=()=>`<h1>Chưa chọn máy</h1><p class="lead">Hãy chọn dòng máy và đời máy trước.</p><a class="btn" href="#may" style="text-decoration:none">← Chọn máy</a>`;
+
+/* ---------- tests ---------- */
+const KB=[
+[['Escape','esc'],['F1','F1'],['F2','F2'],['F3','F3'],['F4','F4'],['F5','F5'],['F6','F6'],['F7','F7'],['F8','F8'],['F9','F9'],['F10','F10'],['F11','F11'],['F12','F12']],
+[['Backquote','`'],['Digit1','1'],['Digit2','2'],['Digit3','3'],['Digit4','4'],['Digit5','5'],['Digit6','6'],['Digit7','7'],['Digit8','8'],['Digit9','9'],['Digit0','0'],['Minus','-'],['Equal','='],['Backspace','delete',1.6]],
+[['Tab','tab',1.5],['KeyQ','Q'],['KeyW','W'],['KeyE','E'],['KeyR','R'],['KeyT','T'],['KeyY','Y'],['KeyU','U'],['KeyI','I'],['KeyO','O'],['KeyP','P'],['BracketLeft','['],['BracketRight',']'],['Backslash','\\',1.1]],
+[['CapsLock','caps',1.8],['KeyA','A'],['KeyS','S'],['KeyD','D'],['KeyF','F'],['KeyG','G'],['KeyH','H'],['KeyJ','J'],['KeyK','K'],['KeyL','L'],['Semicolon',';'],['Quote',"'"],['Enter','return',1.8]],
+[['ShiftLeft','shift',2.3],['KeyZ','Z'],['KeyX','X'],['KeyC','C'],['KeyV','V'],['KeyB','B'],['KeyN','N'],['KeyM','M'],['Comma',','],['Period','.'],['Slash','/'],['ShiftRight','shift',2.3]],
+[['ControlLeft','control',1.2],['AltLeft','option',1.2],['MetaLeft','command',1.4],['Space','',5.6],['MetaRight','command',1.4],['AltRight','option',1.2],['ArrowLeft','←'],['ArrowUp','↑'],['ArrowDown','↓'],['ArrowRight','→']]];
+const KCOUNT=KB.flat().length;
+const T={
+screen:()=>`<h2>Màn hình</h2><p class="muted">Bật toàn màn hình rồi lần lượt xem các nền màu: đen (tìm điểm sáng, hở sáng viền), trắng (điểm chết, ố vàng, staingate), đỏ/xanh lá/xanh dương (điểm kẹt màu), xám và dải chuyển màu (vệt, sọc). Bật độ sáng tối đa.</p>
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin:16px 0"><button class="btn" id="scr">Bắt đầu test màn hình</button></div>
+${line().kind==='laptop'?'<div class="warn">Với MacBook Pro 2016–2017: ở nền trắng, gập màn hình từ từ từ 90° lên hết cỡ, xem mép dưới có vệt sáng hình "đèn sân khấu" không (lỗi flexgate).</div>':''}
+<div class="row" style="margin-top:12px"><div class="t"><h3>Màn hình không điểm chết, không sọc, không ố</h3></div>${tri('t_screen')}</div>`,
+keyboard:()=>{const n=S.kb.length;return `<h2>Bàn phím</h2><p class="muted">Bấm lần lượt mọi phím. Phím đang nhấn sáng xanh dương, phím đã nhận chuyển xanh lá. Phím F1–F12 cần giữ <b>fn</b>. Phím fn và Caps Lock có thể chỉ nhận khi bật/tắt.</p>
+<div class="meter"><i id="kbm" style="width:${Math.round(n/KCOUNT*100)}%"></i></div><p class="muted" id="kbc" style="margin:0 0 12px;font-size:14px">${n}/${KCOUNT} phím</p>
+<div class="kb" id="kb">${KB.map((r,i)=>`<div class="kr">${r.map(([c,l,w])=>`<div class="k${i===0?' fn':''}${S.kb.includes(c)?' done':''}" data-k="${c}" style="flex-grow:${w||1}">${esc(l)}</div>`).join('')}</div>`).join('')}</div>
+<div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap"><input id="kbt" placeholder="Gõ thử một đoạn văn ở đây để kiểm tra lặp phím…" style="flex:1 1 280px;font:inherit;font-size:16px;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);min-height:44px"><button class="btn ghost" id="kbr">Làm lại</button></div>
+<div class="row" style="margin-top:12px"><div class="t"><h3>Mọi phím nhận, không kẹt, không lặp</h3></div>${tri('t_keyboard')}</div>`},
+trackpad:()=>`<h2>Trackpad</h2><p class="muted">Rê ngón tay phủ kín vùng xám, click ở 4 góc và giữa, click 2 ngón, cuộn 2 ngón dọc và ngang. Trên Safari có thể thử thêm Force Click (nhấn mạnh).</p>
+<div class="tp" id="tp"><canvas id="tpc"></canvas><div class="hint">Vùng thử trackpad</div></div>
+<div class="pills" id="tpp"></div><button class="btn ghost" id="tpr">Làm lại</button>
+<div class="row" style="margin-top:12px"><div class="t"><h3>Trackpad nhạy, click đều cả mặt</h3><small>Click bị lún hoặc cứng ở góc trên thường là do pin phồng.</small></div>${tri('t_trackpad')}</div>`,
+speaker:()=>`<h2>Loa</h2><p class="muted">Tăng âm lượng khoảng 70%. Nghe từng bên, rồi quét tần số: âm phải mượt, không rè, không lạch cạch ở âm trầm.</p>
+<div class="spk">${[['l','Loa trái','Tiếng chỉ phát bên trái'],['r','Loa phải','Tiếng chỉ phát bên phải'],['b','Cả hai bên','Âm 440 Hz giữa'],['bass','Âm trầm 60 Hz','Nghe tiếng rè, lạch cạch'],['sweep','Quét 20 Hz → 16 kHz','8 giây, nghe đoạn bị rè']].map(([id,t,d])=>`<button data-snd="${id}"><b>${t}</b><small>${d}</small></button>`).join('')}</div>
+<button class="btn ghost" id="sstop" style="margin-top:12px">Dừng</button>
+<div class="row" style="margin-top:12px"><div class="t"><h3>Hai loa rõ, không rè, không lệch</h3></div>${tri('t_speaker')}</div>`,
+cam:()=>`<h2>Camera & micro</h2><p class="muted">Trang không mở được camera và micro trực tiếp. Hãy kiểm tra bằng ứng dụng có sẵn:</p>
+<ol><li>Mở <b>Photo Booth</b>: hình rõ, không đốm, đèn xanh cạnh camera sáng.</li><li>Mở <b>Ghi âm (Voice Memos)</b>: ghi 10 giây rồi nghe lại, tiếng rõ không rè.</li><li>Cài đặt hệ thống > Âm thanh > Đầu vào: nói vào máy, thanh mức âm phải nhảy.</li></ol>
+<div class="row"><div class="t"><h3>Camera</h3></div>${tri('t_cam')}</div><div class="row"><div class="t"><h3>Micro</h3></div>${tri('t_mic')}</div>`};
+
+/* trackpad logic */
+let tp=null;
+function tpInit(){
+  const box=$('#tp');if(!box)return;const cv=$('#tpc'),ctx=cv.getContext('2d');
+  tp={cells:new Set(),zones:new Set(),right:false,sy:false,sx:false,force:false,last:null};
+  const GX=10,GY=6;
+  const size=()=>{const r=box.getBoundingClientRect();cv.width=r.width*devicePixelRatio;cv.height=r.height*devicePixelRatio;ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0)};
+  const tpRO=new ResizeObserver(size);tpRO.observe(box);
+  const pos=e=>{const r=box.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top,r.width,r.height]};
+  box.addEventListener('pointermove',e=>{const[x,y,w,h]=pos(e);const ci=Math.min(GX-1,Math.floor(x/w*GX)),cj=Math.min(GY-1,Math.floor(y/h*GY));
+    if(!tp.cells.has(ci+','+cj)){tp.cells.add(ci+','+cj);ctx.fillStyle='rgba(40,170,100,.28)';ctx.fillRect(ci*w/GX,cj*h/GY,w/GX,h/GY)}
+    if(tp.last){ctx.strokeStyle=getComputedStyle(document.body).getPropertyValue('--acc');ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(...tp.last);ctx.lineTo(x,y);ctx.stroke()}
+    tp.last=[x,y];tpPills()});
+  box.addEventListener('pointerleave',()=>tp.last=null);
+  box.addEventListener('click',e=>{const[x,y,w,h]=pos(e);const cx=x/w,cy=y/h;let z='';
+    if(cx<.25&&cy<.33)z='tl';else if(cx>.75&&cy<.33)z='tr';else if(cx<.25&&cy>.67)z='bl';else if(cx>.75&&cy>.67)z='br';else if(cx>.35&&cx<.65&&cy>.3&&cy<.7)z='c';
+    if(z){tp.zones.add(z);ctx.fillStyle='rgba(10,98,240,.5)';ctx.beginPath();ctx.arc(x,y,10,0,7);ctx.fill()}tpPills()});
+  box.addEventListener('contextmenu',e=>{e.preventDefault();tp.right=true;tpPills()});
+  box.addEventListener('wheel',e=>{e.preventDefault();if(Math.abs(e.deltaY)>2)tp.sy=true;if(Math.abs(e.deltaX)>2)tp.sx=true;tpPills()},{passive:false});
+  box.addEventListener('webkitmouseforcedown',()=>{tp.force=true;tpPills()});
+  tpPills();
+}
+function tpPills(){if(!tp)return;const cov=Math.round(tp.cells.size/60*100);
+  const P=[[cov>=90,`Phủ vùng rê: ${cov}%`],[tp.zones.size===5,`Click góc + giữa: ${tp.zones.size}/5`],[tp.right,'Click 2 ngón'],[tp.sy,'Cuộn dọc'],[tp.sx,'Cuộn ngang'],[tp.force,'Force Click (Safari)']];
+  $('#tpp').innerHTML=P.map(([ok,t])=>`<span class="pill${ok?' ok':''}">${ok?'✓ ':''}${t}</span>`).join('');
+  if(P.slice(0,5).every(p=>p[0])&&!S.res.t_trackpad){S.res.t_trackpad='ok';save();toast('Trackpad đạt tất cả bài test');render()}}
+
+/* audio */
+let ac=null,nodes=[];
+function stopSnd(){nodes.forEach(n=>{try{n.stop()}catch(e){}});nodes=[];document.querySelectorAll('[data-snd]').forEach(b=>b.classList.remove('on'))}
+function play(id,btn){
+  stopSnd();try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();ac.resume()}catch(e){toast('Trình duyệt không phát được âm thanh');return}
+  const o=ac.createOscillator(),g=ac.createGain(),p=ac.createStereoPanner?ac.createStereoPanner():null,t=ac.currentTime;
+  let dur=3;o.type='sine';o.frequency.value=440;
+  if(id==='bass'){o.frequency.value=60;dur=4}
+  if(id==='sweep'){dur=8;o.frequency.setValueAtTime(20,t);o.frequency.exponentialRampToValueAtTime(16000,t+dur)}
+  if(p)p.pan.value=id==='l'?-1:id==='r'?1:0;
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.35,t+.05);g.gain.setValueAtTime(.35,t+dur-.1);g.gain.linearRampToValueAtTime(0,t+dur);
+  o.connect(g);(p?g.connect(p).connect(ac.destination):g.connect(ac.destination));o.start(t);o.stop(t+dur);nodes=[o];
+  btn.classList.add('on');o.onended=()=>btn.classList.remove('on');
+}
+
+/* screen overlay */
+const COLORS=['#000','#fff','#f00','#0f0','#00f','#808080','linear-gradient(90deg,#000,#fff)','linear-gradient(90deg,red,yellow,lime,cyan,blue,magenta,red)','repeating-conic-gradient(#000 0 25%,#fff 0 50%) 0 0/4px 4px'];
+let ci=0;const ov=$('#ov'),ovp=$('#ovp');
+function ovShow(i){ci=(i+COLORS.length)%COLORS.length;ov.style.background=COLORS[ci];ovp.style.opacity=1;clearTimeout(ov._t);ov._t=setTimeout(()=>ovp.style.opacity=0,1800)}
+function ovOpen(){ov.classList.add('show');ovShow(0);const r=document.documentElement.requestFullscreen;if(r)document.documentElement.requestFullscreen().catch(()=>{})}
+function ovClose(){ov.classList.remove('show');if(document.fullscreenElement)document.exitFullscreen().catch(()=>{})}
+ov.addEventListener('click',()=>ovShow(ci+1));
+document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement)ov.classList.remove('show')});
+
+/* result */
+function vKetqua(){
+  if(!gen())return need();
+  const items=[...checksFor().map(([id,t])=>['c_'+id,t]),['c_diag','Apple Diagnostics'],...testsFor().map(([id,n])=>['t_'+id,'Test '+n.toLowerCase()]),...(testsFor().find(t=>t[0]==='cam')?[['t_mic','Test micro']]:[])];
+  const ok=items.filter(([i])=>S.res[i]==='ok').length,bad=items.filter(([i])=>S.res[i]==='bad'),todo=items.filter(([i])=>!S.res[i]).length;
+  const crit=bad.filter(([i])=>i==='c_icloud'||i==='c_mdm');
+  const pct=Math.round(ok/items.length*100);
+  const verdict=crit.length?'Không nên mua: máy còn dính iCloud hoặc MDM.':bad.length>2?'Cân nhắc kỹ: máy có nhiều lỗi, nên ép giá hoặc bỏ qua.':bad.length?'Có lỗi nhỏ — dùng các lỗi này để thương lượng giá.':todo?'Chưa kiểm xong — còn mục chưa đánh dấu.':'Máy đạt mọi mục kiểm tra.';
+  return `<h1>Kết quả kiểm tra</h1><p class="lead">${esc(line().name)} · ${esc(gen().name)}</p>
+  <div class="card score"><div><div class="big" style="color:${crit.length||bad.length>2?'var(--bad)':bad.length?'var(--warn)':'var(--ok)'}">${pct}%</div><div class="muted">${ok}/${items.length} mục đạt · ${bad.length} lỗi · ${todo} chưa kiểm</div></div><div class="verdict" style="flex:1 1 260px">${verdict}</div></div>
+  ${bad.length?`<div class="card sec"><h3>Các mục lỗi</h3><ul class="fails">${bad.map(([,t])=>`<li><b>✕</b> ${t}</li>`).join('')}</ul></div>`:''}
+  ${todo?`<div class="card sec"><h3>Chưa kiểm</h3><p class="muted" style="margin:0">${items.filter(([i])=>!S.res[i]).map(([,t])=>t).join(' · ')}</p></div>`:''}
+  <div class="nav"><button class="btn ghost" id="reset">Kiểm máy khác</button><button class="btn" id="copyrep">Sao chép báo cáo</button></div>`;
+}
+function report(){const items=[...checksFor().map(([id,t])=>['c_'+id,t]),['c_diag','Apple Diagnostics'],...testsFor().map(([id,n])=>['t_'+id,'Test '+n]),['t_mic','Test micro']];
+  const L={ok:'Đạt',bad:'LỖI',skip:'Bỏ qua'};return `Báo cáo SoiMac — ${line().name} ${gen().name}\n`+items.map(([i,t])=>`- ${t}: ${L[S.res[i]]||'Chưa kiểm'}`).join('\n')}
+
+/* ---------- render & events ---------- */
+const V={may:vMay,ngoai:vNgoai,lenh:vLenh,test:vTest,ketqua:vKetqua};
+function cur(){const h=location.hash.slice(1);return V[h]?h:'may'}
+function render(){const v=cur();
+  $('#steps').innerHTML=VIEWS.map(([id,n],i)=>`<a href="#${id}" class="${id===v?'on':''}"><b>${i+1}</b>${n}</a>`).join('');
+  $('#app').innerHTML=V[v]();
+  if(v==='test'&&S.tab==='trackpad')tpInit();else tp=null;
+}
+addEventListener('hashchange',()=>{stopSnd();render();scrollTo(0,0)});
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;const d=b.dataset;
+  if(d.line){S.line=d.line;if(!line().gens.find(g=>g.id===S.gen))S.gen=null;save();render()}
+  else if(d.gen){S.gen=d.gen;save();render()}
+  else if(d.set){S.res[d.set]=S.res[d.set]===d.v?undefined:d.v;save();b.parentElement.querySelectorAll('button').forEach(x=>x.classList.toggle('on',S.res[d.set]===x.dataset.v));if(d.set.startsWith('t_')&&cur()==='test'){const t=document.querySelector(`[data-tab="${d.set.slice(2)}"] i`);if(t)t.textContent=S.res[d.set]==='ok'?'✓':S.res[d.set]==='bad'?'✕':''}}
+  else if(d.tab){stopSnd();S.tab=d.tab;save();render()}
+  else if(d.copy!==undefined){navigator.clipboard?.writeText(CMDS[d.copy][1]).then(()=>toast('Đã sao chép lệnh'),()=>toast('Không sao chép được — hãy bôi đen để copy'))}
+  else if(d.snd)play(d.snd,b);
+  else if(b.id==='sstop')stopSnd();
+  else if(b.id==='scr')ovOpen();
+  else if(b.id==='apply'){const x=detect();S.line=x.model[0];S.gen=suggestGen(S.line,x.chip);save();render()}
+  else if(b.id==='kbr'){S.kb=[];save();render()}
+  else if(b.id==='tpr'){render()}
+  else if(b.id==='reset'){S={line:null,gen:null,res:{},tab:'screen',kb:[]};save();location.hash='may';render()}
+  else if(b.id==='copyrep'){navigator.clipboard?.writeText(report()).then(()=>toast('Đã sao chép báo cáo'),()=>toast('Không sao chép được'))}
+});
+document.addEventListener('keydown',e=>{
+  if(ov.classList.contains('show')){e.preventDefault();if(e.key==='Escape')ovClose();else if(e.key==='ArrowLeft')ovShow(ci-1);else ovShow(ci+1);return}
+  const kb=$('#kb');if(!kb||document.activeElement?.id==='kbt')return;
+  if(!e.metaKey)e.preventDefault();
+  const k=kb.querySelector(`[data-k="${e.code}"]`);if(!k)return;
+  k.classList.add('down');
+  if(!S.kb.includes(e.code)){S.kb.push(e.code);save();k.classList.add('done');$('#kbm').style.width=Math.round(S.kb.length/KCOUNT*100)+'%';$('#kbc').textContent=`${S.kb.length}/${KCOUNT} phím`;
+    if(S.kb.length===KCOUNT){toast('Đã nhận đủ mọi phím');if(!S.res.t_keyboard){S.res.t_keyboard='ok';save();render()}}}
+});
+document.addEventListener('keyup',e=>{const k=document.querySelector(`#kb [data-k="${e.code}"]`);if(k)k.classList.remove('down');if(e.code.startsWith('Meta'))document.querySelectorAll('#kb .down').forEach(x=>x.classList.remove('down'))});
+render();
+}
+</script>
+</body>
+</html>

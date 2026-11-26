@@ -1269,3 +1269,70 @@ def tools3u_run(j):
     subprocess.Popen([str(exe)], cwd=str(d))
     return {"text": f"Đã mở bộ cài 3uTools {ver} (64-bit) - bấm cài đặt trong cửa sổ vừa hiện.", "ver": ver}
 
+
+
+# ================================================================ TEST MÁY MAC - SoiMac (v5.4)
+# SoiMac.html: trang kiểm tra Mac cũ (chạy bằng Safari ngay trên máy Mac). Tool chỉ chép file ra USB / thư mục.
+def _soimac_src():
+    import sys
+    return Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent)) / "web" / "soimac" / "SoiMac.html"
+
+
+def soimac_drives():
+    """Các ổ có thể chép SoiMac vào (bỏ ổ C): USB / ổ rời trước, ổ cứng gắn ngoài sau."""
+    if fake():
+        return [{"l": "E", "label": "SANDISK", "free": 27.4, "rm": True}, {"l": "F", "label": "Ventoy", "free": 51.2, "rm": True},
+                {"l": "D", "label": "Data", "free": 800.1, "rm": False}]
+    out = []
+    k32 = ctypes.windll.kernel32
+    mask = k32.GetLogicalDrives()
+    for i in range(26):
+        if not mask >> i & 1:
+            continue
+        l = chr(65 + i)
+        root = f"{l}:\\"
+        t = k32.GetDriveTypeW(root)
+        if l == "C" or t not in (2, 3):
+            continue
+        name = ctypes.create_unicode_buffer(261)
+        if not k32.GetVolumeInformationW(root, name, 261, None, None, None, None, 0):
+            continue                                # ổ trống / bị khóa BitLocker
+        try:
+            free = shutil.disk_usage(root).free / 1024 ** 3
+        except OSError:
+            continue
+        out.append({"l": l, "label": name.value, "free": round(free, 1), "rm": t == 2})
+    out.sort(key=lambda d: (not d["rm"], d["l"]))
+    return out
+
+
+def soimac_save(dest):
+    """Chép SoiMac.html vào ổ / thư mục được chọn."""
+    d = Path(dest)
+    if len(str(dest)) <= 3 and str(dest)[:1].isalpha():
+        d = Path(str(dest)[0] + ":\\")
+    if fake():
+        return {"ok": True, "path": str(d / "SoiMac.html"), "text": f"Đã chép SoiMac.html vào {d} (chạy thử)."}
+    src = _soimac_src()
+    if not src.exists():
+        return {"ok": False, "text": "Không thấy file SoiMac trong tool - tải lại bản Win AIO mới nhất."}
+    try:
+        d.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(src, d / "SoiMac.html")
+    except OSError as e:
+        return {"ok": False, "text": f"Không chép được vào {d}: {e}"}
+    return {"ok": True, "path": str(d / "SoiMac.html"), "text": f"Đã chép SoiMac.html vào {d}"}
+
+
+def soimac_open():
+    """Xem trước SoiMac trên máy Windows này (mở bằng trình duyệt mặc định)."""
+    if fake():
+        return {"ok": True, "text": "Đã mở SoiMac (chạy thử)."}
+    import tempfile
+    src = _soimac_src()
+    if not src.exists():
+        return {"ok": False, "text": "Không thấy file SoiMac trong tool."}
+    tmp = Path(tempfile.gettempdir()) / "SoiMac.html"
+    shutil.copyfile(src, tmp)
+    os.startfile(str(tmp))                          # noqa: S606
+    return {"ok": True, "text": "Đã mở SoiMac bằng trình duyệt (bản xem trước - test thật phải mở trên máy Mac)."}

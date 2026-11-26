@@ -1,5 +1,12 @@
-Win AIO by Duy Anh v5.3
+Win AIO by Duy Anh v5.4
 
+- Đổi tên tab "Test máy" thành "Test máy WIN".
+- Thêm tab "Test máy MAC" với SoiMac - trang kiểm tra Mac cũ trước khi mua (5 bước: chọn máy theo đời kèm lỗi hay gặp · kiểm tra ngoài, iCloud, MDM · lệnh Terminal · test màn hình, bàn phím, trackpad, loa, camera / mic · kết quả % và báo cáo):
+  + Chép SoiMac.html ra USB bằng 1 nút (tự tìm USB / ổ rời), hoặc chọn thư mục khác.
+  + Xem trước SoiMac trên máy Windows.
+  + Hướng dẫn mở trên Mac bằng Safari (không cần cài, không cần mạng).
+
+v5.3:
 - Cài phần mềm: bỏ nút WPS Office. Tách nhóm văn phòng thành 4 nhóm, thứ tự trên xuống:
   + MICROSOFT OFFICE: MS Office, Tiện ích văn phòng
   + ARTCRAFT OFFICE: WordCraft, GridCraft, DeckCraft

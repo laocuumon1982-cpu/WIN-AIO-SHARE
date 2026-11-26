@@ -35,7 +35,7 @@ import apple
 import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v5.3"
+APP_VERSION = "v5.4"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -3495,7 +3495,7 @@ class Api:
               "backup_info", "zalo_info", "zalo_open", "zalo_profile_delete", "browsers_info", "job_status", "job_stop",
               # extra.py (v2.6)
               "drv_problems", "setup_info", "setup_rename", "setup_user", "setup_nopass", "setup_browser", "setup_unikey",
-              "usb_disks", "iso_files", "apps_list_file", "cpu_temp",
+              "usb_disks", "iso_files", "apps_list_file", "cpu_temp", "soimac_drives", "soimac_save", "soimac_open",
               # apple.py (v2.7)
               "ios_devices", "ios_firmwares", "irst_info",
               # officex.py (v3.0)
