@@ -35,7 +35,7 @@ import apple
 import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v5.2"
+APP_VERSION = "v5.3"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -71,7 +71,7 @@ ARTCRAFT = ("ARTCRAFT OFFICE PORTABLE", [
     ("📊", "GridCraft (thay Excel)", r"github:storytold/gridcraft|windows-x64-portable\.zip$", "", "ArtCraft - bảng tính, bản portable"),
     ("📽️", "DeckCraft (thay PowerPoint)", r"github:storytold/deckcraft|windows-x64-portable\.zip$", "", "ArtCraft - trình chiếu, bản portable"),
 ])
-ONLYOFFICE = ("📝", "ONLYOFFICE", "winget:ONLYOFFICE.DesktopEditors", "", "Bộ văn phòng miễn phí, mở tốt file Word / Excel / PowerPoint")
+ONLYOFFICE = ("📝", "OnlyOffice", "winget:ONLYOFFICE.DesktopEditors", "", "Bộ văn phòng miễn phí, mở tốt file Word / Excel / PowerPoint")
 WHATSAPP = ("🟢", "WhatsApp", "winget:9NKSQGP7F2NH", "", "Cài từ Microsoft Store")
 # Tiện ích cài Win dạo (Hải Đỗ): file mới nhất trong bản phát hành "caiwindao" (tool đó tự đọc version.txt cùng chỗ)
 CAIWINDAO = ("🧰", "Tiện ích cài Win dạo", r"github:minhhaibuitt/Caiwindao@caiwindao|^Tien\.ich\.cai\.Win\.dao\.v[\d.]+\.exe$", "",
@@ -270,20 +270,23 @@ DEFAULT_GROUPS = [     # (tên nhóm, cột, [nút...]) - thứ tự trong cột
         ("🎞️", "YouTube Downloader", r"github:duckmartians/YouTube_Downloader|windows\.zip$", "", ""),
         ("🧰", "Tiện ích cài Win dạo", r"github:minhhaibuitt/Caiwindao@caiwindao|^Tien\.ich\.cai\.Win\.dao\.v[\d.]+\.exe$", "", "Tool cài Win dạo của Hải Đỗ - luôn tải bản mới nhất (mật khẩu: haido)"),
     ]),
-    ("VĂN PHÒNG - PDF", 2, [
+    ("MICROSOFT OFFICE", 2, [
         ("🏢", "MS Office", "office:", "", "Cài Office 2016 / 2019 / 2021 / 2024 / 365 chính chủ từ Microsoft (Online hoặc Offline)"),
         ("🧾", "Tiện ích văn phòng", r"github:minhhaibuitt/Caiwindao@vanphong|^Tien\.ich\.van\.phong\.v[\d.]+\.exe$", "", "Tiện ích văn phòng của Hải Đỗ - luôn tải bản mới nhất"),
-        ("📄", "Foxit PDF Reader", "winget:Foxit.FoxitReader", "", ""),
-        ("📄", "Sumatra PDF", "winget:SumatraPDF.SumatraPDF", "", ""),
-        ("📝", "Notepad++", "winget:Notepad++.Notepad++", "", ""),
-        ("📝", "LibreOffice", "winget:TheDocumentFoundation.LibreOffice", "", ""),
-        ("📝", "WPS Office", "winget:Kingsoft.WPSOffice", "", ""),
-        ("📝", "ONLYOFFICE", "winget:ONLYOFFICE.DesktopEditors", "", "Bộ văn phòng miễn phí, mở tốt file Word / Excel / PowerPoint"),
     ]),
     ("ARTCRAFT OFFICE", 2, [
         ("📝", "WordCraft", r"github:storytold/wordcraft|windows-x64-portable\.zip$", "", "ArtCraft - soạn thảo văn bản, bản portable"),
         ("📊", "GridCraft", r"github:storytold/gridcraft|windows-x64-portable\.zip$", "", "ArtCraft - bảng tính, bản portable"),
         ("📽️", "DeckCraft", r"github:storytold/deckcraft|windows-x64-portable\.zip$", "", "ArtCraft - trình chiếu, bản portable"),
+    ]),
+    ("OFFICE", 2, [
+        ("📝", "LibreOffice", "winget:TheDocumentFoundation.LibreOffice", "", ""),
+        ("📝", "OnlyOffice", "winget:ONLYOFFICE.DesktopEditors", "", "Bộ văn phòng miễn phí, mở tốt file Word / Excel / PowerPoint"),
+    ]),
+    ("VĂN PHÒNG - PDF", 2, [
+        ("📄", "Foxit PDF Reader", "winget:Foxit.FoxitReader", "", ""),
+        ("📄", "Sumatra PDF", "winget:SumatraPDF.SumatraPDF", "", ""),
+        ("📝", "Notepad++", "winget:Notepad++.Notepad++", "", ""),
     ]),
     ("BỘ GÕ TIẾNG VIỆT", 2, [
         ("⌨️", "UniKey", "winget:UniKey.UniKey", "", ""),
@@ -328,7 +331,7 @@ DEFAULT_GROUPS = [     # (tên nhóm, cột, [nút...]) - thứ tự trong cột
         ("🎮", "DirectX Runtime", "winget:Microsoft.DirectX", "", ""),
     ]),
 ]
-DEFAULT_GPOS = {"ACTIVE": 1, "KHO PHẦN MỀM": 0, "TRÌNH DUYỆT WEB": 7, "HỖ TRỢ TỪ XA": 9, "ĐA PHƯƠNG TIỆN": 6, "TTS & SUB": 15, "TIỆN ÍCH": 11, "VĂN PHÒNG - PDF": 2, "ARTCRAFT OFFICE": 3, "BỘ GÕ TIẾNG VIỆT": 4, "NHẮN TIN - HỌP": 8, "NÉN - GIẢI NÉN": 5, "UNINSTALLER TOOL": 14, "GIẢ LẬP ANDROID": 12, "LẬP TRÌNH": 13, "THƯ VIỆN HỆ THỐNG": 10}     # vị trí ở kiểu Lưới
+DEFAULT_GPOS = {"KHO PHẦN MỀM": 0, "ACTIVE": 1, "MICROSOFT OFFICE": 2, "ARTCRAFT OFFICE": 3, "OFFICE": 4, "VĂN PHÒNG - PDF": 5, "BỘ GÕ TIẾNG VIỆT": 6, "NÉN - GIẢI NÉN": 7, "ĐA PHƯƠNG TIỆN": 8, "TRÌNH DUYỆT WEB": 9, "NHẮN TIN - HỌP": 10, "HỖ TRỢ TỪ XA": 11, "THƯ VIỆN HỆ THỐNG": 12, "TIỆN ÍCH": 13, "GIẢ LẬP ANDROID": 14, "LẬP TRÌNH": 15, "UNINSTALLER TOOL": 16, "TTS & SUB": 17}     # vị trí ở kiểu Lưới
 DEFAULT_FIT_N = 5
 
 # ---------------------------------------------------------------- tiện ích Windows cố định
@@ -989,6 +992,48 @@ class Store:
             done.add("office")
             self.cfg["migrated"] = sorted(done)
             self.save_config(persist=False)
+        if "office53" not in done:
+            self._office53()
+            done.add("office53")
+            self.cfg["migrated"] = sorted(done)
+            self.save_config(persist=False)
+
+    def _office53(self):
+        """v5.3: bỏ WPS Office; nhóm MICROSOFT OFFICE (MS Office, Tiện ích văn phòng) và OFFICE (LibreOffice, OnlyOffice);
+        thứ tự trên xuống: MICROSOFT OFFICE, ARTCRAFT OFFICE, OFFICE, VĂN PHÒNG - PDF."""
+        db = self.db
+        db.execute("DELETE FROM apps WHERE src='winget:Kingsoft.WPSOffice'")
+        db.execute("UPDATE apps SET name='OnlyOffice' WHERE src=? AND name='ONLYOFFICE'", (ONLYOFFICE[2],))
+        vp = db.execute("SELECT id, col FROM groups WHERE name LIKE 'VĂN PHÒNG%' ORDER BY id LIMIT 1").fetchone()
+        col = vp[1] if vp else 2
+
+        def grp(name):
+            g = db.execute("SELECT id FROM groups WHERE name=? ORDER BY id LIMIT 1", (name,)).fetchone()
+            return g[0] if g else db.execute("INSERT INTO groups(name, ord, col, gpos) VALUES(?,?,?,?)", (name, 999, col, 999)).lastrowid
+
+        ms, off = grp("MICROSOFT OFFICE"), grp("OFFICE")
+        for gid, srcs in ((ms, ["office:", VANPHONG[2]]), (off, ["winget:TheDocumentFoundation.LibreOffice", ONLYOFFICE[2]])):
+            for i, src in enumerate(srcs):
+                q = "src LIKE 'office:%'" if src == "office:" else "src=?"
+                db.execute(f"UPDATE apps SET group_id=?, ord=? WHERE {q}", (gid, i) if src == "office:" else (gid, i, src))
+        art = db.execute("SELECT id FROM groups WHERE name=? ORDER BY id LIMIT 1", (ARTCRAFT[0],)).fetchone() or \
+            db.execute("SELECT id FROM groups WHERE name LIKE 'ARTCRAFT%' ORDER BY id LIMIT 1").fetchone()
+        seq = [ms] + ([art[0]] if art else []) + [off] + ([vp[0]] if vp else [])
+        for key in ("col", "gpos"):             # xếp lại trong cột (kiểu Cột dọc) và thứ tự chung (kiểu Lưới / Tự vừa)
+            if key == "col":
+                rows = [r[0] for r in db.execute("SELECT id FROM groups WHERE col=? OR id IN (%s) ORDER BY ord, id" % ",".join("?" * len(seq)), (col, *seq))]
+            else:
+                rows = [r[0] for r in db.execute("SELECT id FROM groups ORDER BY gpos, id")]
+            pos = min(rows.index(g) for g in seq if g in rows)
+            rest = [g for g in rows if g not in seq]
+            pos = len([g for g in rows[:pos] if g not in seq])
+            new = rest[:pos] + seq + rest[pos:]
+            for i, g in enumerate(new):
+                if key == "col":
+                    db.execute("UPDATE groups SET col=?, ord=? WHERE id=?", (col, i, g))
+                else:
+                    db.execute("UPDATE groups SET gpos=? WHERE id=?", (i, g))
+        self.commit(persist=False)
 
     def fix_dead_links(self):
         with self.lock:

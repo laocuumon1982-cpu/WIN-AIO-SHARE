@@ -1,5 +1,13 @@
 # Nhật ký thay đổi
 
+## v5.3
+- Cài phần mềm: bỏ nút WPS Office. Tách nhóm văn phòng thành 4 nhóm, thứ tự trên xuống:
+  + MICROSOFT OFFICE: MS Office, Tiện ích văn phòng
+  + ARTCRAFT OFFICE: WordCraft, GridCraft, DeckCraft
+  + OFFICE: LibreOffice, OnlyOffice (đổi tên từ ONLYOFFICE)
+  + VĂN PHÒNG - PDF: Foxit PDF Reader, Sumatra PDF, Notepad++
+  Máy đang dùng bản cũ tự đổi theo khi mở bản mới (các nút khác giữ nguyên).
+
 ## v5.2
 - Bỏ tab Claude (mục Khác). Phiên đăng nhập Claude mà bản 5.0 / 5.1 đã tạo trên máy (%LOCALAPPDATA%\WinAIO\Claude) được tự xóa khi mở bản này.
 
