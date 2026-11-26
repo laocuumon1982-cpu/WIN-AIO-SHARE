@@ -22,12 +22,22 @@ async function macShow(force) {
     <div class="isoopt"><label class="grow">Lưu vào <span class="row2"><input id="macDest" placeholder="Data\\macOS (kế bên tool)"><button class="btn sm" id="macPick">📂</button></span></label>
       <label class="ck" style="align-self:end"><input type="checkbox" id="macAllV"${macAll ? " checked" : ""}> Hiện cả bản cũ của từng đời</label></div>
     <div id="macFams" class="macfams"></div><div id="macTbl"><div class="empty"><span class="spin"></span> Đang đọc danh mục bộ cài của Apple...</div></div></div>
+    <div class="tcard isosec" style="--ac:#8b5cf6"><div class="sh"><span class="si">🧰</span><div><b>CÔNG CỤ CHO MAC</b><small>2 app này chạy trên máy Mac (không chạy trên Windows) - tải / mở trang về rồi dùng trên Mac</small></div></div>
+      <div class="mactools">
+        <div class="mtool"><span class="ti">🔌</span><div class="grow"><b>macUSB</b><small>Tạo USB cài macOS bằng giao diện (khỏi gõ lệnh createinstallmedia), có sẵn trình tải bộ cài · tải file .dmg bản mới nhất từ GitHub Kruszoneq/macUSB</small></div>
+          <button class="btn sm" id="muWeb">🌐 GitHub</button><button class="btn red shine" id="muGo">⬇ Tải macUSB (.dmg)</button></div>
+        <div class="mtool"><span class="ti">🛠️</span><div class="grow"><b>Apple Configurator 2</b><small>Của Apple (miễn phí, Mac App Store): khôi phục / cài lại firmware Mac chip M và Mac có chip T2 qua cáp USB-C (chế độ DFU), quản lý iPhone / iPad · cần macOS 14 trở lên</small></div>
+          <button class="btn red shine" id="acGo">🌐 Mở Mac App Store</button></div>
+      </div></div>
     <div class="tcard isosec" style="--ac:#0f8fd8"><div class="sh"><span class="si">💡</span><div><b>DÙNG FILE ĐÃ TẢI THẾ NÀO?</b><small>Bộ cài macOS chỉ tạo USB được trên máy Mac</small></div></div>
       <ul class="flist"><li><b>macOS 11 trở lên</b> (InstallAssistant.pkg): chép sang Mac, mở file → có "Install macOS ..." trong Applications → dùng <b>macUSB</b> (hoặc lệnh createinstallmedia) tạo USB.</li>
         <li><b>macOS 10.7 - 10.12</b> (.dmg của Apple): mở .dmg, chạy gói cài bên trong → có ứng dụng cài đặt → macUSB tạo USB.</li>
         <li><b>macOS 10.13 - 10.15</b>: Apple chia 3 file, tool tải đủ vào 1 thư mục → chép cả thư mục sang Mac để ráp (macUSB tự ráp khi dùng trình tải của nó).</li>
         <li>Dung lượng lớn (5 - 17 GB) - đang tải bị ngắt / bấm Dừng thì bấm Tải lại là tải tiếp. Có thể bấm 🔗 Link để tải bằng IDM.</li></ul></div>`;
   $("macRef").onclick = () => macLoad(true);
+  $("muGo").onclick = async () => { const r = await runJob("macusb_get", "Tải macUSB", [$("macDest").value.trim()]); dlDone(r); };
+  $("muWeb").onclick = () => api("open_url", "https://github.com/Kruszoneq/macUSB/releases/latest");
+  $("acGo").onclick = () => api("open_url", "https://apps.apple.com/app/apple-configurator/id1037126344?mt=12");
   $("macPick").onclick = async () => { const p = await api("pick_folder_abs"); if (p) $("macDest").value = p; };
   $("macAllV").onchange = e => { macAll = e.target.checked; macRender(); };
   bindLinks(W);

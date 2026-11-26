@@ -1330,3 +1330,10 @@ body.g01.g01l .okbox{background:rgba(30,180,100,.12)}
 body.g01.g01l .warnbox{background:rgba(255,170,40,.14)}
 body.g01.g01l ::-webkit-scrollbar-thumb{background:rgba(60,130,255,.35);background-clip:padding-box}
 body.g01.g01l .foot,body.g01.g01l footer{color:#4a6595}
+
+/* v4.5: Kho bộ cài MAC - công cụ cho Mac */
+.mactools{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:10px;margin-top:8px}
+.mtool{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line,rgba(127,127,127,.25));border-radius:12px;background:rgba(127,127,127,.06)}
+.mtool .ti{font-size:26px;width:40px;text-align:center}
+.mtool b{display:block}.mtool small{display:block;opacity:.75;line-height:1.35}
+.isosec>.sh>.btn,.mtool>.btn{flex:none;white-space:nowrap}

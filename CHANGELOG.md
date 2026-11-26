@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v4.5
+- Kho bộ cài WIN: AVL Win Master. Kho bộ cài MAC: macUSB, Apple Configurator 2.
+
 ## v4.4
 - Transub-Player: tải bản portable (.zip) thay bộ cài; tự mở đúng exe chính của bản portable.
 

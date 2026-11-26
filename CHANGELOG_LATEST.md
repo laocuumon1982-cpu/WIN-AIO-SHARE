@@ -1,5 +1,11 @@
-Win AIO by Duy Anh v4.4
+Win AIO by Duy Anh v4.5
 
+- Kho bộ cài WIN: thêm AVL Win Master (cài Win sạch từ Win đang chạy, WinPE, nạp driver IRST/VMD + Wi-Fi, sao lưu Win, USB cứu hộ). Bấm "Tải & mở AVL" là tool lấy bản mới nhất đúng kiến trúc máy (x64 / x86 / ARM64) từ trang chủ avlwinmaster.badinh.academy, giải nén vào Data\Tools\AVLWinMaster và mở bằng quyền Admin.
+- Kho bộ cài MAC: thêm mục "Công cụ cho Mac":
+  + macUSB: tải file .dmg bản mới nhất từ GitHub Kruszoneq/macUSB để chép sang Mac.
+  + Apple Configurator 2: mở trang Mac App Store (app miễn phí của Apple, khôi phục Mac chip M / T2 bằng cáp USB-C).
+
+v4.4:
 - Nút Transub-Player (nhóm Đa phương tiện) đổi sang tải bản PORTABLE (.zip) trong bản phát hành mới nhất của repo Transub-Player (hiện là build-5, TransubPlayer 1.8.0). Tải xong tự giải nén và mở TransubPlayer.exe, không cần cài. Nút cũ trong máy được tự đổi link.
 - Bản portable có nhiều file .exe: tool tự chọn đúng file chạy chính thay vì chỉ mở thư mục.
 

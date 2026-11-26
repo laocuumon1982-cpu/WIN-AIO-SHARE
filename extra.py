@@ -1067,6 +1067,67 @@ def rufus_run(j):
     return {"text": f"Đã mở Rufus {tag.lstrip('v')} (bản portable, lưu trong Data\\Tools\\Rufus)."}
 
 
+# ================================================================ AVL WIN MASTER (Kho bộ cài WIN) - v4.5
+AVL_PAGE = "https://avlwinmaster.badinh.academy/"
+
+
+def _avl_arch():
+    a = (os.environ.get("PROCESSOR_ARCHITEW6432") or os.environ.get("PROCESSOR_ARCHITECTURE") or "AMD64").upper()
+    return "arm64" if "ARM" in a else "x86" if a == "X86" else "x64"
+
+
+def avl_src(arch=None):
+    arch = arch or _avl_arch()
+    return rf"page:{AVL_PAGE}|https?://dl\.badinh\.academy/AVLWinMaster-[\d.]+-{arch}\.zip"
+
+
+def avl_run(j):
+    """Tải AVL Win Master bản mới nhất (đúng kiến trúc máy) từ trang chủ, giải nén vào Data\Tools rồi mở bằng quyền Admin."""
+    j["pct"], j["text"] = -1, "Đang hỏi bản AVL Win Master mới nhất..."
+    url, ver = H["gh"](avl_src())
+    name = url.rsplit("/", 1)[-1]
+    if fake():
+        time.sleep(0.8)
+        return {"text": f"Đã mở AVL Win Master {ver} (chạy thử).", "ver": ver}
+    root = data_dir("Tools", "AVLWinMaster")
+    dest = root / Path(name).stem
+    exe = H["main_exe"](dest, Path(name).stem) if dest.exists() else None
+    if not exe:
+        import apple
+        apple.dl_files(j, [{"name": name, "url": url, "size": 0}], root, "AVL Win Master " + ver)
+        j["pct"], j["text"] = -1, "Đang giải nén..."
+        with zipfile.ZipFile(root / name) as z:
+            z.extractall(dest)
+        (root / name).unlink(missing_ok=True)
+        for old in root.iterdir():                  # bỏ bản cũ
+            if old.is_dir() and old.name != dest.name and old.name.startswith("AVLWinMaster-"):
+                shutil.rmtree(old, ignore_errors=True)
+        exe = H["main_exe"](dest, Path(name).stem)
+    if not exe:
+        os.startfile(str(dest))                     # noqa: S606
+        return {"text": f"Đã tải AVL Win Master {ver} - mở thư mục, chạy file .exe bằng quyền Admin."}
+    ctypes.windll.shell32.ShellExecuteW(None, "runas", str(exe), None, str(exe.parent), 1)
+    return {"text": f"Đã mở AVL Win Master {ver} ({_avl_arch()}, quyền Admin) - lưu trong Data\\Tools\\AVLWinMaster.", "ver": ver}
+
+
+# ================================================================ macUSB (Kho bộ cài MAC) - v4.5: app chạy trên Mac, tải .dmg để chép sang
+MACUSB = r"github:Kruszoneq/macUSB|^macUSB.*\.dmg$"
+
+
+def macusb_get(j, dest=""):
+    j["pct"], j["text"] = -1, "Đang hỏi bản macUSB mới nhất..."
+    url, tag = H["gh"](MACUSB)
+    name = url.rsplit("/", 1)[-1]
+    d = Path(dest) if dest else data_dir("macOS", "macUSB")
+    if fake():
+        time.sleep(0.6)
+        return {"text": f"Đã tải {name} (chạy thử).", "dest": str(d)}
+    if not (d / name).exists():
+        import apple
+        apple.dl_files(j, [{"name": name, "url": url, "size": 0}], d, "macUSB " + tag)
+    return {"text": f"Đã tải macUSB {tag.lstrip('v')} ({name}) - chép file .dmg sang máy Mac, mở ra kéo macUSB vào Applications.", "dest": str(d)}
+
+
 # ================================================================ PICVIEW: đặt làm trình xem ảnh mặc định
 PIC_EXT = [".jpg", ".jpeg", ".jpe", ".jfif", ".png", ".bmp", ".gif", ".webp", ".tif", ".tiff", ".ico", ".heic", ".heif", ".avif"]
 PIC_PROGID = "WinAIO.PicView"

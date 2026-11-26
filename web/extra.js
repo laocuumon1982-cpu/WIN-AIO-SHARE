@@ -164,11 +164,17 @@ function addVentoy() {
   first.insertAdjacentHTML("afterend", `<div class="tcard isosec" style="--ac:#b45309"><div class="sh"><span class="si">🔧</span><div><b>RUFUS</b>
       <small>Tạo USB cài Win / Linux từ file ISO (mỗi USB 1 bộ cài) · tải bản portable mới nhất chính chủ (rufus.ie), mở lên dùng ngay</small></div>
       <span class="sp"></span><button class="btn red shine" id="rfGo">⬇ Tải &amp; mở Rufus</button></div></div>
+    <div class="tcard isosec" style="--ac:#0e7490"><div class="sh"><span class="si">🛠️</span><div><b>AVL WIN MASTER</b>
+      <small>Cài Win sạch ngay từ Win đang chạy (ISO / WIM / ESD, WinPE, nạp sẵn driver IRST/VMD + Wi-Fi), sao lưu Win, tạo USB cứu hộ · tải bản mới nhất đúng kiến trúc máy từ trang chủ, mở bằng quyền Admin</small></div>
+      <span class="sp"></span><button class="btn sm" id="avlWeb">🌐 Trang chủ</button><button class="btn red shine" id="avlGo">⬇ Tải &amp; mở AVL</button></div>
+      <div class="logl">⚠ Phân vùng Win được chọn để cài sẽ bị FORMAT - sao lưu dữ liệu trước. Đây là tool của bên thứ ba (không phải Microsoft), không kích hoạt bản quyền Win.</div></div>
     <div class="tcard isosec" style="--ac:#16a34a"><div class="sh"><span class="si">🔌</span><div><b>TẠO USB BOOT (VENTOY)</b>
       <small>Tool tự tải Ventoy bản mới nhất, cài vào USB, chép ISO vào - 1 USB chứa được nhiều ISO, chọn lúc boot</small></div><span class="sp"></span><button class="btn sm" id="vtRef">⟳ Làm mới</button></div>
     <div id="vtBody"><div class="logl"><span class="spin"></span> Đang tìm USB...</div></div></div>`);
   $("vtRef").onclick = vtLoad; vtLoad();
   $("rfGo").onclick = async () => { const r = await runJob("rufus_run", "Tải & mở Rufus", []); if (r.ok) toast(r.result.text); };
+  $("avlGo").onclick = async () => { const r = await runJob("avl_run", "Tải & mở AVL Win Master", []); if (r.ok) toast(r.result.text); };
+  $("avlWeb").onclick = () => api("open_url", "https://avlwinmaster.badinh.academy/");
 }
 async function vtLoad() {
   const B = $("vtBody");
