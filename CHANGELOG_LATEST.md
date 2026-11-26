@@ -1,5 +1,9 @@
-Win AIO by Duy Anh v5.8
+Win AIO by Duy Anh v5.9
 
+- Bắt buộc dùng bản mới nhất: nhập đúng mật khẩu xong, tool luôn kiểm tra bản mới trên GitHub. Có bản mới thì tự tải, thay file exe và mở lại - chưa cập nhật xong thì không vào được tool (khóa cả phía chương trình). Không kiểm tra được (mất mạng) thì báo và có nút Thử lại.
+- Kiểm tra bản mới có đường dự phòng khi API GitHub chặn (quá 60 lần / giờ trên 1 mạng): đọc thẳng trang Releases.
+
+v5.8:
 - Đăng nhập 2 mức:
   + Mật khẩu thường: vào tool nhưng ẩn nhóm ACTIVE và KHO PHẦN MỀM ở tab Cài phần mềm (ẩn từ phía chương trình, không chỉ giấu trên giao diện); không xuất / nhập / khôi phục danh sách nút.
   + Mật khẩu đầy đủ: mở full, thấy mọi nhóm.

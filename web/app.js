@@ -1039,11 +1039,12 @@ async function start() {
 }
 
 /* ---------------------------------------------------------------- v5.7: đăng nhập khi mở tool + tự cập nhật */
+let INIT_VER = "";
 async function boot() {
   if (window.__booted) return; window.__booted = true;
   let info = {};
   try { info = await api("login_info"); } catch (e) { /* bỏ qua */ }
-  if (info.version) $("lgVer").textContent = info.version;
+  if (info.version) { $("lgVer").textContent = info.version; INIT_VER = info.version; }
   if (info.logged) return afterLogin(false);
   const L = $("login"); L.hidden = false;
   setTimeout(() => $("lgPw").focus(), 50);
@@ -1054,26 +1055,39 @@ async function doLogin(pw) {
   try { r = await api("login", pw); } catch (e) { r = {ok: false}; }
   btn.disabled = false;
   if (!r.ok) { $("lgErr").textContent = "Mật khẩu không đúng"; $("lgPw").select(); $("lgBox").classList.remove("shake"); void $("lgBox").offsetWidth; $("lgBox").classList.add("shake"); return false; }
-  $("login").hidden = true; $("lgPw").value = "";
+  $("lgPw").value = "";
+  if (r.auto_update === false) $("login").hidden = true;
   afterLogin(r.auto_update !== false);
   return true;
 }
 window.__doLogin = doLogin;
 window.__selftestStart = () => { $("login").hidden = true; afterLogin(false); };   // chỉ dùng khi build trên GitHub
 async function afterLogin(autoUpd) {
+  if (autoUpd && !(await forceUpdate())) return;     // v5.9: bắt buộc bản mới nhất mới vào được tool
   await start();
-  if (autoUpd) autoUpdate().catch(() => {});
 }
-async function autoUpdate() {
-  const r = await api("check_update", true);
-  if (!r || !r.ok || !r.has) return;
-  const b = $("bUpd"); b.textContent = "⟳ Có bản " + r.latest; b.classList.add("hot2");
-  let upd = null;
-  dialog({title: `⟳ Đang cập nhật lên ${r.latest}`, width: 520, body: `<div class="msg">Có bản mới <b>${esc(r.latest)}</b> (đang dùng ${esc(r.current)}). Tool đang tải bản mới, tự thay file exe rồi mở lại - không cần làm gì.</div>
-      <div class="logl" style="margin-top:10px"><span class="spin"></span> Đang tải ${(r.size / 1048576).toFixed(1)} MB... Dữ liệu trong thư mục Data giữ nguyên.</div>`, buttons: [], onOpen: c => { upd = c; }});
+/* v5.9: sau khi đăng nhập luôn kiểm tra bản mới; có bản mới thì bắt buộc cập nhật xong (tool tự mở lại) mới vào được */
+async function forceUpdate() {
+  const L = $("login"), box = $("lgBox"); L.hidden = false;
+  const show = html => { box.innerHTML = `<div class="lglogo">W</div><h2>WIN AIO</h2><div class="lgsub">by Duy Anh · ${esc(INIT_VER)}</div>${html}`; };
+  show('<div class="lgst"><span class="spin"></span> Đang kiểm tra bản mới...</div>');
+  let r = {};
+  try { r = await api("check_update", true); } catch (e) { r = {ok: false, msg: String(e)}; }
+  if (r.ok && !r.has) { L.hidden = true; return true; }
+  if (!r.ok) {
+    show(`<div class="lgst bad">Không kiểm tra được bản mới.<br><small>Tool cần kết nối mạng để kiểm tra phiên bản trước khi dùng.</small></div>
+      <button class="btn red shine" id="lgRetry" type="button">⟳ Thử lại</button>`);
+    return new Promise(res => { $("lgRetry").onclick = async () => res(await forceUpdate()); });
+  }
+  show(`<div class="lgst">Có bản mới <b>${esc(r.latest)}</b> (đang dùng ${esc(r.current)}).<br><span class="spin"></span> Đang tải và cập nhật${r.size ? " " + (r.size / 1048576).toFixed(1) + " MB" : ""}...<br>
+      <small>Cập nhật xong tool tự mở lại - bản cũ không dùng được nữa.</small></div>`);
   let m = "";
   try { m = await api("do_update"); } catch (e) { m = String(e); }
-  if (m) { if (upd) upd.close(null); toast("Cập nhật chưa được: " + m, "err"); }
+  if (m) {
+    show(`<div class="lgst bad">Cập nhật chưa được: ${esc(m)}</div><button class="btn red shine" id="lgRetry" type="button">⟳ Thử lại</button>`);
+    return new Promise(res => { $("lgRetry").onclick = async () => res(await forceUpdate()); });
+  }
+  return new Promise(() => {});                      // đang thay file exe, tool sẽ tự đóng và mở lại
 }
 $("lgForm").onsubmit = e => { e.preventDefault(); doLogin($("lgPw").value); };
 window.addEventListener("pywebviewready", boot);

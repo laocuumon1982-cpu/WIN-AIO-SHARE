@@ -35,7 +35,7 @@ import apple
 import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v5.8"
+APP_VERSION = "v5.9"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -2848,6 +2848,7 @@ class Api:
         self._app = app
         self._admin = False
         self._logged = False                 # v5.7: phải nhập mật khẩu Admin khi mở tool
+        self._upd_ok = False                 # v5.9: bắt buộc đang là bản mới nhất mới dùng được tool
         self._level = ""                     # v5.8: "full" (thấy tất cả) hoặc "limited" (ẩn ACTIVE, KHO PHẦN MỀM)
         self._upd = {}
         self._quit_fn = None
@@ -2960,7 +2961,7 @@ class Api:
 
     # ---- đăng nhập khi mở tool (v5.7)
     def login_info(self):
-        return {"title": APP_TITLE, "version": APP_VERSION, "logged": self._logged}
+        return {"title": APP_TITLE, "version": APP_VERSION, "logged": self._logged and self._upd_ok}
 
     def _pw_level(self, pw):
         c = self._s.cfg
@@ -2976,6 +2977,8 @@ class Api:
             time.sleep(0.6)                 # chậm lại khi đoán mò
             return {"ok": False}
         self._logged, self._level = True, lv
+        if "--selftest" in sys.argv:
+            self._upd_ok = True
         return {"ok": True, "full": lv == "full", "auto_update": "--selftest" not in sys.argv}
 
     def check_pw(self, pw):
@@ -3400,11 +3403,31 @@ class Api:
                        "url": asset["browser_download_url"] if asset else "", "size": asset["size"] if asset else 0}
         except Exception as e:              # noqa: BLE001
             res = {"ok": False, "msg": f"Không kiểm tra được cập nhật: {e}"}
+        if not res.get("ok"):
+            res = self._check_update_web() or res
+        if res.get("ok") and not res.get("has"):
+            self._upd_ok = True                 # v5.9: đã là bản mới nhất -> cho dùng tool
         self._upd = {k: res.get(k) for k in ("has", "latest")} if res.get("ok") else {}
         if not silent:
             self._e.log("⟳ " + (f"Có bản mới {res['latest']}" if res.get("has") else
                                f"Đang dùng bản mới nhất ({APP_VERSION})" if res.get("ok") else res["msg"]))
         return res
+
+    def _check_update_web(self):
+        """Dự phòng khi API GitHub chặn (quá 60 lần / giờ / IP): đọc trang releases/latest (chuyển hướng tới tag mới nhất)."""
+        try:
+            import requests
+            r = requests.get(f"https://github.com/{REPO}/releases/latest", timeout=15, allow_redirects=False,
+                             headers={"User-Agent": "Mozilla/5.0 WinAIO"})
+            tag = (r.headers.get("Location") or "").rstrip("/").rsplit("/", 1)[-1]
+            if r.status_code not in (301, 302) or not tag.lower().startswith("v"):
+                return None
+            newer = self._vt(tag) > self._vt(APP_VERSION)
+            return {"ok": True, "has": newer, "latest": tag, "current": APP_VERSION, "notes": "", "size": 0,
+                    "page": f"https://github.com/{REPO}/releases/tag/{tag}",
+                    "url": f"https://github.com/{REPO}/releases/download/{tag}/Win-AIO-by-Duy-Anh.exe"}
+        except Exception:                   # noqa: BLE001
+            return None
 
     def do_update(self):
         info = self.check_update(silent=True)
@@ -3643,7 +3666,7 @@ class Api:
 _PAGE = {}
 
 
-def _login_gate(cls, open_names=("login", "login_info")):
+def _login_gate(cls, open_names=("login", "login_info", "check_update", "do_update")):
     """v5.7: mọi chức năng của giao diện chỉ chạy sau khi nhập đúng mật khẩu Admin lúc mở tool."""
     import functools
     for name, fn in list(vars(cls).items()):
@@ -3655,6 +3678,8 @@ def _login_gate(cls, open_names=("login", "login_info")):
             def g(self, *a, **k):
                 if not self._logged:
                     raise PermissionError("Chưa đăng nhập - nhập mật khẩu Admin để dùng tool")
+                if not self._upd_ok:
+                    raise PermissionError("Cần cập nhật lên bản mới nhất trước khi dùng tool")
                 return f(self, *a, **k)
             return g
         setattr(cls, name, wrap(fn))
@@ -3799,7 +3824,7 @@ class App:
         lines = []
         try:
             time.sleep(6)
-            self.api._logged, self.api._level = True, "full"    # selftest trên GitHub: bỏ qua màn hình đăng nhập
+            self.api._logged, self.api._level, self.api._upd_ok = True, "full", True    # selftest trên GitHub: bỏ qua màn hình đăng nhập
             lines.append("login: " + str(self.win.evaluate_js("window.__selftestStart ? (window.__selftestStart(), 'ok') : 'no form'")))
             time.sleep(6)
             for _ in range(60):                     # chờ đọc xong thông tin máy (PowerShell lần đầu hơi chậm)

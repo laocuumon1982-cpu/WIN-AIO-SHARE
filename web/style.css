@@ -1420,3 +1420,4 @@ body.dark .keynote{color:#fbbf24;background:#1f1807;border-color:#5b4310}
 .lgin .btn{width:100%;padding:10px}
 .lgin.shake{animation:lgshake .35s}
 @keyframes lgshake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+.lgst{margin:6px 0 14px;font-size:13.5px;line-height:1.6}.lgst small{color:var(--muted)}.lgst.bad{color:#b91c1c;font-weight:700}
