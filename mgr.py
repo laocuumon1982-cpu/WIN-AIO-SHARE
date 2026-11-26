@@ -73,7 +73,7 @@ def job_start(label, fn, *args):
         j["done"], j["pct"] = True, 100
         H["log"](f"{'✔' if j['ok'] else '✖'} {label}" + ("" if j["ok"] else f": {j['result']}"), "ok" if j["ok"] else "err")
         r = j["result"]
-        H["history"](label, "Quản lý", "Xong" if j["ok"] else "Lỗi", r if isinstance(r, str) else (r.get("text", "") if isinstance(r, dict) else ""))
+        H["history"](label, "Bảo trì Windows", "Xong" if j["ok"] else "Lỗi", r if isinstance(r, str) else (r.get("text", "") if isinstance(r, dict) else ""))
     H["log"]("▶ " + label)
     threading.Thread(target=run, daemon=True).start()
     return jid

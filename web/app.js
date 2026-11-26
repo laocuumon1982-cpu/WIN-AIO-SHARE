@@ -86,17 +86,15 @@ function popMenu(anchor, items) {
 /* ===================================================================== WIN AIO */
 const PAGES = {
   system: ["Thông tin & khởi động", "Thông tin máy, khởi động đặc biệt (BIOS, Safe Mode...) và mở nhanh công cụ Windows"],
-  manage: ["Quản lý", "Khởi động cùng Windows · Gỡ phần mềm tận gốc · Ứng dụng MS Store · Defender · Cập nhật app · Driver"],
-  fix: ["Sửa lỗi & thiết lập", "Sửa lỗi Windows 1 chạm · Dọn Win 11 · Thiết lập máy mới · Bộ font tiếng Việt"],
+  manage: ["Bảo trì Windows", "Tiện ích, sửa lỗi, thiết lập máy, driver, bảo mật · gỡ và cập nhật phần mềm"],
   clean: ["Dọn dẹp", "Dọn rác, phân tích ổ đĩa, cache CapCut, virus macro Excel, xóa metadata ảnh"],
   backup: ["Sao lưu", "Thư mục người dùng · Zalo · Zalo nhiều tài khoản · Trình duyệt · Chuyển phần mềm sang Win mới"],
   apps: ["Cài phần mềm", "Bấm 1 nút để cài ngay, hoặc chọn nhiều mục rồi bấm ▶ Cài mục đã chọn"],
   power: ["Nguồn & Ổ USB", "Tắt máy khẩn cấp · Khóa máy · Hẹn giờ tắt · Tháo ổ USB an toàn"],
   test: ["Test máy", "Kiểm tra màn hình, cảm ứng, bàn phím, loa, micro, trackpad, webcam, pin laptop, hiệu năng"],
   mac: ["Kho bộ cài MAC", "Bộ cài macOS chính chủ Apple: Tahoe, Sequoia, Sonoma, Ventura... về tới Lion - tải thẳng từ máy chủ Apple · macUSB · Apple Configurator 2"],
-  ios: ["Kho iOS", "3uTools · Firmware IPSW cho iPhone, iPad, iPod, Apple TV, Mac chip M - danh sách theo ipsw.me, tải từ máy chủ Apple"],
+  ios: ["Kho Firmware iOS", "3uTools · Firmware IPSW cho iPhone, iPad, iPod, Apple TV, Mac chip M - danh sách theo ipsw.me, tải từ máy chủ Apple"],
   iso: ["Kho bộ cài WIN", "Tải ISO gốc Microsoft · Rufus · AVL Win Master · USB boot Ventoy · Driver IRST · Kiểm tra SHA-256 file ISO"],
-  tools: ["Tiện ích Windows", "Thiết lập nhanh, mạng, Defender, Windows Update, máy in, BitLocker, sao lưu Wifi / Driver"],
   web: ["Web", "Trang web hay dùng - bấm để mở · Admin bấm ✎ để sửa, ＋ để thêm link"],
   history: ["Nhật ký", "Những gì tool đã cài / đã chạy"],
   settings: ["Cài đặt", "Mật khẩu Admin, thư mục tải, sao lưu danh sách nút"]};
@@ -104,6 +102,7 @@ const KIND = {web: "WEB", winget: "WINGET", file: "FILE", cmd: "LỆNH", office:
 let INIT = {}, G = [], NCOL = 4, LAYOUT = "grid", page = "system", ADMIN = false, picked = new Set(), logSeq = 0, ST = {}, HIST = [];
 
 function showPage(p) {
+  if (p === "tools" || p === "fix") { MT = p; p = "manage"; }     // v4.7: 2 trang cũ nằm trong Bảo trì Windows
   page = p;
   const locked = p === "settings" && !ADMIN;
   document.querySelectorAll(".page").forEach(x => x.classList.toggle("on", x.id === (locked ? "pg-locked" : "pg-" + p)));
@@ -114,14 +113,12 @@ function showPage(p) {
   if (p === "history") loadHistory();
   if (p === "power") loadDisks();
   if (p === "system") { live(); loadBoot().then(fitSys).catch(() => {}); [30, 400].forEach(t => setTimeout(fitSys, t)); }
-  if (p === "tools") renderTools();
   if (p === "apps" && LAYOUT === "fit" && G.length) renderGroups();
   if (p === "test") { loadBattery(); loadDisk(); renderSum(); }
   if (p === "manage") mgrShow();
   if (p === "clean") cleanShow();
   if (p === "backup") backShow();
   if (p === "iso") isoShow();
-  if (p === "fix") fixShow();
   if (p === "mac") macShow();
   if (p === "ios") iosShow();
   if (p === "web") webShow();
@@ -129,27 +126,25 @@ function showPage(p) {
 }
 document.querySelectorAll(".nav").forEach(n => n.onclick = () => showPage(n.dataset.p));
 $("fold").onclick = () => { $("side").classList.toggle("mini"); $("fold").textContent = $("side").classList.contains("mini") ? "»" : "«"; };
-/* ---------------------------------------------------------------- Giao diện: Mặc định (Sáng / Tối) · Giao diện 01 */
-let SKIN = "default", THEME = "light";
+/* ---------------------------------------------------------------- Giao diện (v4.7): Robot AI (mặc định) · Mặc định · Sáng */
+let SKIN = "robo", THEME = "light";
 function applySkin() {
-  document.body.classList.toggle("g01", SKIN === "g01" || SKIN === "g01l");
-  document.body.classList.toggle("g01l", SKIN === "g01l");
-  document.body.classList.toggle("dark", SKIN === "g01" || (SKIN === "default" && THEME === "dark"));
+  document.body.classList.remove("g01", "g01l");
+  document.body.classList.toggle("robo", SKIN === "robo");
+  document.body.classList.toggle("dark", SKIN === "robo");
   if (typeof fitSys === "function") [30, 300].forEach(t => setTimeout(() => { try { fitSys(); if (page === "apps") renderGroups(); } catch (e) { /* bỏ qua */ } }, t));
 }
 $("bTheme").onclick = async () => {
   const opt = (k, t, s, d) => `<label class="skopt${(k === SKIN && (k !== "default" || t === THEME)) ? " on" : ""}" data-k="${k}" data-t="${t}">
     <span class="skprev sk-${k}${t === "dark" ? " dk" : ""}"><i></i><i></i><i></i><i></i></span><b>${s}</b><small>${d}</small></label>`;
-  await dialog({title: "◐ Chọn giao diện", width: 760, body: `<div class="skgrid">
-      ${opt("default", "light", "Mặc định · Sáng", "Giao diện gốc của tool, nền sáng")}
-      ${opt("default", "dark", "Mặc định · Tối", "Giao diện gốc của tool, nền tối")}
-      ${opt("g01", "dark", "Giao diện 01 · Navy", "Kính mờ, viền neon xanh, nền xanh navy đêm")}
-      ${opt("g01l", "light", "Giao diện 01 · Xanh trắng", "Kính mờ, viền xanh sáng, nền xanh trắng")}</div>
+  await dialog({title: "◐ Chọn giao diện", width: 560, body: `<div class="skgrid">
+      ${opt("robo", "dark", "Robot AI", "Máy móc · robot · AI: nền thép tối, lưới mạch, viền HUD xanh phát sáng")}
+      ${opt("default", "light", "Mặc định · Sáng", "Giao diện gốc của tool, nền sáng")}</div>
     <div class="logl">Bấm để đổi ngay - tool nhớ lựa chọn cho lần mở sau.</div>`,
     buttons: [{text: "Xong", cls: "red", def: true}],
     onOpen: c => c.q(".skgrid").onclick = e => {
       const o = e.target.closest(".skopt"); if (!o) return;
-      SKIN = o.dataset.k; if (SKIN === "default") THEME = o.dataset.t;
+      SKIN = o.dataset.k; THEME = "light";
       c.el.querySelectorAll(".skopt").forEach(x => x.classList.toggle("on", x === o));
       applySkin(); api("set_skin", SKIN); if (SKIN === "default") api("set_theme", THEME);
     }});
@@ -785,7 +780,7 @@ function renderTools() {
     return `<button class="btn" data-q="${i}">${emo ? `<span class="qi">${m[1]}</span>${esc(m[2])}` : esc(q.label)}</button>`; }).join("");
 }
 let toolT;
-window.addEventListener("resize", () => { clearTimeout(toolT); toolT = setTimeout(() => { if (page === "tools") renderTools(); }, 150); });
+window.addEventListener("resize", () => { clearTimeout(toolT); toolT = setTimeout(() => { if (page === "manage" && MT === "tools") renderTools(); }, 150); });
 $("quick").onclick = e => { const b = e.target.closest("[data-q]"); if (b) api("quick", INIT.quick[+b.dataset.q].target); };
 $("tools").onclick = async e => {
   const b = e.target.closest("[data-t]"); if (!b) return;
@@ -1043,7 +1038,7 @@ async function tick() {
 async function start() {
   if (window.__started) return; window.__started = true;
   INIT = await api("init");
-  THEME = INIT.theme === "dark" ? "dark" : "light"; SKIN = ["g01", "g01l"].includes(INIT.skin) ? INIT.skin : "default"; applySkin();
+  THEME = "light"; SKIN = INIT.skin === "default" && INIT.theme !== "dark" ? "default" : "robo"; applySkin();
   $("ver").textContent = "by Duy Anh · " + INIT.version;
   $("verfoot").textContent = INIT.title + " " + INIT.version;
   renderTools();

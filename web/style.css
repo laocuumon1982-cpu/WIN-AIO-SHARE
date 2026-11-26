@@ -597,7 +597,7 @@ body.dark .tbtn{box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 3px 0 var(--btn
 .tbtn .ti{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;flex:none;font-size:14px;
   background:color-mix(in srgb,var(--ac) 13%,transparent)}
 .tbtn .tt{flex:1;min-width:0;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-#pg-tools .crt .log{height:110px}
+#mp-tools .crt .log{height:110px}
 
 /* ------------------------------------------------------------------ CÀI PHẦN MỀM GỌN (v1.6) */
 .appgrid{gap:12px}
@@ -828,8 +828,8 @@ body.dark .okbox{background:#12261b;border-color:#1f6b3c;color:#86efac}
 #pg-apps .selbar{margin-top:6px;padding:5px 10px}
 #pg-apps .selbar .btn{padding:4px 11px}
 #pg-apps .appwrap{margin-top:8px;min-height:120px}
-#pg-apps .crt,#pg-tools .crt{margin-top:6px}
-#pg-apps .crt .log,#pg-tools .crt .log{height:70px}
+#pg-apps .crt,#mp-tools .crt{margin-top:6px}
+#pg-apps .crt .log,#mp-tools .crt .log{height:70px}
 /* nút phần mềm nhỏ gọn */
 .appgrid.fitgrid{display:grid;grid-template-columns:repeat(var(--ncol,5),minmax(0,1fr));gap:10px;align-items:start}
 .appgrid.fitgrid .gcol{gap:10px}
@@ -844,17 +844,17 @@ body.dark .okbox{background:#12261b;border-color:#1f6b3c;color:#86efac}
 .appgrid .arow .chk{width:15px;height:15px}
 .appgrid .addbtn{margin-top:5px;padding:3px}
 /* Tiện ích Windows gọn */
-#pg-tools .toolgrid{gap:12px}
-#pg-tools .tcol{gap:12px}
-#pg-tools .tcard{padding:8px 10px 10px;border-radius:13px}
-#pg-tools .tcard .sh{margin-bottom:7px;gap:8px}
-#pg-tools .tcard .sh .si{width:28px;height:28px;font-size:15px}
-#pg-tools .tcard .sh b{font-size:11.5px}
-#pg-tools .tcard .sh small{font-size:10.5px}
-#pg-tools .tgrid{gap:6px}
-#pg-tools .tbtn{height:34px;padding:0 8px;gap:7px;font-size:12px;border-radius:9px}
-#pg-tools .tbtn .ti{width:22px;height:22px;font-size:12.5px;border-radius:6px}
-#pg-tools .syswrap{padding-bottom:4px}
+#mp-tools .toolgrid{gap:12px}
+#mp-tools .tcol{gap:12px}
+#mp-tools .tcard{padding:8px 10px 10px;border-radius:13px}
+#mp-tools .tcard .sh{margin-bottom:7px;gap:8px}
+#mp-tools .tcard .sh .si{width:28px;height:28px;font-size:15px}
+#mp-tools .tcard .sh b{font-size:11.5px}
+#mp-tools .tcard .sh small{font-size:10.5px}
+#mp-tools .tgrid{gap:6px}
+#mp-tools .tbtn{height:34px;padding:0 8px;gap:7px;font-size:12px;border-radius:9px}
+#mp-tools .tbtn .ti{width:22px;height:22px;font-size:12.5px;border-radius:6px}
+#mp-tools .syswrap{padding-bottom:4px}
 .appgrid.notag .abtn .tag{display:none}
 
 /* ===================================================================== v2.1.2: Thông tin & khởi động vừa 1 màn hình */
@@ -1337,3 +1337,153 @@ body.g01.g01l .foot,body.g01.g01l footer{color:#4a6595}
 .mtool .ti{font-size:26px;width:40px;text-align:center}
 .mtool b{display:block}.mtool small{display:block;opacity:.75;line-height:1.35}
 .isosec>.sh>.btn,.mtool>.btn{flex:none;white-space:nowrap}
+
+/* ===================================================================== v4.7 GIAO DIỆN ROBOT AI (máy móc · robot · AI)
+   Bật bằng body.robo (đi kèm body.dark để mọi thành phần đã có màu tối). Mặc định · Sáng giữ nguyên ở trên. */
+body.robo{
+  --bg:#070b10; --card:#0d141c; --text:#dbe7f0; --muted:#7f93a6; --border:#1b2a38; --head:#0a121a;
+  --row-sel:#0d2a33; --soft:#0b1d24; --soft-b:#1f5563; --field:#060a0f;
+  --red:#22d3ee; --red-d:#0891b2; --blue:#38bdf8; --green:#34d399; --orange:#f59e0b; --yellow:#fbbf24;
+  --side:#060a0f; --side2:#0a1119; --side-text:#e2edf5; --side-muted:#6f879b; --side-bd:#16242f;
+  --key:linear-gradient(180deg,#132130,#0c151e); --key-bd:#1f3445; --key-sh:#02050a;
+  --btn:linear-gradient(180deg,#16222e 0%,#0f1922 55%,#0b131b 100%); --btn-bd:#24394b; --btn-sh:#02060a;
+  --tube:linear-gradient(#04070b,#0c141c); --modal:#0b131b; --shadow:0 10px 26px rgba(0,0,0,.55);
+  --cy:#22d3ee; --cy2:#0ea5e9; --amb:#f59e0b; --steel:#1c2b39;
+  --log-bg:radial-gradient(ellipse at center,#03161b 0%,#010708 100%); --log-fg:#5eead4;
+  font-family:"Bahnschrift","Segoe UI Variable Display","Segoe UI",system-ui,sans-serif;
+  background:
+    radial-gradient(1100px 600px at 82% -8%,rgba(34,211,238,.10),transparent 60%),
+    radial-gradient(900px 520px at -10% 110%,rgba(245,158,11,.06),transparent 60%),
+    linear-gradient(rgba(34,211,238,.035) 1px,transparent 1px) 0 0/28px 28px,
+    linear-gradient(90deg,rgba(34,211,238,.035) 1px,transparent 1px) 0 0/28px 28px,
+    #070b10;
+}
+body.robo ::selection{background:rgba(34,211,238,.35)}
+body.robo ::-webkit-scrollbar-thumb{background:#1d3446;background-clip:padding-box}
+body.robo input:focus,body.robo select:focus,body.robo textarea:focus{border-color:var(--cy);box-shadow:0 0 0 3px rgba(34,211,238,.18),0 0 12px rgba(34,211,238,.25)}
+body.robo input[type=checkbox]{accent-color:var(--cy)}
+
+/* --- khung kim loại: góc vuông vát + 4 vạch góc phát sáng (HUD) --- */
+body.robo .tcard,body.robo .sec,body.robo .gcard,body.robo .stat,body.robo .mbar,body.robo .hero,body.robo .sysgrid > *,body.robo .tablewrap,body.robo .energy,body.robo .selbar{
+  border-radius:4px;border:1px solid var(--border);
+  background:
+    linear-gradient(var(--cy),var(--cy)) top left/14px 2px no-repeat,linear-gradient(var(--cy),var(--cy)) top left/2px 14px no-repeat,
+    linear-gradient(var(--cy),var(--cy)) bottom right/14px 2px no-repeat,linear-gradient(var(--cy),var(--cy)) bottom right/2px 14px no-repeat,
+    linear-gradient(180deg,#0f1822 0%,#0b1219 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 0 0 1px rgba(0,0,0,.5),var(--shadow)}
+body.robo .tcard{border-top:2px solid var(--ac)}
+body.robo .tcard .sh b,body.robo .sec h4,body.robo .gcard .gh,body.robo .stat .l,body.robo .icard b{
+  font-family:"Bahnschrift","Segoe UI",sans-serif;letter-spacing:1.6px;text-transform:uppercase}
+body.robo .sec h4{color:var(--cy)}
+body.robo .sec h4::before{background:var(--cy);box-shadow:0 0 8px var(--cy);border-radius:0;width:3px}
+body.robo .tcard .sh .si,body.robo .tbtn .ti{border-radius:3px;background:linear-gradient(150deg,#14273a,#0a1520);
+  border:1px solid color-mix(in srgb,var(--ac,#22d3ee) 55%,#0a1520);box-shadow:0 0 10px color-mix(in srgb,var(--ac,#22d3ee) 30%,transparent)}
+
+/* --- thanh bên: bảng điều khiển robot --- */
+body.robo .side{background:
+    linear-gradient(90deg,transparent calc(100% - 1px),rgba(34,211,238,.35) 100%),
+    repeating-linear-gradient(0deg,rgba(255,255,255,.012) 0 2px,transparent 2px 4px),
+    linear-gradient(180deg,#060a0f,#0a1119);border-right:1px solid #12202b}
+body.robo .logo{border-radius:0;clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);width:40px;height:40px;
+  background:linear-gradient(150deg,#22d3ee,#0369a1);color:#021016;font-family:Consolas,monospace;box-shadow:none;
+  filter:drop-shadow(0 0 8px rgba(34,211,238,.7))}
+body.robo .brand b{font-family:"Bahnschrift",sans-serif;letter-spacing:3px;color:#e6fbff;text-shadow:0 0 10px rgba(34,211,238,.5)}
+body.robo .brand small{font-family:Consolas,monospace;color:var(--cy);opacity:.8}
+body.robo .menu-l{font-family:Consolas,monospace;font-size:10.5px;letter-spacing:2px;color:#4f6b80}
+body.robo .menu-l::before{content:"// ";color:var(--amb)}
+body.robo .nav{border-radius:3px;border:1px solid transparent;font-family:"Bahnschrift",sans-serif;font-size:14px;letter-spacing:.3px;position:relative}
+body.robo .nav:hover{background:rgba(34,211,238,.06);border-color:rgba(34,211,238,.15)}
+body.robo .nav.on{background:linear-gradient(90deg,rgba(34,211,238,.20),rgba(34,211,238,.04) 70%,transparent);border-color:rgba(34,211,238,.35);
+  box-shadow:inset 3px 0 0 var(--cy),0 0 18px rgba(34,211,238,.12);color:#eafcff}
+body.robo .nav .ic{border-radius:3px}
+body.robo .nav.on .ic{background:linear-gradient(150deg,#22d3ee,#0369a1);color:#021016;box-shadow:0 0 12px rgba(34,211,238,.6)}
+body.robo .nav .badge{background:var(--amb);color:#1a1002;border-radius:2px;box-shadow:0 0 8px rgba(245,158,11,.6)}
+body.robo .panel{background:rgba(3,7,11,.6);border:1px solid #12202b;border-radius:4px}
+body.robo .panel h4{font-family:Consolas,monospace;letter-spacing:2px;color:var(--cy)}
+body.robo .tile,body.robo .raised{border-radius:3px}
+
+/* --- tiêu đề trang: kiểu màn hình HUD --- */
+body.robo .top h1{font-family:"Bahnschrift",sans-serif;font-weight:700;letter-spacing:2px;text-transform:uppercase;font-size:22px;
+  color:#eafcff;text-shadow:0 0 14px rgba(34,211,238,.45)}
+body.robo .top .sub{font-family:Consolas,monospace;font-size:11.5px;color:#6f8ba0}
+body.robo .top .sub::before{content:"> ";color:var(--cy)}
+body.robo .picon{border-radius:0;clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);
+  background:linear-gradient(150deg,#123247,#081520);box-shadow:none;filter:drop-shadow(0 0 6px rgba(34,211,238,.5))}
+
+/* --- nút: kim loại, góc vát nhỏ, phát sáng xanh khi rê chuột --- */
+body.robo .btn,body.robo .tbtn{border-radius:3px;font-family:"Bahnschrift","Segoe UI",sans-serif;letter-spacing:.3px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 2px 0 var(--btn-sh),0 4px 10px rgba(0,0,0,.45)}
+body.robo .btn:hover,body.robo .tbtn:hover{border-color:var(--cy);color:#eafcff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 2px 0 var(--btn-sh),0 0 0 1px rgba(34,211,238,.35),0 0 16px rgba(34,211,238,.35)}
+body.robo .btn.red{color:#021016;border-color:#0e7490;text-shadow:none;font-weight:700;
+  background:linear-gradient(180deg,#a5f3fc 0%,#22d3ee 45%,#06b6d4 55%,#0891b2 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 2px 0 #075566,0 0 18px rgba(34,211,238,.45)}
+body.robo .btn.red:hover{box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 2px 0 #075566,0 0 0 2px rgba(34,211,238,.35),0 0 26px rgba(34,211,238,.7)}
+body.robo .btn.green{color:#02140c;border-color:#047857;text-shadow:none;background:linear-gradient(180deg,#a7f3d0,#34d399 45%,#10b981 55%,#059669)}
+body.robo .btn.out{color:#fb923c;border-color:#5a3413}
+body.robo .btn.out:hover{border-color:#fb923c;box-shadow:0 0 14px rgba(251,146,60,.4)}
+body.robo .btn.pill{color:var(--amb);background:linear-gradient(#1f1807,#140f04);border-color:#5b4310}
+body.robo .tbtn{background:var(--btn);border:1px solid var(--btn-bd)}
+body.robo .tbtn .ti{border-radius:2px}
+body.robo .tbtn.hot{border-color:color-mix(in srgb,var(--ac) 60%,#000);background:linear-gradient(180deg,color-mix(in srgb,var(--ac) 18%,#0f1922),#0b131b)}
+
+/* --- trang Cài phần mềm --- */
+body.robo .gcard{padding:10px 11px 11px}
+body.robo .abtn{border-radius:2px}
+body.robo .tag{border-radius:1px;font-family:Consolas,monospace;letter-spacing:.6px}
+body.robo .stat{border-left:3px solid var(--c)}
+body.robo .stat .n{font-family:Consolas,"Bahnschrift",monospace;text-shadow:0 0 12px var(--c)}
+body.robo .stat .sq{border-radius:2px}
+body.robo .chk{border-radius:2px}
+body.robo .bar{border-radius:1px;background:repeating-linear-gradient(90deg,#0b141c 0 6px,#070d13 6px 8px);border:1px solid #16232e}
+body.robo .bar > div{border-radius:0;background-image:repeating-linear-gradient(90deg,rgba(255,255,255,.18) 0 6px,transparent 6px 8px)}
+body.robo .b-red{background-color:#22d3ee!important;box-shadow:0 0 10px #22d3ee}
+body.robo .b-blue{background-color:#38bdf8!important;box-shadow:0 0 10px #38bdf8}
+body.robo .b-green{background-color:#34d399!important;box-shadow:0 0 10px #34d399}
+body.robo .admbar{border-radius:3px;background:repeating-linear-gradient(135deg,#1a1405 0 10px,#140f04 10px 20px);border-color:#5b4310}
+
+/* --- bảng, thẻ phụ, hộp thoại --- */
+body.robo .subtabs{border-radius:3px;background:#060b10;border-color:#16242f}
+body.robo .subtabs > div{border-radius:2px;font-family:"Bahnschrift",sans-serif;letter-spacing:.3px}
+body.robo .subtabs > div.on{background:linear-gradient(180deg,rgba(34,211,238,.22),rgba(34,211,238,.06));border-color:rgba(34,211,238,.45);color:#eafcff;
+  box-shadow:inset 0 -2px 0 var(--cy),0 0 14px rgba(34,211,238,.18)}
+body.robo th{font-family:Consolas,monospace;letter-spacing:1.2px;color:var(--cy)}
+body.robo .icard{border-radius:3px}
+body.robo .crt{border-radius:3px;background:linear-gradient(#0f1a23,#060b10);border:1px solid #16303d}
+body.robo .log{border-radius:2px;font-family:Consolas,monospace}
+body.robo .modal,body.robo .dlg{border-radius:4px;border:1px solid #1f3445;box-shadow:0 0 0 1px #000,0 0 40px rgba(34,211,238,.15),0 20px 60px rgba(0,0,0,.7)}
+body.robo .toast{border-radius:3px;border:1px solid var(--cy);box-shadow:0 0 20px rgba(34,211,238,.35)}
+body.robo .foot{font-family:Consolas,monospace;color:#5f7a8e}
+
+/* nhãn nhóm trên thanh thẻ con (Bảo trì Windows) - dùng cho mọi giao diện */
+.subtabs .mtl{align-self:center;font-size:10px;font-weight:800;letter-spacing:1.4px;color:var(--muted);padding:0 4px 0 8px}
+.subtabs .mtl:not(:first-child){border-left:1px solid var(--border);margin-left:6px;padding-left:12px}
+body.robo .subtabs .mtl{font-family:Consolas,monospace;color:var(--amb)}
+
+/* ô xem trước trong hộp chọn giao diện */
+.skprev.sk-robo{background:linear-gradient(rgba(34,211,238,.08) 1px,transparent 1px) 0 0/10px 10px,linear-gradient(90deg,rgba(34,211,238,.08) 1px,transparent 1px) 0 0/10px 10px,#070b10!important;border-color:#0e7490!important}
+.skprev.sk-robo i{background:#0f1822!important;border:1px solid #22d3ee!important;border-radius:1px!important;box-shadow:0 0 6px rgba(34,211,238,.6)!important}
+/* v4.7: trang Bảo trì Windows - mỗi thẻ con chiếm phần còn lại của trang, tự cuộn */
+#pg-manage .mpane:not([hidden]){flex:1;min-height:0;display:flex;flex-direction:column}
+#pg-manage .mpane > .syswrap{margin-top:0}
+#mp-startup,#mp-programs,#mp-appx,#mp-defender,#mp-upgrade,#mp-driver{overflow:auto}
+#pg-manage .subtabs{flex:none}
+body.robo .subtabs > div{padding:7px 13px}
+body.robo .side .menu-l:first-of-type{margin-top:10px}
+body.robo .hero{border-left:3px solid var(--cy)!important}
+#mtabs{flex-wrap:nowrap;overflow-x:auto;gap:3px}
+#mtabs > div{padding:7px 11px;white-space:nowrap}
+body.robo #mtabs > div{padding:7px 11px}
+#mtabs .mtl{white-space:nowrap}
+#mtabs > div,body.robo #mtabs > div{padding:6px 9px;font-size:12.5px}
+.top > div:nth-child(2){min-width:0;flex:1}
+body.robo .top .sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#mtabs{gap:2px}
+#mtabs .mtl{letter-spacing:.6px;padding:0 3px 0 5px;font-size:9.5px}
+#mtabs .mtl:not(:first-child){margin-left:3px;padding-left:7px}
+#mtabs > div,body.robo #mtabs > div{padding:6px 8px;font-size:12.5px}
+
+/* v4.7: ghi chú cần KEY bản quyền (Kho bộ cài WIN) */
+.keynote{margin-top:8px;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700;color:#b45309;background:#fff7e6;border:1px solid #f5d08a}
+body.dark .keynote{color:#fbbf24;background:#1f1807;border-color:#5b4310}
+body.robo .keynote{border-radius:2px;border-left:3px solid var(--amb);font-family:"Bahnschrift",sans-serif;letter-spacing:.2px}

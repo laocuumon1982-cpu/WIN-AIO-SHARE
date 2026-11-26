@@ -167,10 +167,12 @@ function addVentoy() {
     <div class="tcard isosec" style="--ac:#0e7490"><div class="sh"><span class="si">🛠️</span><div><b>AVL WIN MASTER</b>
       <small>Cài Win sạch ngay từ Win đang chạy (ISO / WIM / ESD, WinPE, nạp sẵn driver IRST/VMD + Wi-Fi), sao lưu Win, tạo USB cứu hộ · tải bản mới nhất đúng kiến trúc máy từ trang chủ, mở bằng quyền Admin</small></div>
       <span class="sp"></span><button class="btn sm" id="avlWeb">🌐 Trang chủ</button><button class="btn red shine" id="avlGo">⬇ Tải &amp; mở AVL</button></div>
+      <div class="keynote">🔑 Cần KEY bản quyền của AVL Win Master để dùng đầy đủ chức năng (mua / nhận key ở trang chủ).</div>
       <div class="logl">⚠ Phân vùng Win được chọn để cài sẽ bị FORMAT - sao lưu dữ liệu trước. Đây là tool của bên thứ ba (không phải Microsoft), không kích hoạt bản quyền Win.</div></div>
     <div class="tcard isosec" style="--ac:#7c3aed"><div class="sh"><span class="si">🥾</span><div><b>ANHDV BOOT TOOL</b>
       <small>Tạo USB Boot / WinPE Anhdv Boot · mỗi lần bấm tool hỏi máy chủ cập nhật của Anhdv (api.anhdv.top) lấy bản mới nhất, tải đúng file AnhdvBootTool.exe bản đó, kiểm tra sha256 rồi mở bằng quyền Admin</small></div>
-      <span class="sp"></span><button class="btn sm" id="adbWeb">🌐 Trang chủ</button><button class="btn red shine" id="adbGo">⬇ Tải &amp; mở Anhdv Boot Tool</button></div></div>
+      <span class="sp"></span><button class="btn sm" id="adbWeb">🌐 Trang chủ</button><button class="btn red shine" id="adbGo">⬇ Tải &amp; mở Anhdv Boot Tool</button></div>
+      <div class="keynote">🔑 Cần KEY bản quyền (Premium) của Anhdv Boot để dùng đầy đủ chức năng (mua / gia hạn ở anhdvshop.com).</div></div>
     <div class="tcard isosec" style="--ac:#16a34a"><div class="sh"><span class="si">🔌</span><div><b>TẠO USB BOOT (VENTOY)</b>
       <small>Tool tự tải Ventoy bản mới nhất, cài vào USB, chép ISO vào - 1 USB chứa được nhiều ISO, chọn lúc boot</small></div><span class="sp"></span><button class="btn sm" id="vtRef">⟳ Làm mới</button></div>
     <div id="vtBody"><div class="logl"><span class="spin"></span> Đang tìm USB...</div></div></div>`);

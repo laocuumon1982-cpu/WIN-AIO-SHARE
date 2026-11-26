@@ -35,7 +35,7 @@ import apple
 import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v4.6"
+APP_VERSION = "v4.7"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -57,7 +57,7 @@ DEFAULT_CONFIG = {
     "download_dir": "Data\\Downloads",
     "keep_installer": True,
     "theme": "light",
-    "skin": "default",          # giao diện: default = Mặc định, g01 = Giao diện 01 (navy), g01l = Giao diện 01 (xanh trắng)
+    "skin": "robo",             # giao diện: robo = Robot AI (mặc định từ v4.7), default = Mặc định · Sáng
     "admin_salt": "",
     "admin_hash": "",
     "window": {},
@@ -808,6 +808,12 @@ class Store:
         self.fix_dead_links()
         if getattr(self, "_pw_migrated", False):
             self.save_config(persist=False)
+        if "skin47" not in done:
+            # v4.7: giao diện Robot AI thành mặc định (vẫn chọn lại được Mặc định · Sáng trong ◐ Giao diện)
+            self.cfg["skin"] = "robo"
+            done.add("skin47")
+            self.cfg["migrated"] = sorted(done)
+            self.save_config(persist=False)
         if "notes217" not in done:
             self.db.execute("UPDATE apps SET note='' WHERE src LIKE 'winget:%' AND note IN "
                             "('Bản portable, giải nén rồi chạy', 'Mở trang tải EVKey', 'Mở trang tải')")
@@ -1463,12 +1469,12 @@ $net=@(Get-NetAdapter -Physical | Where-Object Status -eq 'Up' | ForEach-Object 
             else:
                 self.log(f"✔ Đã kiểm tra {len(apps)} nút WINGET: tất cả còn dùng được.", "dim")
             self.wg_checked = time.time()
-            try:                            # phần mềm nào có bản mới -> hiện số trên menu Quản lý
+            try:                            # phần mềm nào có bản mới -> hiện số trên menu Bảo trì Windows
                 up = mgr.wg_upgrades()
                 self.upg_n = len(up)
                 if up:
                     self.log(f"⬆ {len(up)} phần mềm có bản mới: " + ", ".join(x["name"] for x in up[:6])
-                             + (" ..." if len(up) > 6 else "") + " - vào Quản lý › Cập nhật app.", "warn")
+                             + (" ..." if len(up) > 6 else "") + " - vào Bảo trì Windows › Cập nhật app.", "warn")
             except Exception:               # noqa: BLE001
                 pass
         except Exception as e:              # noqa: BLE001
@@ -1953,7 +1959,7 @@ Remove-Item $d -Recurse -Force; 'OK'
                 j["text"] = "Cài bộ font tiếng Việt..."
                 notes.append(extra.font_install(j, url)["text"])
             else:
-                notes.append("Bỏ qua cài font: Admin chưa gắn link bộ font (tab Tiện ích Windows > Font tiếng Việt).")
+                notes.append("Bỏ qua cài font: Admin chưa gắn link bộ font (Bảo trì Windows › Sửa lỗi & thiết lập máy › Bộ font tiếng Việt).")
         ok_n = sum(1 for i in ids if self.results.get(i) == "ok")
         msg = f"Hồ sơ '{p['name']}': cài xong {ok_n}/{len(ids)} phần mềm, chạy {len(p['tools'])} tiện ích" + \
               (", đã dọn Win 11" if p["opts"].get("tidy") else "") + "."
@@ -2915,8 +2921,10 @@ class Api:
         return True
 
     def set_skin(self, k):
-        """Giao diện: default (Mặc định, có Sáng / Tối) hoặc g01 (Giao diện 01 - xanh neon)."""
-        self._s.cfg["skin"] = k if k in ("default", "g01", "g01l") else "default"
+        """Giao diện: robo (Robot AI) hoặc default (Mặc định · Sáng)."""
+        self._s.cfg["skin"] = "default" if k == "default" else "robo"
+        if k == "default":
+            self._s.cfg["theme"] = "light"
         self._s.save_config()
         return True
 

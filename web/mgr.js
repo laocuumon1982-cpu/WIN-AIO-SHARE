@@ -24,12 +24,14 @@ const tbl = (cols, rows, empty) => `<div class="tablewrap mt"><table><thead><tr>
   <tbody>${rows || `<tr><td colspan="${cols.length}" class="empty">${empty || "Không có gì"}</td></tr>`}</tbody></table></div>`;
 
 /* =============================================================== QUẢN LÝ */
-let MT = "startup";
+let MT = "tools";
 const MLOAD = {};
 function mgrShow() {
-  $("mtabs").onclick = e => { const d = e.target.closest("[data-t]"); if (!d) return; MT = d.dataset.t;
-    $("mtabs").querySelectorAll("div").forEach(x => x.classList.toggle("on", x === d));
-    document.querySelectorAll(".mpane").forEach(p => p.hidden = p.id !== "mp-" + MT); mgrShow(); };
+  $("mtabs").onclick = e => { const d = e.target.closest("[data-t]"); if (!d) return; MT = d.dataset.t; mgrShow(); };
+  $("mtabs").querySelectorAll("[data-t]").forEach(x => x.classList.toggle("on", x.dataset.t === MT));
+  document.querySelectorAll(".mpane").forEach(p => p.hidden = p.id !== "mp-" + MT);
+  if (MT === "tools") return renderTools();          // vẽ lại theo bề rộng mỗi lần mở
+  if (MT === "fix") return fixShow();
   if (!MLOAD[MT]) { MLOAD[MT] = 1; ({startup: stLoad, programs: prLoad, appx: axLoad, defender: dfLoad, upgrade: upLoad, driver: drvLoad})[MT](); }
 }
 
@@ -219,12 +221,11 @@ function cleanShow() {
       <div class="row2"><input id="mdPath" placeholder="Thư mục chứa ảnh"><button class="btn sm" id="mdPick">📂</button>
         <label class="ck" style="margin:0;white-space:nowrap"><input type="checkbox" id="mdRec" checked> gồm thư mục con</label><button class="btn red shine" id="mdGo">▶ Xóa metadata</button></div>
       <div class="logl">Ảnh gốc giữ nguyên, ảnh đã xóa metadata lưu vào thư mục con "Da_xoa_metadata". Video chưa hỗ trợ.</div><div id="mdRes"></div></div>
-    <div class="tcard" style="--ac:#6b7280"><div class="sh"><span class="si">🗑️</span><div><b>GỠ BỎ</b><small>Nằm trong trang Quản lý</small></div></div>
+    <div class="tcard" style="--ac:#6b7280"><div class="sh"><span class="si">🗑️</span><div><b>GỠ BỎ</b><small>Nằm trong trang Bảo trì Windows</small></div></div>
       <div class="tgrid"><button class="tbtn" data-go="programs"><span class="ti">🗑️</span><span class="tt">Gỡ phần mềm tận gốc</span></button>
         <button class="tbtn" data-go="appx"><span class="ti">🛍️</span><span class="tt">Ứng dụng MS Store</span></button></div></div></div>`;
   const W = $("cleanwrap");
-  W.querySelectorAll("[data-go]").forEach(b => b.onclick = () => { MT = b.dataset.go; showPage("manage");
-    $("mtabs").querySelector(`[data-t="${MT}"]`).click(); });
+  W.querySelectorAll("[data-go]").forEach(b => b.onclick = () => { MT = b.dataset.go; showPage("manage"); });
   $("clScan").onclick = clScan;
   $("fsGo").onclick = () => fsRun($("fsPath").value);
   $("fsUp").onclick = () => { const p = $("fsPath").value.replace(/\\+$/, ""); const i = p.lastIndexOf("\\"); if (i > 1) fsRun(p.slice(0, i) + (i === 2 ? "\\" : "")); };
