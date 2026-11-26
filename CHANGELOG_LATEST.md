@@ -1,5 +1,11 @@
-Win AIO by Duy Anh v5.7
+Win AIO by Duy Anh v5.8
 
+- Đăng nhập 2 mức:
+  + Mật khẩu thường: vào tool nhưng ẩn nhóm ACTIVE và KHO PHẦN MỀM ở tab Cài phần mềm (ẩn từ phía chương trình, không chỉ giấu trên giao diện); không xuất / nhập / khôi phục danh sách nút.
+  + Mật khẩu đầy đủ: mở full, thấy mọi nhóm.
+  + Đang ở mức thường mà mở 🔒 Admin hoặc tab Cài đặt bằng mật khẩu đầy đủ thì tool chuyển sang mức đầy đủ và hiện luôn 2 nhóm bị ẩn.
+
+v5.7:
 - Mở tool phải nhập mật khẩu Admin (không có gợi ý mật khẩu). Nhập sai báo "Mật khẩu không đúng"; chưa đăng nhập thì mọi chức năng của tool đều bị khóa.
 - Đăng nhập xong tool tự kiểm tra bản mới trên GitHub: có bản mới là tự tải, thay file exe và mở lại luôn (dữ liệu Data giữ nguyên).
 - Vào tab Cài đặt luôn hỏi lại mật khẩu Admin (cùng mật khẩu lúc mở tool).

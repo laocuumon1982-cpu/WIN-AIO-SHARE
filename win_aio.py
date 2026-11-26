@@ -35,7 +35,7 @@ import apple
 import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v5.7"
+APP_VERSION = "v5.8"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -227,6 +227,8 @@ DEFAULT_PRESETS = [
 ]
 DEFAULT_PW_SALT = "winaio57"   # mật khẩu Admin (v5.7: hỏi khi mở tool, không đổi được trong tool) - chỉ lưu mã băm, không ghi mật khẩu trong mã nguồn
 DEFAULT_PW_HASH = "0a431617ee200f53e19161aec01333b0ca3f94537ec9379b9c1836548e887ce3"
+FULL_PW_HASH = "b9e6f9ec3d09244d0d5c9573ba75dfd7a5aba96ebced8cd19eb6f5acce7751bb"   # v5.8: mật khẩu mở đầy đủ (thấy cả nhóm ACTIVE, KHO PHẦN MỀM)
+LIMITED_HIDE = ("ACTIVE", "KHO PHẦN MỀM")   # đăng nhập bằng mật khẩu thường: ẩn các nhóm này
 KHO_FSHARE = "open:https://www.fshare.vn/folder/BESIWSY4GNO7"
 KHO_GDRIVE = "open:https://drive.google.com/drive/u/3/folders/173Ouz2LQQcrVr9SbirV68wgJvXP2Svz2"
 DEFAULT_GROUPS = [     # (tên nhóm, cột, [nút...]) - thứ tự trong cột, vị trí & link theo file sao lưu của Duy Anh (24/11/2026 22:24)
@@ -2846,6 +2848,7 @@ class Api:
         self._app = app
         self._admin = False
         self._logged = False                 # v5.7: phải nhập mật khẩu Admin khi mở tool
+        self._level = ""                     # v5.8: "full" (thấy tất cả) hoặc "limited" (ẩn ACTIVE, KHO PHẦN MỀM)
         self._upd = {}
         self._quit_fn = None
 
@@ -2862,8 +2865,18 @@ class Api:
                 "iso_mg": [{"icon": i, "name": n, "url": ISO_MG + u, "note": d} for i, n, u, d in ISO_MG_PAGES],
                 }
 
+    def _full(self):
+        return self._level == "full"
+
+    def _need_full(self):
+        if not self._full():
+            raise PermissionError("Chức năng này cần đăng nhập đầy đủ")
+
     def groups(self):
-        return {"columns": self._s.columns(), "layout": self._s.layout(), "groups": self._s.groups(),
+        gs = self._s.groups()
+        if not self._full():                 # đăng nhập thường: ẩn nhóm ACTIVE, KHO PHẦN MỀM
+            gs = [g for g in gs if (g.get("name") or "").strip().upper() not in LIMITED_HIDE]
+        return {"columns": self._s.columns(), "layout": self._s.layout(), "groups": gs,
                 "fit_n": self._s.cfg.get("fit_n") if self._s.layout() == "fit" else None}
 
     def set_layout(self, mode):
@@ -2929,7 +2942,7 @@ class Api:
             self._si_obj, self._si_n = e.sysinfo, self._si_n + 1
         siv = self._si_n
         return {"logs": logs, "cur": e.cur, "queue": q, "batch": [e.batch_i, e.batch_n], "results": e.results,
-                "checks": e.checks, "winget": e.winget, "admin": self._admin, "busy_tool": e.busy_tool, "si": siv,
+                "checks": e.checks, "winget": e.winget, "admin": self._admin, "full": self._full(), "busy_tool": e.busy_tool, "si": siv,
                 "sysinfo": None if (si is not None and si == siv) else e.sysinfo,
                 "done_today": done_today, "running": bool(e.worker and e.worker.is_alive()),
                 "shutdown_at": e.power.shutdown_at, "now": time.time(), "upd": self._upd,
@@ -2949,13 +2962,21 @@ class Api:
     def login_info(self):
         return {"title": APP_TITLE, "version": APP_VERSION, "logged": self._logged}
 
-    def login(self, pw):
+    def _pw_level(self, pw):
         c = self._s.cfg
-        if hash_pw(pw or "", c.get("admin_salt", "")) != c.get("admin_hash"):
+        if hash_pw(pw or "", DEFAULT_PW_SALT) == FULL_PW_HASH:
+            return "full"
+        if hash_pw(pw or "", c.get("admin_salt", "")) == c.get("admin_hash"):
+            return "limited"
+        return ""
+
+    def login(self, pw):
+        lv = self._pw_level(pw)
+        if not lv:
             time.sleep(0.6)                 # chậm lại khi đoán mò
             return {"ok": False}
-        self._logged = True
-        return {"ok": True, "auto_update": "--selftest" not in sys.argv}
+        self._logged, self._level = True, lv
+        return {"ok": True, "full": lv == "full", "auto_update": "--selftest" not in sys.argv}
 
     def check_pw(self, pw):
         """Hỏi lại mật khẩu khi vào tab Cài đặt: đúng thì mở khóa Admin luôn."""
@@ -2963,8 +2984,10 @@ class Api:
 
     # ---- admin
     def unlock(self, pw):
-        c = self._s.cfg
-        if hash_pw(pw or "", c.get("admin_salt", "")) == c.get("admin_hash"):
+        lv = self._pw_level(pw)
+        if lv:
+            if lv == "full":
+                self._level = "full"        # nhập mật khẩu đầy đủ -> hiện luôn các nhóm bị ẩn
             self._admin = True
             self._e.log("🔓 Đã mở khóa Admin: hiện nút ✎ để sửa tên, đổi nguồn.")
             return True
@@ -3284,6 +3307,7 @@ class Api:
 
     def export_data(self):
         self._need_admin()
+        self._need_full()
         self._s.ensure_disk()
         BACKUP_DIR.mkdir(parents=True, exist_ok=True)
         p = BACKUP_DIR / f"WinAIO_nut_{dt.datetime.now():%Y%m%d_%H%M%S}.json"
@@ -3293,6 +3317,7 @@ class Api:
 
     def import_file(self, path):
         self._need_admin()
+        self._need_full()
         data = load_json(path, None)
         if not isinstance(data, dict) or not isinstance(data.get("groups"), list):
             return "File không đúng định dạng bản xuất của Win AIO"
@@ -3307,6 +3332,7 @@ class Api:
 
     def reset_defaults(self):
         self._need_admin()
+        self._need_full()
         self.export_data_silent()
         self._s.load_defaults()
         return True
@@ -3773,7 +3799,7 @@ class App:
         lines = []
         try:
             time.sleep(6)
-            self.api._logged = True             # selftest trên GitHub: bỏ qua màn hình đăng nhập
+            self.api._logged, self.api._level = True, "full"    # selftest trên GitHub: bỏ qua màn hình đăng nhập
             lines.append("login: " + str(self.win.evaluate_js("window.__selftestStart ? (window.__selftestStart(), 'ok') : 'no form'")))
             time.sleep(6)
             for _ in range(60):                     # chờ đọc xong thông tin máy (PowerShell lần đầu hơi chậm)

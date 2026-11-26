@@ -100,7 +100,7 @@ const PAGES = {
   history: ["Nhật ký", "Những gì tool đã cài / đã chạy"],
   settings: ["Cài đặt", "Thư mục tải, sao lưu danh sách nút"]};
 const KIND = {web: "WEB", winget: "WINGET", file: "FILE", cmd: "LỆNH", office: "OFFICE", open: "LINK", github: "GITHUB", none: "CHƯA CÓ NGUỒN"};
-let INIT = {}, G = [], NCOL = 4, LAYOUT = "grid", page = "system", ADMIN = false, picked = new Set(), logSeq = 0, ST = {}, HIST = [];
+let lastFull, INIT = {}, G = [], NCOL = 4, LAYOUT = "grid", page = "system", ADMIN = false, picked = new Set(), logSeq = 0, ST = {}, HIST = [];
 
 function showPage(p) {
   if (p === "tools" || p === "fix") { MT = p; p = "manage"; }     // v4.7: 2 trang cũ nằm trong Thiết lập Windows
@@ -1019,6 +1019,7 @@ async function tick() {
     const rs = JSON.stringify(ST.results);
     if (rs !== lastRes) { lastRes = rs; renderGroups(); }
     if (ST.sysinfo !== infoShown) { infoShown = ST.sysinfo; renderInfo(); }
+    if (ST.full !== lastFull) { if (lastFull !== undefined) loadGroups(); lastFull = ST.full; }   // v5.8: mở đầy đủ -> hiện nhóm bị ẩn
     tiles();
   } catch (e) { /* bỏ qua 1 nhịp */ }
 }
