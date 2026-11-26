@@ -35,7 +35,7 @@ import apple
 import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v4.7"
+APP_VERSION = "v4.8"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -57,7 +57,7 @@ DEFAULT_CONFIG = {
     "download_dir": "Data\\Downloads",
     "keep_installer": True,
     "theme": "light",
-    "skin": "robo",             # giao diện: robo = Robot AI (mặc định từ v4.7), default = Mặc định · Sáng
+    "skin": "default",          # giao diện: chỉ còn Mặc định · Sáng (v4.8)
     "admin_salt": "",
     "admin_hash": "",
     "window": {},
@@ -808,10 +808,10 @@ class Store:
         self.fix_dead_links()
         if getattr(self, "_pw_migrated", False):
             self.save_config(persist=False)
-        if "skin47" not in done:
-            # v4.7: giao diện Robot AI thành mặc định (vẫn chọn lại được Mặc định · Sáng trong ◐ Giao diện)
-            self.cfg["skin"] = "robo"
-            done.add("skin47")
+        if "skin48" not in done:
+            # v4.8: bỏ giao diện Robot AI - mọi máy về Mặc định · Sáng
+            self.cfg["skin"], self.cfg["theme"] = "default", "light"
+            done.update({"skin47", "skin48"})
             self.cfg["migrated"] = sorted(done)
             self.save_config(persist=False)
         if "notes217" not in done:
@@ -2921,10 +2921,8 @@ class Api:
         return True
 
     def set_skin(self, k):
-        """Giao diện: robo (Robot AI) hoặc default (Mặc định · Sáng)."""
-        self._s.cfg["skin"] = "default" if k == "default" else "robo"
-        if k == "default":
-            self._s.cfg["theme"] = "light"
+        """Giao diện: chỉ còn Mặc định · Sáng (v4.8)."""
+        self._s.cfg["skin"], self._s.cfg["theme"] = "default", "light"
         self._s.save_config()
         return True
 

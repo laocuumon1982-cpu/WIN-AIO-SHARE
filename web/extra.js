@@ -161,27 +161,32 @@ function addAppMove() {
 function addVentoy() {
   const W = $("isowrap"); if (!W.dataset.ok || $("vtBody")) return;
   const first = W.querySelector(".isosec");
-  first.insertAdjacentHTML("afterend", `<div class="tcard isosec" style="--ac:#b45309"><div class="sh"><span class="si">🔧</span><div><b>RUFUS</b>
-      <small>Tạo USB cài Win / Linux từ file ISO (mỗi USB 1 bộ cài) · tải bản portable mới nhất chính chủ (rufus.ie), mở lên dùng ngay</small></div>
-      <span class="sp"></span><button class="btn red shine" id="rfGo">⬇ Tải &amp; mở Rufus</button></div></div>
-    <div class="tcard isosec" style="--ac:#0e7490"><div class="sh"><span class="si">🛠️</span><div><b>AVL WIN MASTER</b>
-      <small>Cài Win sạch ngay từ Win đang chạy (ISO / WIM / ESD, WinPE, nạp sẵn driver IRST/VMD + Wi-Fi), sao lưu Win, tạo USB cứu hộ · tải bản mới nhất đúng kiến trúc máy từ trang chủ, mở bằng quyền Admin</small></div>
-      <span class="sp"></span><button class="btn sm" id="avlWeb">🌐 Trang chủ</button><button class="btn red shine" id="avlGo">⬇ Tải &amp; mở AVL</button></div>
-      <div class="keynote">🔑 Cần KEY bản quyền của AVL Win Master để dùng đầy đủ chức năng (mua / nhận key ở trang chủ).</div>
-      <div class="logl">⚠ Phân vùng Win được chọn để cài sẽ bị FORMAT - sao lưu dữ liệu trước. Đây là tool của bên thứ ba (không phải Microsoft), không kích hoạt bản quyền Win.</div></div>
-    <div class="tcard isosec" style="--ac:#7c3aed"><div class="sh"><span class="si">🥾</span><div><b>ANHDV BOOT TOOL</b>
-      <small>Tạo USB Boot / WinPE Anhdv Boot · mỗi lần bấm tool hỏi máy chủ cập nhật của Anhdv (api.anhdv.top) lấy bản mới nhất, tải đúng file AnhdvBootTool.exe bản đó, kiểm tra sha256 rồi mở bằng quyền Admin</small></div>
-      <span class="sp"></span><button class="btn sm" id="adbWeb">🌐 Trang chủ</button><button class="btn red shine" id="adbGo">⬇ Tải &amp; mở Anhdv Boot Tool</button></div>
-      <div class="keynote">🔑 Cần KEY bản quyền (Premium) của Anhdv Boot để dùng đầy đủ chức năng (mua / gia hạn ở anhdvshop.com).</div></div>
-    <div class="tcard isosec" style="--ac:#16a34a"><div class="sh"><span class="si">🔌</span><div><b>TẠO USB BOOT (VENTOY)</b>
-      <small>Tool tự tải Ventoy bản mới nhất, cài vào USB, chép ISO vào - 1 USB chứa được nhiều ISO, chọn lúc boot</small></div><span class="sp"></span><button class="btn sm" id="vtRef">⟳ Làm mới</button></div>
+  first.insertAdjacentHTML("afterend", `<div class="tcard isosec" style="--ac:#2f7fa3"><div class="sh"><span class="si">🧰</span><div><b>CÔNG CỤ USB BOOT &amp; CÀI WIN</b>
+      <small>Bấm là tool tự tải bản mới nhất từ trang chủ rồi mở lên · lưu trong Data\\Tools</small></div></div>
+    <div class="bt4">
+      <div class="bt4t" style="--ac:#b45309"><div class="bt4h"><span class="bt4i">🔧</span><div><b>Rufus</b><small>Tạo USB cài Win / Linux từ file ISO · mỗi USB 1 bộ cài</small></div></div>
+        <div class="bt4c"><span class="bchip free">✔ Miễn phí</span><span class="bchip">Portable</span></div><div class="bt4b"><button class="btn sm" id="rfWeb" title="rufus.ie">🌐</button><button class="btn red shine" id="rfGo">⬇ Tải &amp; mở</button></div></div>
+      <div class="bt4t" style="--ac:#0e7490"><div class="bt4h"><span class="bt4i">🛠️</span><div><b>AVL Win Master</b><small>Cài Win sạch từ Win đang chạy, WinPE, nạp driver IRST / VMD, sao lưu Win</small></div></div>
+        <div class="bt4c"><span class="bchip key" title="Cần KEY bản quyền của AVL Win Master để dùng đầy đủ chức năng (mua / nhận key ở trang chủ)">🔑 Cần KEY bản quyền</span><span class="bchip warn" title="Phân vùng Win được chọn để cài sẽ bị FORMAT - sao lưu dữ liệu trước">⚠ Format phân vùng cài</span></div><div class="bt4b"><button class="btn sm" id="avlWeb" title="avlwinmaster.badinh.academy">🌐</button><button class="btn red shine" id="avlGo">⬇ Tải &amp; mở</button></div></div>
+      <div class="bt4t" style="--ac:#7c3aed"><div class="bt4h"><span class="bt4i">🥾</span><div><b>Anhdv Boot</b><small>Tạo USB Boot / WinPE cứu hộ · lấy bản mới nhất từ máy chủ Anhdv, kiểm tra sha256</small></div></div>
+        <div class="bt4c"><span class="bchip key" title="Cần KEY bản quyền (Premium) của Anhdv Boot để dùng đầy đủ chức năng (mua / gia hạn ở anhdvshop.com)">🔑 Cần KEY bản quyền</span><span class="bchip">Quyền Admin</span></div><div class="bt4b"><button class="btn sm" id="adbWeb" title="anhdvboot.com">🌐</button><button class="btn red shine" id="adbGo">⬇ Tải &amp; mở</button></div></div>
+      <div class="bt4t" style="--ac:#16a34a"><div class="bt4h"><span class="bt4i">🔌</span><div><b>Ventoy</b><small>1 USB chứa nhiều ISO, chọn lúc boot · tool tự cài Ventoy, chép ISO vào</small></div></div>
+        <div class="bt4c"><span class="bchip free">✔ Miễn phí</span><span class="bchip">Nhiều ISO / 1 USB</span></div><div class="bt4b"><button class="btn sm" id="vtWeb" title="ventoy.net">🌐</button><button class="btn green" id="vtOpen">🔌 Tạo USB Ventoy</button></div></div>
+    </div></div>
+    <div class="tcard isosec" id="vtCard" style="--ac:#16a34a" hidden><div class="sh"><span class="si">🔌</span><div><b>TẠO USB BOOT (VENTOY)</b>
+      <small>Chọn USB → Cài Ventoy (xóa sạch USB, chỉ làm 1 lần) → Chép ISO vào. Đã có Ventoy thì chỉ cần chép ISO</small></div><span class="sp"></span>
+      <button class="btn sm" id="vtRef">⟳ Làm mới</button><button class="btn sm" id="vtHide">✕ Đóng</button></div>
     <div id="vtBody"><div class="logl"><span class="spin"></span> Đang tìm USB...</div></div></div>`);
-  $("vtRef").onclick = vtLoad; vtLoad();
+  $("vtRef").onclick = vtLoad;
+  $("vtOpen").onclick = () => { const c = $("vtCard"); c.hidden = false; vtLoad(); c.scrollIntoView({behavior: "smooth", block: "start"}); };
+  $("vtHide").onclick = () => { $("vtCard").hidden = true; };
   $("rfGo").onclick = async () => { const r = await runJob("rufus_run", "Tải & mở Rufus", []); if (r.ok) toast(r.result.text); };
+  $("rfWeb").onclick = () => api("open_url", "https://rufus.ie/vi/");
   $("avlGo").onclick = async () => { const r = await runJob("avl_run", "Tải & mở AVL Win Master", []); if (r.ok) toast(r.result.text); };
   $("avlWeb").onclick = () => api("open_url", "https://avlwinmaster.badinh.academy/");
   $("adbGo").onclick = async () => { const r = await runJob("anhdv_run", "Tải & mở Anhdv Boot Tool", []); if (r.ok) toast(r.result.text); };
   $("adbWeb").onclick = () => api("open_url", "https://anhdvboot.com");
+  $("vtWeb").onclick = () => api("open_url", "https://www.ventoy.net/");
 }
 async function vtLoad() {
   const B = $("vtBody");

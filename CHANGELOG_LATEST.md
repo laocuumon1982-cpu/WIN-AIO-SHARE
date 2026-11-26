@@ -1,5 +1,11 @@
-Win AIO by Duy Anh v4.7
+Win AIO by Duy Anh v4.8
 
+- Bỏ giao diện Robot AI, chỉ giữ giao diện Mặc định · Sáng (bỏ luôn nút ◐ Giao diện; máy đang dùng Robot AI tự về giao diện Sáng).
+- Khởi động đặc biệt: nút "Chọn ổ khởi động" đổi biểu tượng thành USB.
+- Bảo trì Windows › Tiện ích nhanh: bỏ nhóm "Microsoft Defender" (các chức năng Defender vẫn ở thẻ Defender).
+- Kho bộ cài WIN: làm lại thành 1 thẻ "Công cụ USB boot & cài Win" gồm 4 ô gọn: Rufus · AVL Win Master · Anhdv Boot · Ventoy. Mỗi ô có mô tả ngắn, nhãn (Miễn phí / 🔑 Cần KEY bản quyền / ⚠ Format phân vùng cài), nút 🌐 trang chủ và nút Tải & mở. Ô Ventoy bấm "Tạo USB Ventoy" mới mở phần chọn USB / cài Ventoy / chép ISO.
+
+v4.7:
 - Giao diện mới "Robot AI" (máy móc · robot · AI), là giao diện mặc định: nền thép tối có lưới mạch, khung HUD có vạch góc phát sáng, nút kim loại góc vát, nút chính màu xanh năng lượng, chữ kiểu máy (Bahnschrift / Consolas), logo lục giác. Nút "◐ Giao diện" chọn Robot AI hoặc Mặc định · Sáng (giữ nguyên như cũ); bỏ các giao diện Mặc định · Tối, Giao diện 01.
 - Gộp 3 tab Quản lý, Tiện ích Windows, Sửa lỗi & thiết lập thành 1 tab "Bảo trì Windows", chia 2 nhóm thẻ con:
   + WINDOWS: Tiện ích nhanh · Sửa lỗi & thiết lập · Chạy cùng Win · Driver · Defender

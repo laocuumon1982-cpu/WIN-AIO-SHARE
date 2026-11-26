@@ -126,29 +126,11 @@ function showPage(p) {
 }
 document.querySelectorAll(".nav").forEach(n => n.onclick = () => showPage(n.dataset.p));
 $("fold").onclick = () => { $("side").classList.toggle("mini"); $("fold").textContent = $("side").classList.contains("mini") ? "»" : "«"; };
-/* ---------------------------------------------------------------- Giao diện (v4.7): Robot AI (mặc định) · Mặc định · Sáng */
-let SKIN = "robo", THEME = "light";
+/* ---------------------------------------------------------------- Giao diện: chỉ còn Mặc định · Sáng (v4.8) */
 function applySkin() {
-  document.body.classList.remove("g01", "g01l");
-  document.body.classList.toggle("robo", SKIN === "robo");
-  document.body.classList.toggle("dark", SKIN === "robo");
+  document.body.classList.remove("g01", "g01l", "robo", "dark");
   if (typeof fitSys === "function") [30, 300].forEach(t => setTimeout(() => { try { fitSys(); if (page === "apps") renderGroups(); } catch (e) { /* bỏ qua */ } }, t));
 }
-$("bTheme").onclick = async () => {
-  const opt = (k, t, s, d) => `<label class="skopt${(k === SKIN && (k !== "default" || t === THEME)) ? " on" : ""}" data-k="${k}" data-t="${t}">
-    <span class="skprev sk-${k}${t === "dark" ? " dk" : ""}"><i></i><i></i><i></i><i></i></span><b>${s}</b><small>${d}</small></label>`;
-  await dialog({title: "◐ Chọn giao diện", width: 560, body: `<div class="skgrid">
-      ${opt("robo", "dark", "Robot AI", "Máy móc · robot · AI: nền thép tối, lưới mạch, viền HUD xanh phát sáng")}
-      ${opt("default", "light", "Mặc định · Sáng", "Giao diện gốc của tool, nền sáng")}</div>
-    <div class="logl">Bấm để đổi ngay - tool nhớ lựa chọn cho lần mở sau.</div>`,
-    buttons: [{text: "Xong", cls: "red", def: true}],
-    onOpen: c => c.q(".skgrid").onclick = e => {
-      const o = e.target.closest(".skopt"); if (!o) return;
-      SKIN = o.dataset.k; THEME = "light";
-      c.el.querySelectorAll(".skopt").forEach(x => x.classList.toggle("on", x === o));
-      applySkin(); api("set_skin", SKIN); if (SKIN === "default") api("set_theme", THEME);
-    }});
-};
 
 /* ---------------------------------------------------------------- Admin */
 function setAdmin(on) {
@@ -756,7 +738,7 @@ const TOOL_SEC = {
 function renderTools() {
   const el = $("tools"), wrap = el.parentElement, w = el.clientWidth || 1100;
   const groups = [];
-  INIT.tools.forEach(t => { let g = groups.find(x => x.name === t.group); if (!g) groups.push(g = {name: t.group, items: []}); g.items.push(t); });
+  INIT.tools.filter(t => t.group !== "MICROSOFT DEFENDER").forEach(t => { let g = groups.find(x => x.name === t.group); if (!g) groups.push(g = {name: t.group, items: []}); g.items.push(t); });
   const cards = groups.map(g => {
     const [ic, color, sub] = TOOL_SEC[g.name] || ["🧰", "#6b7280", ""];
     const btns = g.items.map((t, i) => {
@@ -1038,7 +1020,7 @@ async function tick() {
 async function start() {
   if (window.__started) return; window.__started = true;
   INIT = await api("init");
-  THEME = "light"; SKIN = INIT.skin === "default" && INIT.theme !== "dark" ? "default" : "robo"; applySkin();
+  applySkin();
   $("ver").textContent = "by Duy Anh · " + INIT.version;
   $("verfoot").textContent = INIT.title + " " + INIT.version;
   renderTools();
