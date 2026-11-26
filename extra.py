@@ -1272,7 +1272,8 @@ def tools3u_run(j):
 
 # ================================================================ CLAUDE (mục Khác) - v5.0
 # Không lưu tài khoản / mật khẩu / dự án vào thư mục Data, GitHub hay file sao lưu của tool.
-# Cửa sổ Claude riêng = Microsoft Edge chế độ ứng dụng, hồ sơ riêng nằm trên máy này: %LOCALAPPDATA%\WinAIO\Claude
+# Cửa sổ Claude riêng = Google Chrome (không có thì Microsoft Edge) chế độ ứng dụng - không thanh địa chỉ,
+# hồ sơ riêng nằm trên máy này: %LOCALAPPDATA%\WinAIO\Claude\<Chrome|Edge>
 CLAUDE_URLS = {"chat": "https://claude.ai/new", "usage": "https://claude.ai/settings/usage", "download": "https://claude.ai/download"}
 
 
@@ -1280,13 +1281,15 @@ def _claude_dir():
     return Path(os.environ.get("LOCALAPPDATA") or Path.home() / "AppData" / "Local") / "WinAIO" / "Claude"
 
 
-def _edge():
-    for base in (os.environ.get("ProgramFiles(x86)"), os.environ.get("ProgramFiles"), os.environ.get("LOCALAPPDATA")):
-        if base:
-            p = Path(base) / "Microsoft" / "Edge" / "Application" / "msedge.exe"
-            if p.exists():
-                return p
-    return None
+def _browser():
+    """Trình duyệt cho cửa sổ Claude: ưu tiên Google Chrome, không có thì Microsoft Edge (cả 2 có chế độ ứng dụng --app).
+    Firefox không có chế độ ứng dụng nên luôn hiện thanh địa chỉ -> không dùng."""
+    bases = [os.environ.get("ProgramFiles"), os.environ.get("ProgramFiles(x86)"), os.environ.get("LOCALAPPDATA")]
+    for name, sub in (("Chrome", ("Google", "Chrome", "Application", "chrome.exe")), ("Edge", ("Microsoft", "Edge", "Application", "msedge.exe"))):
+        for base in bases:
+            if base and Path(base, *sub).exists():
+                return name, Path(base, *sub)
+    return None, None
 
 
 def _claude_app():
@@ -1319,12 +1322,13 @@ def _launch_as_user(target, args=""):
 
 def claude_status():
     if fake():
-        return {"app": True, "app_kind": "exe", "running": True, "edge": True, "logged": False, "dir": r"C:\Users\Admin\AppData\Local\WinAIO\Claude"}
+        return {"app": True, "app_kind": "exe", "running": True, "browser": "Chrome", "logged": False, "dir": r"C:\Users\Admin\AppData\Local\WinAIO\Claude"}
     app = _claude_app()
     run = bool(mgr.proc_running(["claude.exe"]))
     d = _claude_dir()
-    return {"app": bool(app), "app_kind": "exe" if app.get("exe") else "store" if app else "", "running": run, "edge": bool(_edge()),
-            "logged": (d / "Default").exists(), "dir": str(d)}
+    name, _ = _browser()
+    return {"app": bool(app), "app_kind": "exe" if app.get("exe") else "store" if app else "", "running": run, "browser": name or "",
+            "logged": bool(name) and (d / name / "Default").exists(), "dir": str(d)}
 
 
 def claude_open_app():
@@ -1345,14 +1349,14 @@ def claude_web(page="chat"):
     url = CLAUDE_URLS.get(page, CLAUDE_URLS["chat"])
     if fake():
         return {"ok": True, "text": f"Đã mở {url} (chạy thử)."}
-    edge = _edge()
-    if not edge:
+    name, exe = _browser()
+    if not exe:
         os.startfile(url)                           # noqa: S606
-        return {"ok": True, "text": "Máy không có Microsoft Edge - đã mở Claude bằng trình duyệt mặc định."}
-    d = _claude_dir()
+        return {"ok": True, "text": "Máy không có Chrome / Edge - đã mở Claude bằng trình duyệt mặc định (có thanh địa chỉ)."}
+    d = _claude_dir() / name
     d.mkdir(parents=True, exist_ok=True)
-    _launch_as_user(edge, f'--app={url} --user-data-dir="{d}" --no-first-run --window-size=1280,860')
-    return {"ok": True, "text": "Đã mở cửa sổ Claude" + (" - trang Gói & mức sử dụng." if page == "usage" else ".")}
+    _launch_as_user(exe, f'--app={url} --user-data-dir="{d}" --no-first-run --no-default-browser-check --window-size=1280,860')
+    return {"ok": True, "text": f"Đã mở cửa sổ Claude ({'Google Chrome' if name == 'Chrome' else 'Microsoft Edge'})."}
 
 
 def claude_clear():
@@ -1361,7 +1365,7 @@ def claude_clear():
     if fake():
         return {"ok": True, "text": "Đã xóa phiên Claude (chạy thử)."}
     pat = str(d).replace("'", "''")
-    H["ps"]("Get-CimInstance Win32_Process -Filter \"Name='msedge.exe'\" | Where-Object { $_.CommandLine -like '*" + pat +
+    H["ps"]("Get-CimInstance Win32_Process -Filter \"Name='msedge.exe' OR Name='chrome.exe'\" | Where-Object { $_.CommandLine -like '*" + pat +
             "*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }", timeout=60)
     time.sleep(1.5)
     shutil.rmtree(d, ignore_errors=True)
