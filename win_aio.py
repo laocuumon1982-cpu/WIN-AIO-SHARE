@@ -35,7 +35,7 @@ import apple
 import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v4.9"
+APP_VERSION = "v5.0"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -3442,7 +3442,9 @@ class Api:
               # apple.py (v2.7)
               "ios_devices", "ios_firmwares", "irst_info",
               # officex.py (v3.0)
-              "off_scan", "lic_status", "lic_iid", "lic_oem", "crack_check"}
+              "off_scan", "lic_status", "lic_iid", "lic_oem", "crack_check",
+              # extra.py (v5.0) - Claude
+              "claude_status", "claude_open_app", "claude_web", "claude_clear"}
     M_JOB = {"uninstall_run", "appx_remove", "clean_scan", "clean_run", "folder_sizes", "capcut_clean", "metadata_strip", "backup_user",
              "restore_user", "zalo_backup", "zalo_restore", "browser_backup", "browser_restore", "sha256_file", "iso_download", "wg_upgrades", "wg_upgrade",
              "fix_sfc", "fix_dism", "fix_wu", "fix_store", "fix_printer", "fix_all", "win11_tidy", "font_install", "apps_export",

@@ -1,5 +1,14 @@
 # Nhật ký thay đổi
 
+## v5.0
+- Mục Khác: thêm tab 🤖 Claude
+  + Mở app Claude: mở app Claude máy tính (đang chạy thì đưa lên trước), dùng đúng tài khoản đang đăng nhập trong app. Máy chưa cài thì mở trang tải claude.ai/download.
+  + Cửa sổ Claude: mở claude.ai trong cửa sổ riêng (Microsoft Edge chế độ ứng dụng). Đăng nhập 1 lần, lần sau tự vào.
+  + Gói & mức sử dụng: mở thẳng trang Usage của Claude (gói đang dùng, mức đã dùng).
+  + Đăng xuất & xóa phiên: đóng cửa sổ Claude của tool, xóa sạch phiên đăng nhập trên máy đó.
+  + Riêng tư: phiên đăng nhập chỉ lưu trên máy đó (%LOCALAPPDATA%\WinAIO\Claude), không nằm trong thư mục Data, không lên GitHub, không vào file sao lưu của tool. Tool không lưu tài khoản, mật khẩu hay dự án.
+  + App Claude và cửa sổ Claude được mở bằng quyền người dùng thường (dù tool đang chạy quyền Admin) để đăng nhập, kéo thả file bình thường.
+
 ## v4.9
 - Kho bộ cài WIN: xếp lại 4 công cụ từ trái qua phải: Ventoy · Rufus · AVL Win Master · Anhdv Boot.
 - Thông tin & khởi động › Lưu trữ: ổ nào đang bị KHÓA BitLocker hiện cảnh báo đỏ (khung cảnh báo + dòng ổ màu đỏ "ĐANG KHÓA BITLOCKER"); ổ mã hóa BitLocker đang mở khóa có biểu tượng 🔐.

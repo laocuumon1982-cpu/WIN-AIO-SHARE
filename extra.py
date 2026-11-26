@@ -1268,3 +1268,103 @@ def tools3u_run(j):
                 old.unlink(missing_ok=True)
     subprocess.Popen([str(exe)], cwd=str(d))
     return {"text": f"Đã mở bộ cài 3uTools {ver} (64-bit) - bấm cài đặt trong cửa sổ vừa hiện.", "ver": ver}
+
+
+# ================================================================ CLAUDE (mục Khác) - v5.0
+# Không lưu tài khoản / mật khẩu / dự án vào thư mục Data, GitHub hay file sao lưu của tool.
+# Cửa sổ Claude riêng = Microsoft Edge chế độ ứng dụng, hồ sơ riêng nằm trên máy này: %LOCALAPPDATA%\WinAIO\Claude
+CLAUDE_URLS = {"chat": "https://claude.ai/new", "usage": "https://claude.ai/settings/usage", "download": "https://claude.ai/download"}
+
+
+def _claude_dir():
+    return Path(os.environ.get("LOCALAPPDATA") or Path.home() / "AppData" / "Local") / "WinAIO" / "Claude"
+
+
+def _edge():
+    for base in (os.environ.get("ProgramFiles(x86)"), os.environ.get("ProgramFiles"), os.environ.get("LOCALAPPDATA")):
+        if base:
+            p = Path(base) / "Microsoft" / "Edge" / "Application" / "msedge.exe"
+            if p.exists():
+                return p
+    return None
+
+
+def _claude_app():
+    """App Claude máy tính: file exe (bản cài thường) hoặc AppID (bản Microsoft Store / MSIX)."""
+    la = Path(os.environ.get("LOCALAPPDATA") or "")
+    for p in (la / "AnthropicClaude" / "claude.exe", la / "Programs" / "Claude" / "Claude.exe", la / "Programs" / "claude" / "Claude.exe",
+              Path(os.environ.get("ProgramFiles") or "C:/Program Files") / "Claude" / "Claude.exe"):
+        if p.exists():
+            return {"exe": str(p)}
+    code, out = H["ps"]("Get-StartApps | Where-Object { $_.Name -eq 'Claude' } | Select-Object -First 1 -ExpandProperty AppID", timeout=30)
+    aid = (out or "").strip().splitlines()[-1].strip() if (out or "").strip() else ""
+    return {"appid": aid} if aid and "!" in aid else {}
+
+
+def _launch_as_user(target, args=""):
+    """Tool chạy quyền Admin -> mở app bằng quyền người dùng thường (qua shortcut + Explorer) để app đăng nhập / kéo thả bình thường."""
+    if not args:
+        subprocess.Popen(["explorer.exe", str(target)])
+        return
+    lnk = _claude_dir().parent / "Claude (Win AIO).lnk"
+    lnk.parent.mkdir(parents=True, exist_ok=True)
+    q = lambda s: str(s).replace("'", "''")            # noqa: E731
+    H["ps"](f"$s=(New-Object -ComObject WScript.Shell).CreateShortcut('{q(lnk)}'); $s.TargetPath='{q(target)}'; "
+            f"$s.Arguments='{q(args)}'; $s.WorkingDirectory='{q(Path(target).parent)}'; $s.Save()", timeout=30)
+    if lnk.exists():
+        subprocess.Popen(["explorer.exe", str(lnk)])
+    else:
+        subprocess.Popen([str(target)] + args.split(" "))
+
+
+def claude_status():
+    if fake():
+        return {"app": True, "app_kind": "exe", "running": True, "edge": True, "logged": False, "dir": r"C:\Users\Admin\AppData\Local\WinAIO\Claude"}
+    app = _claude_app()
+    run = bool(mgr.proc_running(["claude.exe"]))
+    d = _claude_dir()
+    return {"app": bool(app), "app_kind": "exe" if app.get("exe") else "store" if app else "", "running": run, "edge": bool(_edge()),
+            "logged": (d / "Default").exists(), "dir": str(d)}
+
+
+def claude_open_app():
+    if fake():
+        return {"ok": True, "text": "Đã mở app Claude (chạy thử)."}
+    app = _claude_app()
+    if not app:
+        os.startfile(CLAUDE_URLS["download"])        # noqa: S606
+        return {"ok": False, "text": "Máy này chưa cài app Claude - đã mở trang tải claude.ai/download."}
+    if app.get("exe"):
+        _launch_as_user(app["exe"])                 # app đang chạy thì tự đưa cửa sổ lên trước
+    else:
+        subprocess.Popen(["explorer.exe", "shell:AppsFolder\\" + app["appid"]])
+    return {"ok": True, "text": "Đã mở app Claude bằng tài khoản đang đăng nhập trong app."}
+
+
+def claude_web(page="chat"):
+    url = CLAUDE_URLS.get(page, CLAUDE_URLS["chat"])
+    if fake():
+        return {"ok": True, "text": f"Đã mở {url} (chạy thử)."}
+    edge = _edge()
+    if not edge:
+        os.startfile(url)                           # noqa: S606
+        return {"ok": True, "text": "Máy không có Microsoft Edge - đã mở Claude bằng trình duyệt mặc định."}
+    d = _claude_dir()
+    d.mkdir(parents=True, exist_ok=True)
+    _launch_as_user(edge, f'--app={url} --user-data-dir="{d}" --no-first-run --window-size=1280,860')
+    return {"ok": True, "text": "Đã mở cửa sổ Claude" + (" - trang Gói & mức sử dụng." if page == "usage" else ".")}
+
+
+def claude_clear():
+    """Đăng xuất: đóng cửa sổ Claude của tool rồi xóa sạch hồ sơ (cookie, phiên đăng nhập) trên máy này."""
+    d = _claude_dir()
+    if fake():
+        return {"ok": True, "text": "Đã xóa phiên Claude (chạy thử)."}
+    pat = str(d).replace("'", "''")
+    H["ps"]("Get-CimInstance Win32_Process -Filter \"Name='msedge.exe'\" | Where-Object { $_.CommandLine -like '*" + pat +
+            "*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }", timeout=60)
+    time.sleep(1.5)
+    shutil.rmtree(d, ignore_errors=True)
+    (d.parent / "Claude (Win AIO).lnk").unlink(missing_ok=True)
+    return {"ok": not d.exists(), "text": "Đã đăng xuất và xóa sạch phiên Claude trên máy này." if not d.exists()
+            else "Chưa xóa hết - đóng cửa sổ Claude rồi bấm lại."}

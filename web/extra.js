@@ -311,3 +311,42 @@ async function pfCpu() {
   if (!(await confirmBox("Test tải CPU", `Chạy 100% toàn bộ nhân CPU trong ${s} giây và theo dõi nhiệt độ, xung nhịp?\nBấm Dừng bất cứ lúc nào để dừng ngay.`, "🔥 Chạy", false))) return;
   const r = await runJob("bench_cpu", `Tải CPU ${s} giây`, [s]); if (r.ok) { PF.cpu = r.result; pfRender(); }
 }
+
+
+/* =============================================================== CLAUDE (mục Khác) - v5.0 */
+async function claudeShow() {
+  const W = $("claudewrap");
+  W.innerHTML = '<div class="logl"><span class="spin"></span> Đang kiểm tra Claude trên máy...</div>';
+  let s; try { s = await m("claude_status"); } catch (e) { s = {}; }
+  const st = (ok, t) => `<span class="pill ${ok ? "t-done" : "t-skip"}">${esc(t)}</span>`;
+  W.innerHTML = `<div class="cgrid clgrid">
+    <div class="tcard" style="--ac:#d97757"><div class="sh"><span class="si">🤖</span><div><b>CLAUDE TRÊN MÁY NÀY</b><small>Trạng thái app Claude và cửa sổ Claude của tool</small></div>
+      <span class="sp"></span><button class="btn sm" id="clRef">⟳ Kiểm tra lại</button></div>
+      <div class="clst"><div><b>App Claude</b>${s.app ? st(true, s.running ? "Đã cài · đang chạy" : "Đã cài") : st(false, "Chưa cài")}</div>
+        <div><b>Cửa sổ Claude của tool</b>${s.logged ? st(true, "Đã dùng trên máy này") : st(false, "Chưa mở lần nào")}</div>
+        <div><b>Microsoft Edge</b>${s.edge ? st(true, "Có") : st(false, "Không có - dùng trình duyệt mặc định")}</div></div>
+      <div class="bt4 cl4">
+        <div class="bt4t" style="--ac:#d97757"><div class="bt4h"><span class="bt4i">🖥️</span><div><b>App Claude</b><small>${s.app ? "Mở app Claude (đang chạy thì đưa lên trước), dùng đúng tài khoản đang đăng nhập trong app" : "Máy chưa cài app Claude - bấm để mở trang tải"}</small></div></div>
+          <div class="bt4b"><button class="btn red shine" id="clApp">${s.app ? "▶ Mở app Claude" : "⬇ Tải app Claude"}</button></div></div>
+        <div class="bt4t" style="--ac:#2f7fa3"><div class="bt4h"><span class="bt4i">💬</span><div><b>Cửa sổ Claude</b><small>Mở claude.ai trong cửa sổ riêng của tool. Đăng nhập 1 lần, lần sau tự vào</small></div></div>
+          <div class="bt4b"><button class="btn red shine" id="clWeb">💬 Mở Claude</button></div></div>
+        <div class="bt4t" style="--ac:#16a34a"><div class="bt4h"><span class="bt4i">📊</span><div><b>Gói &amp; mức sử dụng</b><small>Mở thẳng trang Usage: gói đang dùng, mức đã dùng, thời gian làm mới</small></div></div>
+          <div class="bt4b"><button class="btn green" id="clUse">📊 Xem gói &amp; mức dùng</button></div></div>
+        <div class="bt4t" style="--ac:#b91c1c"><div class="bt4h"><span class="bt4i">🧹</span><div><b>Đăng xuất / xóa phiên</b><small>Đóng cửa sổ Claude của tool, xóa sạch phiên đăng nhập trên máy này</small></div></div>
+          <div class="bt4b"><button class="btn out" id="clClr">🧹 Đăng xuất &amp; xóa phiên</button></div></div>
+      </div></div>
+    <div class="tcard" style="--ac:#6b7280"><div class="sh"><span class="si">🔒</span><div><b>RIÊNG TƯ</b><small>Tool không lưu tài khoản, mật khẩu hay dự án Claude</small></div></div>
+      <ul class="flist"><li>Phiên đăng nhập của cửa sổ Claude chỉ nằm trên máy này: <code>${esc(s.dir || "%LOCALAPPDATA%\\WinAIO\\Claude")}</code></li>
+        <li><b>Không</b> nằm trong thư mục Data cạnh file exe, <b>không</b> lên GitHub, <b>không</b> vào file sao lưu của tool.</li>
+        <li>Cắm USB sang máy khác thì đăng nhập lại ở máy đó. Dùng máy của khách xong nhớ bấm <b>🧹 Đăng xuất &amp; xóa phiên</b>.</li>
+        <li>App Claude dùng tài khoản đăng nhập trong chính app - tool chỉ mở app lên, không đọc phiên đăng nhập của app.</li></ul></div>
+  </div>`;
+  $("clRef").onclick = claudeShow;
+  $("clApp").onclick = async () => { const r = await m("claude_open_app"); toast(r.text, r.ok ? "" : "err"); };
+  $("clWeb").onclick = async () => { const r = await m("claude_web", "chat"); toast(r.text); setTimeout(claudeShow, 4000); };
+  $("clUse").onclick = async () => { const r = await m("claude_web", "usage"); toast(r.text); };
+  $("clClr").onclick = async () => {
+    if (!(await confirmBox("Đăng xuất Claude", "Đóng cửa sổ Claude của tool và xóa sạch phiên đăng nhập Claude trên máy này?\n(App Claude không bị ảnh hưởng)", "🧹 Đăng xuất & xóa"))) return;
+    const r = await m("claude_clear"); toast(r.text, r.ok ? "" : "err"); claudeShow();
+  };
+}
