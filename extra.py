@@ -1110,6 +1110,62 @@ def avl_run(j):
     return {"text": f"Đã mở AVL Win Master {ver} ({_avl_arch()}, quyền Admin) - lưu trong Data\\Tools\\AVLWinMaster.", "ver": ver}
 
 
+# ================================================================ ANHDV BOOT TOOL (Kho bộ cài WIN) - v4.6
+# Hỏi máy chủ cập nhật của chính Anhdv: /api/update/check trả về số bản mới nhất + sha256 + dung lượng,
+# /api/update/download/<bản> chuyển hướng tới file AnhdvBootTool.exe của bản đó. Không đụng tới bản quyền / Premium.
+ANHDV_API = "https://api.anhdv.top/api"
+ANHDV_PAGE = "https://anhdvboot.com"
+
+
+def anhdv_latest():
+    import requests
+    r = requests.get(f"{ANHDV_API}/update/check?v=0.0.0", timeout=20,
+                     headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)", "Accept": "application/json"})
+    r.raise_for_status()
+    js = r.json()
+    ver = str(js.get("version") or "").strip()
+    if not ver:
+        raise RuntimeError("Máy chủ Anhdv không trả về số bản mới nhất - thử lại sau.")
+    return ver, f"{ANHDV_API}/update/download/{ver}", (js.get("sha256") or "").lower(), int(js.get("sizeBytes") or 0)
+
+
+def anhdv_run(j):
+    """Tải Anhdv Boot Tool bản mới nhất vào Data\\Tools\\AnhdvBootTool\\<bản>, kiểm tra sha256 rồi mở bằng quyền Admin."""
+    j["pct"], j["text"] = -1, "Đang hỏi máy chủ Anhdv bản mới nhất..."
+    if fake():
+        time.sleep(0.8)
+        return {"text": "Đã mở Anhdv Boot Tool 26.5.3 (chạy thử).", "ver": "26.5.3"}
+    ver, url, sha, size = anhdv_latest()
+    root = data_dir("Tools", "AnhdvBootTool")
+    d = root / ver
+    exe = d / "AnhdvBootTool.exe"
+
+    def ok(p):
+        if not p.exists() or (size and p.stat().st_size != size):
+            return False
+        if not sha:
+            return True
+        import hashlib
+        h = hashlib.sha256()
+        with open(p, "rb") as f:
+            for b in iter(lambda: f.read(1 << 20), b""):
+                h.update(b)
+        return h.hexdigest() == sha
+
+    if not ok(exe):
+        exe.unlink(missing_ok=True)
+        import apple
+        apple.dl_files(j, [{"name": exe.name, "url": url, "size": size}], d, "Anhdv Boot Tool " + ver)
+        if not ok(exe):
+            exe.unlink(missing_ok=True)
+            raise RuntimeError("File tải về bị lỗi (sai mã sha256) - bấm tải lại.")
+        for old in root.iterdir():                  # bỏ bản cũ
+            if old.is_dir() and old.name != ver:
+                shutil.rmtree(old, ignore_errors=True)
+    ctypes.windll.shell32.ShellExecuteW(None, "runas", str(exe), None, str(d), 1)
+    return {"text": f"Đã mở Anhdv Boot Tool {ver} (bản mới nhất, quyền Admin) - lưu trong Data\\Tools\\AnhdvBootTool.", "ver": ver}
+
+
 # ================================================================ macUSB (Kho bộ cài MAC) - v4.5: app chạy trên Mac, tải .dmg để chép sang
 MACUSB = r"github:Kruszoneq/macUSB|^macUSB.*\.dmg$"
 

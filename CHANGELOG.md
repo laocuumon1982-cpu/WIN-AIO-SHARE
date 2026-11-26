@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v4.6
+- Kho bộ cài WIN: thêm thẻ Anhdv Boot Tool. Mỗi lần bấm "Tải & mở", tool hỏi máy chủ cập nhật của chính Anhdv (api.anhdv.top) lấy số bản mới nhất (hiện 26.5.3), tải đúng file AnhdvBootTool.exe bản đó vào Data\Tools\AnhdvBootTool, kiểm tra sha256 rồi mở bằng quyền Admin. Bản cũ tự xóa; đã có bản mới nhất thì mở luôn không tải lại.
+
 ## v4.5
 - Kho bộ cài WIN: AVL Win Master. Kho bộ cài MAC: macUSB, Apple Configurator 2.
 

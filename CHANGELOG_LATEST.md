@@ -1,5 +1,8 @@
-Win AIO by Duy Anh v4.5
+Win AIO by Duy Anh v4.6
 
+- Kho bộ cài WIN: thêm thẻ Anhdv Boot Tool. Mỗi lần bấm "Tải & mở", tool hỏi máy chủ cập nhật của chính Anhdv (api.anhdv.top) lấy số bản mới nhất (hiện 26.5.3), tải đúng file AnhdvBootTool.exe bản đó vào Data\Tools\AnhdvBootTool, kiểm tra sha256 rồi mở bằng quyền Admin. Bản cũ tự xóa; đã có bản mới nhất thì mở luôn không tải lại.
+
+v4.5:
 - Kho bộ cài WIN: thêm AVL Win Master (cài Win sạch từ Win đang chạy, WinPE, nạp driver IRST/VMD + Wi-Fi, sao lưu Win, USB cứu hộ). Bấm "Tải & mở AVL" là tool lấy bản mới nhất đúng kiến trúc máy (x64 / x86 / ARM64) từ trang chủ avlwinmaster.badinh.academy, giải nén vào Data\Tools\AVLWinMaster và mở bằng quyền Admin.
 - Kho bộ cài MAC: thêm mục "Công cụ cho Mac":
   + macUSB: tải file .dmg bản mới nhất từ GitHub Kruszoneq/macUSB để chép sang Mac.

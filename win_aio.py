@@ -35,7 +35,7 @@ import apple
 import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v4.5"
+APP_VERSION = "v4.6"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -3438,7 +3438,7 @@ class Api:
              "restore_user", "zalo_backup", "zalo_restore", "browser_backup", "browser_restore", "sha256_file", "iso_download", "wg_upgrades", "wg_upgrade",
              "fix_sfc", "fix_dism", "fix_wu", "fix_store", "fix_printer", "fix_all", "win11_tidy", "font_install", "apps_export",
              "apps_import", "drv_wu_scan", "drv_wu_install", "bench_disk", "bench_cpu", "ventoy_install", "ventoy_copy", "preset_run",
-             "mac_list", "mac_download", "ios_download", "irst_get", "rufus_run", "tools3u_run", "avl_run", "macusb_get",
+             "mac_list", "mac_download", "ios_download", "irst_get", "rufus_run", "tools3u_run", "avl_run", "anhdv_run", "macusb_get",
              "lic_key", "lic_cid", "crack_clear", "win_clear_key", "to_volume", "off_remove", "off_tune"}
 
     def set_upg_n(self, n):
@@ -3709,7 +3709,7 @@ class App:
                           ("gh_wordcraft", lambda: resolve_github(ARTCRAFT[1][0][2])),
                           ("gh_ytdl", lambda: resolve_github(GH_YTDL)),
                           ("gh_ventoy", lambda: resolve_github(r"github:ventoy/Ventoy|windows\.zip$")),
-                          ("gh_caiwindao", lambda: resolve_github(CAIWINDAO[2])), ("gh_vanphong", lambda: resolve_github(VANPHONG[2])), ("gh_rufus", lambda: resolve_github(extra.RUFUS)), ("gh_avl", lambda: _try(lambda: resolve_github(extra.avl_src("x64")))), ("gh_macusb", lambda: _try(lambda: resolve_github(extra.MACUSB))), ("gh_transub", lambda: _try(lambda: resolve_github(TRANSUB[2]))),
+                          ("gh_caiwindao", lambda: resolve_github(CAIWINDAO[2])), ("gh_vanphong", lambda: resolve_github(VANPHONG[2])), ("gh_rufus", lambda: resolve_github(extra.RUFUS)), ("gh_avl", lambda: _try(lambda: resolve_github(extra.avl_src("x64")))), ("anhdv", lambda: _try(lambda: extra.anhdv_latest())), ("gh_macusb", lambda: _try(lambda: resolve_github(extra.MACUSB))), ("gh_transub", lambda: _try(lambda: resolve_github(TRANSUB[2]))),
                           ("gh_vieneu", lambda: [_try(lambda: resolve_github(VIENEU[2])), _assets("github:pnnbao97/VieNeu-TTS")]),
                           ("wg_lazibook", lambda: run_hidden(["winget", "show", "--id", "9N2X9BM8R5P9", "--source", "msstore",
                                                               "--accept-source-agreements"], timeout=180)[1][-500:]),
