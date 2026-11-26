@@ -315,6 +315,7 @@ async function pfCpu() {
 
 
 /* =============================================================== TEST MÁY MAC - SoiMac (v5.4) */
+const SOIMAC_URL = "https://laocuumon1982-cpu.github.io/SoiMac/";
 async function testMacShow() {
   const W = $("testmacwrap");
   if (!W.dataset.ok) {
@@ -336,15 +337,20 @@ async function testMacShow() {
         <div id="smDrives"><div class="logl"><span class="spin"></span> Đang tìm ổ...</div></div>
         <div class="row-acts"><button class="btn" id="smPick">📂 Chọn thư mục khác...</button></div>
         <div id="smRes"></div></div>
-      <div class="tcard" style="--ac:#6b7280"><div class="sh"><span class="si">🍎</span><div><b>CÁCH DÙNG TRÊN MÁY MAC</b><small>Không cần cài gì, không cần mạng</small></div></div>
-        <ol class="flist smhow"><li>Cắm USB vào Mac, mở <b>Finder</b>, chọn ổ USB ở cột bên trái.</li>
-          <li>Nhấp đúp <b>SoiMac.html</b> (hoặc chuột phải › Mở bằng › <b>Safari</b>).</li>
-          <li>Làm lần lượt 5 bước trên thanh trên cùng. Tiến độ tự lưu trong Safari của máy đó.</li>
-          <li>Xong bấm <b>Sao chép báo cáo</b> để dán vào Zalo / Ghi chú. Kiểm máy khác thì bấm <b>Kiểm máy khác</b>.</li></ol>
+      <div class="tcard" style="--ac:#6b7280"><div class="sh"><span class="si">🍎</span><div><b>CÁCH DÙNG TRÊN MÁY MAC</b><small>Mở bằng web hoặc từ USB - không cần cài gì</small></div></div>
+        <div class="smopt"><b>Cách 1 · Mở bằng web (máy Mac có mạng)</b>
+          <div class="smurl"><code>${SOIMAC_URL}</code><button class="btn sm" id="smCopy">📋 Chép link</button><button class="btn sm" id="smWeb">🌐 Mở thử</button></div>
+          <small>Trên Mac mở <b>Safari</b>, gõ / dán link trên. Không cần USB, luôn là bản SoiMac mới nhất.</small></div>
+        <div class="smopt"><b>Cách 2 · Mở từ USB (không cần mạng)</b>
+          <ol class="flist smhow"><li>Cắm USB vào Mac, mở <b>Finder</b>, chọn ổ USB ở cột bên trái.</li>
+            <li>Nhấp đúp <b>SoiMac.html</b> (hoặc chuột phải › Mở bằng › <b>Safari</b>).</li></ol></div>
+        <div class="logl">Trên SoiMac: làm lần lượt 5 bước trên thanh trên cùng, tiến độ tự lưu trong Safari của máy đó. Xong bấm <b>Sao chép báo cáo</b> để dán vào Zalo / Ghi chú; kiểm máy khác thì bấm <b>Kiểm máy khác</b>.</div>
         <div class="logl">Có mạng thì chữ hiển thị đẹp hơn (font Be Vietnam Pro); không có mạng vẫn dùng đủ chức năng. Camera &amp; micro kiểm bằng Photo Booth / Ghi âm có sẵn trên Mac.</div></div>
     </div>`;
     $("smPrev").onclick = async () => { const r = await m("soimac_open"); toast(r.text, r.ok ? "" : "err"); };
     $("smRef").onclick = smDrives;
+    $("smCopy").onclick = () => { copyLocal(SOIMAC_URL); toast("Đã chép link SoiMac"); };
+    $("smWeb").onclick = () => api("open_url", SOIMAC_URL);
     $("smPick").onclick = async () => { const d = await api("pick_folder_abs"); if (d) smSave(d); };
     $("smDrives").onclick = e => { const b = e.target.closest("[data-sml]"); if (b) smSave(b.dataset.sml); };
   }

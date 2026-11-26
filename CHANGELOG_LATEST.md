@@ -1,5 +1,8 @@
-Win AIO by Duy Anh v5.4
+Win AIO by Duy Anh v5.5
 
+- Test máy MAC › Cách dùng trên máy Mac: thêm cách mở SoiMac bằng web https://laocuumon1982-cpu.github.io/SoiMac/ (nút 📋 Chép link, 🌐 Mở thử); cách mở từ USB vẫn giữ (không cần mạng).
+
+v5.4:
 - Đổi tên tab "Test máy" thành "Test máy WIN".
 - Thêm tab "Test máy MAC" với SoiMac - trang kiểm tra Mac cũ trước khi mua (5 bước: chọn máy theo đời kèm lỗi hay gặp · kiểm tra ngoài, iCloud, MDM · lệnh Terminal · test màn hình, bàn phím, trackpad, loa, camera / mic · kết quả % và báo cáo):
   + Chép SoiMac.html ra USB bằng 1 nút (tự tìm USB / ổ rời), hoặc chọn thư mục khác.
