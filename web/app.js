@@ -881,9 +881,9 @@ function countdown() {
 setInterval(countdown, 1000);
 
 let DK = [], dkBusy = false;
-async function loadDisks() {
+async function loadDisks(force) {
   if (dkBusy) return; dkBusy = true;
-  try { const r = await api("disks"); DK = r.disks || []; if (r.err) $("dkInfo").textContent = "Lỗi đọc ổ: " + r.err; renderDisks(!!r.err); }
+  try { const r = await api("disks", force === true); DK = r.disks || []; if (r.err) $("dkInfo").textContent = "Lỗi đọc ổ: " + r.err; renderDisks(!!r.err); }
   finally { dkBusy = false; }
 }
 function renderDisks(hasErr) {
@@ -905,7 +905,7 @@ function renderDisks(hasErr) {
   }).join("") || `<div class="empty big">Không có ổ USB / ổ ngoài nào đang cắm\nCắm ổ vào — danh sách tự cập nhật</div>`;
 }
 $("dkInt").onchange = () => renderDisks();
-$("dkRef").onclick = loadDisks;
+$("dkRef").onclick = () => loadDisks(true);
 $("dkList").onclick = async e => {
   const b = e.target.closest("[data-a]"); if (!b) return;
   const d = DK.find(x => x.n === +b.closest(".dk").dataset.n);
@@ -981,7 +981,10 @@ let WGC = 0;
 document.addEventListener("click", e => { if (e.target.id === "upgN") setTimeout(() => { const t = $("mtabs").querySelector('[data-t="upgrade"]'); if (t) t.click(); }, 60); });
 function setUpgBadge(n) { for (const id of ["upgN", "upgB"]) { const b = $(id); if (b) { b.hidden = !n; b.textContent = n; } } }
 let SIV = null, SYSI = null, hidTick = 0;
+let tickBusy = false;
 async function tick() {
+  if (tickBusy) return;                                            // v5.11: lần hỏi trước chưa xong thì bỏ qua, không dồn lệnh
+  tickBusy = true;
   try {
     if (document.hidden && ++hidTick % 4) return;                 // cửa sổ ẩn / thu nhỏ: hỏi chậm lại
     ST = await api("state", logSeq, SIV);
@@ -1021,7 +1024,7 @@ async function tick() {
     if (ST.sysinfo !== infoShown) { infoShown = ST.sysinfo; renderInfo(); }
     if (ST.full !== lastFull) { if (lastFull !== undefined) loadGroups(); lastFull = ST.full; }   // v5.8: mở đầy đủ -> hiện nhóm bị ẩn
     tiles();
-  } catch (e) { /* bỏ qua 1 nhịp */ }
+  } catch (e) { /* bỏ qua 1 nhịp */ } finally { tickBusy = false; }
 }
 
 async function start() {

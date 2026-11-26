@@ -1,5 +1,15 @@
-Win AIO by Duy Anh v5.10
+Win AIO by Duy Anh v5.11
 
+- Tối ưu chạy ổn định và nhanh hơn:
+  + Mở tool: đọc thông tin máy chạy song song với kiểm tra mạng (máy mất mạng không phải chờ thêm ~6 giây mới hiện thông tin máy).
+  + Lệnh chạy quá thời gian hoặc máy thiếu chương trình (winget, PowerShell...) không còn làm hỏng chức năng đang chạy, chỉ báo lỗi rõ ràng; lệnh lỡ hỏi Y/N không còn treo.
+  + PowerShell gọi theo đường dẫn đầy đủ trong Windows (máy có PATH bị hỏng vẫn chạy).
+  + Trang Nguồn & Ổ USB: chỉ quét lại ổ khi cắm / rút ổ hoặc sau 30 giây (trước đây mở PowerShell 6 giây / lần) - nhẹ máy hơn hẳn; nút ⟳ Làm mới vẫn quét ngay.
+  + Vòng cập nhật trạng thái không bị dồn lệnh khi máy đang bận.
+  + Dữ liệu (SQLite) ghi nhanh hơn trên USB / ổ chậm.
+  + Sửa cảnh báo cú pháp có thể thành lỗi ở Python bản mới.
+
+v5.10:
 - Cài phần mềm: vị trí nhóm cố định theo hình mẫu (5 cột, kiểu Tự vừa màn hình):
   + Cột 1: MICROSOFT OFFICE · ARTCRAFT OFFICE · OFFICE · VĂN PHÒNG - PDF · BỘ GÕ TIẾNG VIỆT
   + Cột 2: TRÌNH DUYỆT WEB · HỖ TRỢ TỪ XA · NHẮN TIN - HỌP

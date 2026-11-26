@@ -702,7 +702,7 @@ def defender_excl(action, kind, value):
 
 # ================================================================= DỌN DẸP
 def _clean_targets():
-    L, R, W = Path(env("LOCALAPPDATA")), Path(env("APPDATA")), Path(env("WINDIR", r"C:\Windows"))
+    L, W = Path(env("LOCALAPPDATA")), Path(env("WINDIR", r"C:\Windows"))
     chromium = {"Chrome": L / r"Google\Chrome\User Data", "Edge": L / r"Microsoft\Edge\User Data",
                 "Cốc Cốc": L / r"CocCoc\Browser\User Data", "Brave": L / r"BraveSoftware\Brave-Browser\User Data"}
     browser = []

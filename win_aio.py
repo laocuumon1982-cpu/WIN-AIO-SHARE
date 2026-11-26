@@ -35,7 +35,7 @@ import apple
 import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v5.10"
+APP_VERSION = "v5.11"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -667,7 +667,14 @@ def run_hidden(cmd, shell=False, timeout=None):
     if FAKE:
         time.sleep(0.6)
         return 0, f"(chạy thử) {cmd if isinstance(cmd, str) else ' '.join(cmd)}"
-    p = subprocess.run(cmd, shell=shell, capture_output=True, timeout=timeout, creationflags=CREATE_NO_WINDOW)
+    try:
+        p = subprocess.run(cmd, shell=shell, capture_output=True, timeout=timeout, creationflags=CREATE_NO_WINDOW,
+                           stdin=subprocess.DEVNULL)   # không chờ nhập: lệnh lỡ hỏi Y/N sẽ không treo
+    except subprocess.TimeoutExpired as e:          # v5.11: quá thời gian -> báo lỗi, không làm hỏng luồng đang chạy
+        part = ((e.stdout or b"") + (e.stderr or b"")).decode("utf-8", "replace")
+        return -1, (part.strip() + f"\n(Lệnh chạy quá {timeout} giây nên đã dừng)").strip()
+    except OSError as e:                            # thiếu file chạy (máy không có winget, powershell...)
+        return -1, f"Không chạy được lệnh: {e}"
     raw = (p.stdout or b"") + (p.stderr or b"")
     for enc in ("utf-8", "cp1258", "cp437"):
         try:
@@ -680,12 +687,17 @@ def run_hidden(cmd, shell=False, timeout=None):
     return p.returncode, out.strip()
 
 
+_PS_EXE = str(Path(os.environ.get("SystemRoot", r"C:\Windows")) / "System32" / "WindowsPowerShell" / "v1.0" / "powershell.exe")
+if not Path(_PS_EXE).exists():
+    _PS_EXE = "powershell"                  # máy lạ: dùng theo PATH
+
+
 def ps(script, timeout=600):
     full = ("[Console]::OutputEncoding=[Text.Encoding]::UTF8; $ProgressPreference='SilentlyContinue'; "
             "$ErrorActionPreference='Stop'; " + script)
     import base64                            # gửi lệnh dạng mã hóa: không lỗi dấu ngoặc kép, ký tự tiếng Việt
     enc = base64.b64encode(full.encode("utf-16-le")).decode("ascii")
-    code, out = run_hidden(["powershell", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", enc],
+    code, out = run_hidden([_PS_EXE, "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", enc],
                            timeout=timeout)
     return code, _clixml(out)
 
@@ -708,6 +720,14 @@ def open_target(t):
 
 
 # ================================================================= dữ liệu (SQLite + config.json)
+def _fast_db(db):
+    """v5.11: ghi nhanh hơn trên USB / ổ chậm (vẫn an toàn khi tool tắt đột ngột: giữ journal kiểu DELETE)."""
+    try:
+        db.execute("PRAGMA synchronous=NORMAL")
+        db.execute("PRAGMA temp_store=MEMORY")
+    except sqlite3.Error:
+        pass
+
 
 _HELPER_EXE = re.compile(r"^(createdump|crashpad.*|unins.*|uninstall.*|update|updater|elevate|squirrel|vc_?redist.*|dxsetup|notification_helper)$", re.I)
 
@@ -740,8 +760,9 @@ class Store:
             self.cfg["admin_salt"], self.cfg["admin_hash"] = DEFAULT_PW_SALT, DEFAULT_PW_HASH
         if self.on_disk:
             DATA.mkdir(parents=True, exist_ok=True)
-        self.db = sqlite3.connect(str(DB_FILE) if self.on_disk else ":memory:", check_same_thread=False)
+        self.db = sqlite3.connect(str(DB_FILE) if self.on_disk else ":memory:", check_same_thread=False, timeout=15)
         self.db.row_factory = sqlite3.Row
+        _fast_db(self.db)
         self.db.executescript("""
             CREATE TABLE IF NOT EXISTS groups(id INTEGER PRIMARY KEY, name TEXT, ord INTEGER, col INTEGER, gpos INTEGER);
             CREATE TABLE IF NOT EXISTS weblinks(id INTEGER PRIMARY KEY, grp TEXT, icon TEXT, name TEXT, url TEXT, ord INTEGER);
@@ -1074,7 +1095,8 @@ class Store:
             if self.on_disk:
                 return
             DATA.mkdir(parents=True, exist_ok=True)
-            disk = sqlite3.connect(str(DB_FILE), check_same_thread=False)
+            disk = sqlite3.connect(str(DB_FILE), check_same_thread=False, timeout=15)
+            _fast_db(disk)
             self.db.commit()
             self.db.backup(disk)
             self.db.close()
@@ -1273,6 +1295,7 @@ class Engine:
 
     # ---- kiểm tra nền: mạng, winget, thông tin máy
     def _bg_checks(self):
+        threading.Thread(target=self._bg_sysinfo, daemon=True).start()   # v5.11: đọc thông tin máy song song, không chờ mạng
         try:
             import requests
             requests.head("https://www.microsoft.com", timeout=6)
@@ -1286,7 +1309,12 @@ class Engine:
         else:
             self.checks["winget"] = False
         threading.Thread(target=self.winget_auto_update, daemon=True).start()
-        self.sysinfo = self._read_sysinfo()
+
+    def _bg_sysinfo(self):
+        try:
+            self.sysinfo = self._read_sysinfo()
+        except Exception as e:              # noqa: BLE001
+            self.sysinfo = {"err": str(e)[:300]}
 
     FAKE_SYSINFO = {
         "pc": {"name": "DUYANH-PC", "user": "DUYANH-PC\\duyanh", "maker": "Dell Inc.", "model": "OptiPlex 7090", "tag": "7XK2F93", "type": "Desktop"},
@@ -2533,10 +2561,17 @@ class Power:
         return msg
 
     # ---- ổ đĩa
-    def disks(self):
+    _dk_cache = (None, 0.0, None)          # (mặt nạ ổ, thời điểm, kết quả)
+
+    def disks(self, force=False):
         if FAKE or not IS_WIN:
             raw = [dict(d) for d in FAKE_DISKS]
         else:
+            # v5.11: trang Nguồn & Ổ USB hỏi 6 giây / lần -> chỉ chạy lại PowerShell khi cắm / rút ổ, hoặc quá 30 giây
+            mask = ctypes.windll.kernel32.GetLogicalDrives()
+            m0, t0, r0 = self._dk_cache
+            if not force and r0 is not None and m0 == mask and time.time() - t0 < 30:
+                return r0
             code, out = ps(DISK_PS, timeout=60)
             try:
                 raw = json.loads(out[out.index("["):])
@@ -2549,10 +2584,13 @@ class Power:
             d["size_text"] = human(d.get("size") or 0)
             d["external"] = (d["bus_name"].upper() in ("USB", "1394", "SD", "MMC") or "external" in media
                              or "removable" in media) and not d.get("sys")
-        return {"err": "", "disks": raw}
+        res = {"err": "", "disks": raw}
+        if IS_WIN and not FAKE:
+            self._dk_cache = (ctypes.windll.kernel32.GetLogicalDrives(), time.time(), res)
+        return res
 
     def _disk(self, n):
-        return next((d for d in self.disks()["disks"] if int(d["n"]) == int(n)), None)
+        return next((d for d in self.disks(force=True)["disks"] if int(d["n"]) == int(n)), None)
 
     @staticmethod
     def _flush_dismount(letter, dismount=True):
@@ -3546,8 +3584,8 @@ class Api:
     def pw_cancel(self):
         return self._e.power.cancel()
 
-    def disks(self):
-        return self._e.power.disks()
+    def disks(self, force=False):
+        return self._e.power.disks(bool(force))
 
     def disk_safe(self, n):
         return self._e.power.safe_remove(n)

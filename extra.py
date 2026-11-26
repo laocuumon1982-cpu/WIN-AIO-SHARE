@@ -1082,7 +1082,7 @@ def avl_src(arch=None):
 
 
 def avl_run(j):
-    """Tải AVL Win Master bản mới nhất (đúng kiến trúc máy) từ trang chủ, giải nén vào Data\Tools rồi mở bằng quyền Admin."""
+    """Tải AVL Win Master bản mới nhất (đúng kiến trúc máy) từ trang chủ, giải nén vào Data\\Tools rồi mở bằng quyền Admin."""
     j["pct"], j["text"] = -1, "Đang hỏi bản AVL Win Master mới nhất..."
     url, ver = H["gh"](avl_src())
     name = url.rsplit("/", 1)[-1]
