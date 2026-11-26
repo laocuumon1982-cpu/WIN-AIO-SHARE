@@ -1,5 +1,12 @@
-Win AIO by Duy Anh v5.12
+Win AIO by Duy Anh v5.13
 
+- Thanh bên: mục CÀI ĐẶT chia 3 nhóm:
+  + WINDOWS: Cài phần mềm WIN (đổi tên từ Cài phần mềm) · Kho bộ cài WIN
+  + MACOS: Cài phần mềm MAC (đổi tên từ Kho phần mềm Mac) · Kho bộ cài MAC
+  + iOS: Kho Firmware iOS
+- Nhóm ACTIVE: thêm nút "MS Office MacOS" (chưa có link - Admin bấm ✎ để thêm).
+
+v5.12:
 - Thêm tab "Kho phần mềm Mac" (dưới Kho bộ cài MAC), thẻ con "MS Office for macOS": bộ cài Office cho Mac chính chủ Microsoft, mỗi bản ghi rõ dùng cho macOS nào:
   + Mới nhất (Microsoft 365 / Office 2024 / 2021): macOS 14 Sonoma trở lên - có thêm từng app Word, Excel, PowerPoint, Outlook, OneNote
   + 16.101: macOS 13 Ventura · 16.88: macOS 12 Monterey · 16.77: macOS 11 Big Sur · 16.66: macOS 10.15 Catalina · 16.54: macOS 10.14 Mojave · 16.43: macOS 10.13 High Sierra

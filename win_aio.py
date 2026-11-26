@@ -35,7 +35,7 @@ import apple
 import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v5.12"
+APP_VERSION = "v5.13"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -236,6 +236,7 @@ DEFAULT_GROUPS = [     # (tên nhóm, cột, [nút...]) - thứ tự trong cột
         ("🔑", "IDM", "", "", ""),
         ("🔑", "ADOBE", "", "", ""),
         ("🔑", "MAS AIO", "", "", ""),
+        ("🔑", "MS Office MacOS", "", "", "Admin bấm ✎ để thêm link"),
     ]),
     ("KHO PHẦN MỀM", 0, [
         ("🗄️", "Kho Fshare", "open:https://www.fshare.vn/folder/BESIWSY4GNO7", "", "Mở thư mục phần mềm trên Fshare"),
@@ -1029,6 +1030,17 @@ class Store:
         if "office53" not in done:
             self._office53()
             done.add("office53")
+            self.cfg["migrated"] = sorted(done)
+            self.save_config(persist=False)
+        if "active512" not in done:
+            # v5.12: nhóm ACTIVE thêm nút MS Office MacOS (chưa có link - Admin tự thêm)
+            g = self.db.execute("SELECT id FROM groups WHERE UPPER(TRIM(name))='ACTIVE' ORDER BY id LIMIT 1").fetchone()
+            if g and not self.db.execute("SELECT 1 FROM apps WHERE name='MS Office MacOS'").fetchone():
+                n = self.db.execute("SELECT COALESCE(MAX(ord),-1)+1 FROM apps WHERE group_id=?", (g[0],)).fetchone()[0]
+                self.db.execute("INSERT INTO apps(group_id, icon, name, src, args, note, ord) VALUES(?,?,?,?,?,?,?)",
+                                (g[0], "🔑", "MS Office MacOS", "", "", "Admin bấm ✎ để thêm link", n))
+                self.commit(persist=False)
+            done.add("active512")
             self.cfg["migrated"] = sorted(done)
             self.save_config(persist=False)
         if "layout510" not in done:
