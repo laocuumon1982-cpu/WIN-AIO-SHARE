@@ -35,7 +35,7 @@ import apple
 import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v5.11"
+APP_VERSION = "v5.12"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -3629,7 +3629,7 @@ class Api:
               "backup_info", "zalo_info", "zalo_open", "zalo_profile_delete", "browsers_info", "job_status", "job_stop",
               # extra.py (v2.6)
               "drv_problems", "setup_info", "setup_rename", "setup_user", "setup_nopass", "setup_browser", "setup_unikey",
-              "usb_disks", "iso_files", "apps_list_file", "cpu_temp", "soimac_drives", "soimac_save", "soimac_open",
+              "usb_disks", "iso_files", "apps_list_file", "cpu_temp", "soimac_drives", "soimac_save", "soimac_open", "macoffice_list",
               # apple.py (v2.7)
               "ios_devices", "ios_firmwares", "irst_info",
               # officex.py (v3.0)
@@ -3638,7 +3638,7 @@ class Api:
              "restore_user", "zalo_backup", "zalo_restore", "browser_backup", "browser_restore", "sha256_file", "iso_download", "wg_upgrades", "wg_upgrade",
              "fix_sfc", "fix_dism", "fix_wu", "fix_store", "fix_printer", "fix_all", "win11_tidy", "font_install", "apps_export",
              "apps_import", "drv_wu_scan", "drv_wu_install", "bench_disk", "bench_cpu", "ventoy_install", "ventoy_copy", "preset_run",
-             "mac_list", "mac_download", "ios_download", "irst_get", "rufus_run", "tools3u_run", "avl_run", "anhdv_run", "macusb_get",
+             "mac_list", "mac_download", "ios_download", "irst_get", "rufus_run", "tools3u_run", "avl_run", "anhdv_run", "macoffice_dl", "macusb_get",
              "lic_key", "lic_cid", "crack_clear", "win_clear_key", "to_volume", "off_remove", "off_tune"}
 
     def set_upg_n(self, n):
@@ -3952,6 +3952,17 @@ class App:
                     lines.append(f"{nm}: " + json.dumps(f(), ensure_ascii=False, default=str)[:600])
                 except Exception as ex:     # noqa: BLE001
                     lines.append(f"{nm}: ERROR {ex!r}")
+            try:                                # v5.12: kiểm tra link bộ cài Office for Mac còn sống (ghi vào log build)
+                import requests
+                for r in extra.MACOFFICE:
+                    for k in ("suite", "teams"):
+                        try:
+                            h = requests.head(r[k], allow_redirects=True, timeout=30)
+                            lines.append(f"macoffice {r['ver']} {k}: {h.status_code} {h.headers.get('Content-Length')} {h.url.rsplit('/', 1)[-1][:90]}")
+                        except Exception as ex:     # noqa: BLE001
+                            lines.append(f"macoffice {r['ver']} {k}: FAIL {ex!r}"[:200])
+            except Exception as ex:             # noqa: BLE001
+                lines.append(f"macoffice: FAIL {ex!r}"[:200])
             for nm, f in [("startup", lambda: [(x["name"], x["on"], x["pub"]) for x in mgr.startup_list()]),
                           ("programs", lambda: [len(mgr.programs_list())] + [x["name"] for x in mgr.programs_list()[:8]]),
                           ("appx", lambda: len(mgr.appx_list())), ("mgr_defender", mgr.defender_status),

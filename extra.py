@@ -1336,3 +1336,64 @@ def soimac_open():
     shutil.copyfile(src, tmp)
     os.startfile(str(tmp))                          # noqa: S606
     return {"ok": True, "text": "Đã mở SoiMac bằng trình duyệt (bản xem trước - test thật phải mở trên máy Mac)."}
+
+
+# ================================================================ KHO PHẦN MỀM MAC - MS Office for macOS (v5.12)
+# Chỉ dùng link chính chủ Microsoft (officecdn.microsoft.com / go.microsoft.com). Cần tài khoản Microsoft 365 hoặc key Office bản quyền để kích hoạt.
+_OCDN = "https://officecdn.microsoft.com/pr/C1297A47-86C4-4C1F-97FA-950631F94777/MacAutoupdate/"
+MACOFFICE = [
+    {"ver": "Mới nhất", "mac": "macOS 14 Sonoma trở lên", "date": "luôn bản mới nhất", "latest": True,
+     "note": "Microsoft 365 / Office 2024 / 2021 - Microsoft hỗ trợ 3 bản macOS mới nhất",
+     "suite": "https://go.microsoft.com/fwlink/?linkid=525133", "teams": "https://go.microsoft.com/fwlink/?linkid=2009112",
+     "apps": [["Word", "https://go.microsoft.com/fwlink/?linkid=525134"], ["Excel", "https://go.microsoft.com/fwlink/?linkid=525135"],
+              ["PowerPoint", "https://go.microsoft.com/fwlink/?linkid=525136"], ["Outlook", "https://go.microsoft.com/fwlink/?linkid=525137"],
+              ["OneNote", "https://go.microsoft.com/fwlink/?linkid=820886"]]},
+    {"ver": "16.101", "mac": "macOS 13 Ventura", "date": "16/09/2025", "note": "Bản cuối hỗ trợ Ventura",
+     "suite": _OCDN + "Microsoft_365_and_Office_16.101.25091314_Installer.pkg",
+     "teams": _OCDN + "Microsoft_365_and_Office_16.101.25091314_BusinessPro_Installer.pkg"},
+    {"ver": "16.88", "mac": "macOS 12 Monterey", "date": "13/08/2024", "note": "Bản cuối hỗ trợ Monterey",
+     "suite": _OCDN + "Microsoft_365_and_Office_16.88.24081116_Installer.pkg",
+     "teams": _OCDN + "Microsoft_365_and_Office_16.88.24081116_BusinessPro_Installer.pkg"},
+    {"ver": "16.77", "mac": "macOS 11 Big Sur", "date": "12/09/2023", "note": "Bản cuối hỗ trợ Big Sur",
+     "suite": _OCDN + "Microsoft_365_and_Office_16.77.23091003_Installer.pkg",
+     "teams": _OCDN + "Microsoft_365_and_Office_16.77.23091003_BusinessPro_Installer.pkg"},
+    {"ver": "16.66", "mac": "macOS 10.15 Catalina", "date": "11/10/2022", "note": "Bản cuối hỗ trợ Catalina",
+     "suite": _OCDN + "Microsoft_Office_16.66.22100900_Installer.pkg",
+     "teams": _OCDN + "Microsoft_Office_16.66.22100900_BusinessPro_Installer.pkg"},
+    {"ver": "16.54", "mac": "macOS 10.14 Mojave", "date": "12/10/2021", "note": "Bản cuối hỗ trợ Mojave",
+     "suite": _OCDN + "Microsoft_Office_16.54.21101001_Installer.pkg",
+     "teams": _OCDN + "Microsoft_Office_16.54.21101001_BusinessPro_Installer.pkg"},
+    {"ver": "16.43", "mac": "macOS 10.13 High Sierra", "date": "10/11/2020", "note": "Bản cuối hỗ trợ High Sierra",
+     "suite": _OCDN + "Microsoft_Office_16.43.20110804_Installer.pkg",
+     "teams": _OCDN + "Microsoft_Office_16.43.20110804_BusinessPro_Installer.pkg"},
+]
+
+
+def _macoffice_dir():
+    return data_dir("Kho Mac", "MS Office")
+
+
+def macoffice_list():
+    d = Path(H["data"]) / "Kho Mac" / "MS Office"          # chỉ xem, không tạo thư mục Data
+    have = {p.name: p.stat().st_size for p in d.glob("*.pkg")} if d.exists() else {}
+    return {"rows": MACOFFICE, "dir": str(d), "have": have}
+
+
+def macoffice_dl(j, url, label="MS Office for macOS"):
+    """Tải bộ cài Office cho Mac (.pkg, chính chủ Microsoft) về Data\\Kho Mac\\MS Office để chép sang máy Mac."""
+    j["pct"], j["text"] = -1, f"Đang hỏi máy chủ Microsoft: {label}..."
+    d = _macoffice_dir()
+    if fake():
+        import apple
+        apple.dl_files(j, [{"name": "Microsoft_365_and_Office_Installer.pkg", "url": url, "size": 1_900_000_000}], d, label)
+        return {"text": f"Đã tải {label} (chạy thử).", "dir": str(d)}
+    import requests
+    import apple
+    h = requests.head(url, allow_redirects=True, timeout=30, headers={"User-Agent": "Mozilla/5.0"})
+    real = h.url
+    name = real.split("?", 1)[0].rsplit("/", 1)[-1]
+    if not name.lower().endswith(".pkg"):
+        raise RuntimeError("Máy chủ Microsoft không trả về file bộ cài .pkg - thử lại sau.")
+    size = int(h.headers.get("Content-Length") or 0)
+    apple.dl_files(j, [{"name": name, "url": real, "size": size}], d, label)
+    return {"text": f"Đã tải {name} vào {d}", "dir": str(d), "path": str(d / name)}

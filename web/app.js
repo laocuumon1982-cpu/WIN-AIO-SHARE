@@ -93,6 +93,7 @@ const PAGES = {
   power: ["Nguồn & Ổ USB", "Tắt máy khẩn cấp · Khóa máy · Hẹn giờ tắt · Tháo ổ USB an toàn"],
   testmac: ["Test máy MAC", "SoiMac - kiểm tra Mac cũ trước khi mua: chép ra USB, mở bằng Safari ngay trên máy Mac"],
   test: ["Test máy WIN", "Kiểm tra màn hình, cảm ứng, bàn phím, loa, micro, trackpad, webcam, pin laptop, hiệu năng"],
+  macsoft: ["Kho phần mềm Mac", "Phần mềm cho máy Mac tải thẳng từ máy chủ chính chủ - tải về rồi chép sang Mac, hoặc chép link mở trên Mac"],
   mac: ["Kho bộ cài MAC", "Bộ cài macOS chính chủ Apple: Tahoe, Sequoia, Sonoma, Ventura... về tới Lion - tải thẳng từ máy chủ Apple · macUSB · Apple Configurator 2"],
   ios: ["Kho Firmware iOS", "3uTools · Firmware IPSW cho iPhone, iPad, iPod, Apple TV, Mac chip M - danh sách theo ipsw.me, tải từ máy chủ Apple"],
   iso: ["Kho bộ cài WIN", "Tải ISO gốc Microsoft · Rufus · AVL Win Master · USB boot Ventoy · Driver IRST · Kiểm tra SHA-256 file ISO"],
@@ -121,6 +122,7 @@ function showPage(p) {
   if (p === "backup") backShow();
   if (p === "iso") isoShow();
   if (p === "mac") macShow();
+  if (p === "macsoft") macSoftShow();
   if (p === "ios") iosShow();
   if (p === "web") webShow();
   if (p === "testmac") testMacShow();

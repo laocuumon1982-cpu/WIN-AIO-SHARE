@@ -1,5 +1,12 @@
 # Nhật ký thay đổi
 
+## v5.12
+- Thêm tab "Kho phần mềm Mac" (dưới Kho bộ cài MAC), thẻ con "MS Office for macOS": bộ cài Office cho Mac chính chủ Microsoft, mỗi bản ghi rõ dùng cho macOS nào:
+  + Mới nhất (Microsoft 365 / Office 2024 / 2021): macOS 14 Sonoma trở lên - có thêm từng app Word, Excel, PowerPoint, Outlook, OneNote
+  + 16.101: macOS 13 Ventura · 16.88: macOS 12 Monterey · 16.77: macOS 11 Big Sur · 16.66: macOS 10.15 Catalina · 16.54: macOS 10.14 Mojave · 16.43: macOS 10.13 High Sierra
+  + Mỗi bản có nút tải bộ Office và bộ Office + Teams (lưu vào Data\Kho Mac\MS Office để chép sang Mac), nút 📋 chép link để mở bằng Safari trên Mac.
+  + Cần tài khoản Microsoft 365 hoặc key Office bản quyền để kích hoạt.
+
 ## v5.11
 - Tối ưu chạy ổn định và nhanh hơn:
   + Mở tool: đọc thông tin máy chạy song song với kiểm tra mạng (máy mất mạng không phải chờ thêm ~6 giây mới hiện thông tin máy).

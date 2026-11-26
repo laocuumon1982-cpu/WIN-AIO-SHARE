@@ -368,3 +368,34 @@ async function smSave(dest) {
   $("smRes").innerHTML = r.ok ? `<div class="okbox mt">✔ ${esc(r.text)} <span class="muted">(${esc(r.path)})</span></div>` : `<div class="warnbox mt">${esc(r.text)}</div>`;
   toast(r.text, r.ok ? "" : "err");
 }
+
+
+/* =============================================================== KHO PHẦN MỀM MAC - MS Office for macOS (v5.12) */
+async function macSoftShow() {
+  const W = $("macsoftwrap");
+  W.innerHTML = '<div class="logl"><span class="spin"></span> Đang tải danh sách...</div>';
+  let L; try { L = await m("macoffice_list"); } catch (e) { W.innerHTML = `<div class="warnbox">${esc(String(e))}</div>`; return; }
+  const fname = u => u.includes("fwlink") ? "" : u.split("/").pop();
+  const got = u => { const f = fname(u); return f && L.have[f] ? ' <span class="mo-have" title="Đã có trong thư mục tải">✔ đã tải</span>' : ""; };
+  const btns = (u, lb, cls) => `<button class="btn ${cls}" data-mo="${esc(u)}" data-lb="${esc(lb)}">⬇ ${esc(lb.split(" · ")[0])}</button>${got(u)}
+      <button class="btn sm" data-cp="${esc(u)}" title="Chép link để mở trên máy Mac">📋</button>`;
+  W.innerHTML = `<div class="tcard" style="--ac:#d83b01"><div class="sh"><span class="si">🟧</span><div><b>MICROSOFT OFFICE FOR MACOS</b>
+      <small>Bộ cài .pkg chính chủ tải thẳng từ máy chủ Microsoft · chọn đúng bản theo macOS của máy Mac · tải về máy này rồi chép sang Mac (USB), hoặc bấm 📋 chép link mở bằng Safari trên Mac</small></div>
+      <span class="sp"></span><button class="btn sm" id="moDir">📂 Đã tải</button></div>
+    <div class="keynote">🔑 Cần tài khoản Microsoft 365 hoặc key Office bản quyền để kích hoạt. Chưa đăng nhập vẫn mở được ở chế độ xem.</div>
+    <div class="motable"><div class="mohd"><span>Phiên bản</span><span>Dùng cho</span><span>Bộ Office (Word, Excel, PowerPoint, Outlook, OneNote, OneDrive)</span></div>
+    ${L.rows.map(r => `<div class="morow${r.latest ? " latest" : ""}">
+      <div class="mover"><b>${esc(r.ver)}</b><small>${esc(r.date)}</small></div>
+      <div class="momac"><b>${esc(r.mac)}</b><small>${esc(r.note)}</small></div>
+      <div class="mobtns">${btns(r.suite, "Bộ Office · " + r.ver, "red shine")}${btns(r.teams, "Office + Teams · " + r.ver, "")}
+        ${r.apps ? `<div class="moapps">Từng app: ${r.apps.map(([n, u]) => `<button class="btn sm" data-mo="${esc(u)}" data-lb="${esc(n)} for Mac">${esc(n)}</button>`).join("")}</div>` : ""}</div>
+    </div>`).join("")}</div>
+    <div class="logl">Không biết máy Mac đang chạy macOS nào: trên Mac bấm logo Apple (góc trên trái) › Giới thiệu về máy Mac. Bộ cài bản cũ (cho macOS cũ) không nhận cập nhật mới nữa.</div></div>`;
+  $("moDir").onclick = () => Object.keys(L.have).length ? api("open_folder", L.dir) : toast("Chưa tải bản nào - bấm ⬇ để tải");
+  W.onclick = async e => {
+    const c = e.target.closest("[data-cp]"); if (c) { copyLocal(c.dataset.cp); toast("Đã chép link - dán vào Safari trên Mac"); return; }
+    const b = e.target.closest("[data-mo]"); if (!b) return;
+    const r = await runJob("macoffice_dl", "Tải " + b.dataset.lb, [b.dataset.mo, b.dataset.lb]);
+    if (r.ok) { toast(r.result.text); macSoftShow(); }
+  };
+}
