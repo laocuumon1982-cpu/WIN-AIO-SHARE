@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v5.6
+- Đổi tên tab "Bảo trì Windows" thành "Thiết lập Windows" (nội dung giữ nguyên).
+
 ## v5.5
 - Test máy MAC › Cách dùng trên máy Mac: thêm cách mở SoiMac bằng web https://laocuumon1982-cpu.github.io/SoiMac/ (nút 📋 Chép link, 🌐 Mở thử); cách mở từ USB vẫn giữ (không cần mạng).
 

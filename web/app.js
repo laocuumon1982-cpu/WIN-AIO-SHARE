@@ -86,7 +86,7 @@ function popMenu(anchor, items) {
 /* ===================================================================== WIN AIO */
 const PAGES = {
   system: ["Thông tin & khởi động", "Thông tin máy, khởi động đặc biệt (BIOS, Safe Mode...) và mở nhanh công cụ Windows"],
-  manage: ["Bảo trì Windows", "Tiện ích, sửa lỗi, thiết lập máy, driver, bảo mật · gỡ và cập nhật phần mềm"],
+  manage: ["Thiết lập Windows", "Tiện ích, sửa lỗi, thiết lập máy, driver, bảo mật · gỡ và cập nhật phần mềm"],
   clean: ["Dọn dẹp", "Dọn rác, phân tích ổ đĩa, cache CapCut, virus macro Excel, xóa metadata ảnh"],
   backup: ["Sao lưu", "Thư mục người dùng · Zalo · Zalo nhiều tài khoản · Trình duyệt · Chuyển phần mềm sang Win mới"],
   apps: ["Cài phần mềm", "Bấm 1 nút để cài ngay, hoặc chọn nhiều mục rồi bấm ▶ Cài mục đã chọn"],
@@ -103,7 +103,7 @@ const KIND = {web: "WEB", winget: "WINGET", file: "FILE", cmd: "LỆNH", office:
 let INIT = {}, G = [], NCOL = 4, LAYOUT = "grid", page = "system", ADMIN = false, picked = new Set(), logSeq = 0, ST = {}, HIST = [];
 
 function showPage(p) {
-  if (p === "tools" || p === "fix") { MT = p; p = "manage"; }     // v4.7: 2 trang cũ nằm trong Bảo trì Windows
+  if (p === "tools" || p === "fix") { MT = p; p = "manage"; }     // v4.7: 2 trang cũ nằm trong Thiết lập Windows
   page = p;
   const locked = p === "settings" && !ADMIN;
   document.querySelectorAll(".page").forEach(x => x.classList.toggle("on", x.id === (locked ? "pg-locked" : "pg-" + p)));

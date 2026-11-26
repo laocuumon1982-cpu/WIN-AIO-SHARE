@@ -35,7 +35,7 @@ import apple
 import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v5.5"
+APP_VERSION = "v5.6"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -1529,12 +1529,12 @@ $net=@(Get-NetAdapter -Physical | Where-Object Status -eq 'Up' | ForEach-Object 
             else:
                 self.log(f"✔ Đã kiểm tra {len(apps)} nút WINGET: tất cả còn dùng được.", "dim")
             self.wg_checked = time.time()
-            try:                            # phần mềm nào có bản mới -> hiện số trên menu Bảo trì Windows
+            try:                            # phần mềm nào có bản mới -> hiện số trên menu Thiết lập Windows
                 up = mgr.wg_upgrades()
                 self.upg_n = len(up)
                 if up:
                     self.log(f"⬆ {len(up)} phần mềm có bản mới: " + ", ".join(x["name"] for x in up[:6])
-                             + (" ..." if len(up) > 6 else "") + " - vào Bảo trì Windows › Cập nhật app.", "warn")
+                             + (" ..." if len(up) > 6 else "") + " - vào Thiết lập Windows › Cập nhật app.", "warn")
             except Exception:               # noqa: BLE001
                 pass
         except Exception as e:              # noqa: BLE001
@@ -2019,7 +2019,7 @@ Remove-Item $d -Recurse -Force; 'OK'
                 j["text"] = "Cài bộ font tiếng Việt..."
                 notes.append(extra.font_install(j, url)["text"])
             else:
-                notes.append("Bỏ qua cài font: Admin chưa gắn link bộ font (Bảo trì Windows › Sửa lỗi & thiết lập máy › Bộ font tiếng Việt).")
+                notes.append("Bỏ qua cài font: Admin chưa gắn link bộ font (Thiết lập Windows › Sửa lỗi & thiết lập › Bộ font tiếng Việt).")
         ok_n = sum(1 for i in ids if self.results.get(i) == "ok")
         msg = f"Hồ sơ '{p['name']}': cài xong {ok_n}/{len(ids)} phần mềm, chạy {len(p['tools'])} tiện ích" + \
               (", đã dọn Win 11" if p["opts"].get("tidy") else "") + "."

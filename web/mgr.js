@@ -221,7 +221,7 @@ function cleanShow() {
       <div class="row2"><input id="mdPath" placeholder="Thư mục chứa ảnh"><button class="btn sm" id="mdPick">📂</button>
         <label class="ck" style="margin:0;white-space:nowrap"><input type="checkbox" id="mdRec" checked> gồm thư mục con</label><button class="btn red shine" id="mdGo">▶ Xóa metadata</button></div>
       <div class="logl">Ảnh gốc giữ nguyên, ảnh đã xóa metadata lưu vào thư mục con "Da_xoa_metadata". Video chưa hỗ trợ.</div><div id="mdRes"></div></div>
-    <div class="tcard" style="--ac:#6b7280"><div class="sh"><span class="si">🗑️</span><div><b>GỠ BỎ</b><small>Nằm trong trang Bảo trì Windows</small></div></div>
+    <div class="tcard" style="--ac:#6b7280"><div class="sh"><span class="si">🗑️</span><div><b>GỠ BỎ</b><small>Nằm trong trang Thiết lập Windows</small></div></div>
       <div class="tgrid"><button class="tbtn" data-go="programs"><span class="ti">🗑️</span><span class="tt">Gỡ phần mềm tận gốc</span></button>
         <button class="tbtn" data-go="appx"><span class="ti">🛍️</span><span class="tt">Ứng dụng MS Store</span></button></div></div></div>`;
   const W = $("cleanwrap");
