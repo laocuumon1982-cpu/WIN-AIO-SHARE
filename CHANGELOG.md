@@ -1,5 +1,14 @@
 # Nhật ký thay đổi
 
+## v5.10
+- Cài phần mềm: vị trí nhóm cố định theo hình mẫu (5 cột, kiểu Tự vừa màn hình):
+  + Cột 1: MICROSOFT OFFICE · ARTCRAFT OFFICE · OFFICE · VĂN PHÒNG - PDF · BỘ GÕ TIẾNG VIỆT
+  + Cột 2: TRÌNH DUYỆT WEB · HỖ TRỢ TỪ XA · NHẮN TIN - HỌP
+  + Cột 3: ĐA PHƯƠNG TIỆN · TTS & SUB · UNINSTALLER TOOL
+  + Cột 4: GIẢ LẬP ANDROID · LẬP TRÌNH · THƯ VIỆN HỆ THỐNG
+  + Cột 5: NÉN - GIẢI NÉN · TIỆN ÍCH · ACTIVE · KHO PHẦN MỀM (2 nhóm cuối chỉ hiện khi đăng nhập đầy đủ)
+- GitHub chỉ giữ bản mới nhất: mỗi lần phát hành bản mới, các bản cũ tự bị xóa.
+
 ## v5.9
 - Bắt buộc dùng bản mới nhất: nhập đúng mật khẩu xong, tool luôn kiểm tra bản mới trên GitHub. Có bản mới thì tự tải, thay file exe và mở lại - chưa cập nhật xong thì không vào được tool (khóa cả phía chương trình). Không kiểm tra được (mất mạng) thì báo và có nút Thử lại.
 - Kiểm tra bản mới có đường dự phòng khi API GitHub chặn (quá 60 lần / giờ trên 1 mạng): đọc thẳng trang Releases.

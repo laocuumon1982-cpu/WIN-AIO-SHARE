@@ -35,7 +35,7 @@ import apple
 import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v5.9"
+APP_VERSION = "v5.10"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -336,6 +336,14 @@ DEFAULT_GROUPS = [     # (tên nhóm, cột, [nút...]) - thứ tự trong cột
 ]
 DEFAULT_GPOS = {"KHO PHẦN MỀM": 0, "ACTIVE": 1, "MICROSOFT OFFICE": 2, "ARTCRAFT OFFICE": 3, "OFFICE": 4, "VĂN PHÒNG - PDF": 5, "BỘ GÕ TIẾNG VIỆT": 6, "NÉN - GIẢI NÉN": 7, "ĐA PHƯƠNG TIỆN": 8, "TRÌNH DUYỆT WEB": 9, "NHẮN TIN - HỌP": 10, "HỖ TRỢ TỪ XA": 11, "THƯ VIỆN HỆ THỐNG": 12, "TIỆN ÍCH": 13, "GIẢ LẬP ANDROID": 14, "LẬP TRÌNH": 15, "UNINSTALLER TOOL": 16, "TTS & SUB": 17}     # vị trí ở kiểu Lưới
 DEFAULT_FIT_N = 5
+# v5.10: vị trí nhóm mặc định (kiểu Tự vừa màn hình, 5 cột) theo hình mẫu của Duy Anh - trái qua phải, trên xuống dưới
+LAYOUT_510 = [
+    ["MICROSOFT OFFICE", "ARTCRAFT OFFICE", "OFFICE", "VĂN PHÒNG - PDF", "BỘ GÕ TIẾNG VIỆT"],
+    ["TRÌNH DUYỆT WEB", "HỖ TRỢ TỪ XA", "NHẮN TIN - HỌP"],
+    ["ĐA PHƯƠNG TIỆN", "TTS & SUB", "UNINSTALLER TOOL"],
+    ["GIẢ LẬP ANDROID", "LẬP TRÌNH", "THƯ VIỆN HỆ THỐNG"],
+    ["NÉN - GIẢI NÉN", "TIỆN ÍCH", "ACTIVE", "KHO PHẦN MỀM"],
+]
 
 # ---------------------------------------------------------------- tiện ích Windows cố định
 # (id, nhóm, nhãn, kiểu, lệnh, cần xác nhận)  kiểu: ps = PowerShell, cmd = cmd /c, open = mở chương trình
@@ -1002,6 +1010,14 @@ class Store:
             done.add("office53")
             self.cfg["migrated"] = sorted(done)
             self.save_config(persist=False)
+        if "layout510" not in done:
+            # v5.10: vị trí nhóm theo hình mẫu (5 cột)
+            with self.lock:
+                self._apply_layout510()
+                self.commit(persist=False)
+            done.add("layout510")
+            self.cfg["migrated"] = sorted(done)
+            self.save_config(persist=False)
 
     def _office53(self):
         """v5.3: bỏ WPS Office; nhóm MICROSOFT OFFICE (MS Office, Tiện ích văn phòng) và OFFICE (LibreOffice, OnlyOffice);
@@ -1101,7 +1117,30 @@ class Store:
                     self.db.execute("INSERT INTO apps(group_id, icon, name, src, args, note, ord) VALUES(?,?,?,?,?,?,?)",
                                     (gid, icon, name, src, args, note, ai))
             self.cfg["fit_n"] = DEFAULT_FIT_N          # Tự vừa màn hình: 5 cột như cách đã sắp
+            self._apply_layout510()
             self.commit(persist)
+
+    def _apply_layout510(self):
+        """Xếp nhóm đúng vị trí LAYOUT_510 (5 cột). Nhóm tự thêm (không có trong danh sách) xếp cuối cột đang ít nhóm nhất."""
+        rows = self.db.execute("SELECT id, name FROM groups ORDER BY col, ord, id").fetchall()
+        name2col = {n: (ci, k) for ci, col in enumerate(LAYOUT_510) for k, n in enumerate(col)}
+        cols = [[] for _ in LAYOUT_510]
+        extra = []
+        for gid, name in rows:
+            key = (name or "").strip().upper()
+            if key in name2col:
+                cols[name2col[key][0]].append((name2col[key][1], gid))
+            else:
+                extra.append(gid)
+        cols = [[g for _, g in sorted(c)] for c in cols]
+        for gid in extra:
+            min(cols, key=len).append(gid)
+        pos = 0
+        for ci, c in enumerate(cols):
+            for k, gid in enumerate(c):
+                self.db.execute("UPDATE groups SET col=?, ord=?, gpos=? WHERE id=?", (ci, k, pos, gid))
+                pos += 1
+        self.cfg["layout"], self.cfg["fit_n"] = "fit", len(LAYOUT_510)
 
     def export_data(self):
         out = []

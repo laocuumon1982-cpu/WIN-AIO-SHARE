@@ -61,6 +61,9 @@ jobs:
           if ($LASTEXITCODE -eq 0) { Write-Host "Da co Release $ver - bo qua"; exit 0 }
           Copy-Item 'dist/Win AIO by Duy Anh.exe' 'Win-AIO-by-Duy-Anh.exe'
           gh release create $ver 'Win-AIO-by-Duy-Anh.exe' --target $env:GITHUB_SHA --title "Win AIO by Duy Anh $ver" --notes-file CHANGELOG_LATEST.md
+          # Chỉ giữ bản mới nhất: xóa mọi bản phát hành cũ (kèm tag) sau khi đã có bản mới
+          $old = gh release list -L 500 --json tagName -q '.[].tagName' | Where-Object { $_ -and $_ -ne $ver }
+          foreach ($t in $old) { Write-Host "Xoa ban cu $t"; gh release delete $t --cleanup-tag -y }
       - name: Thu lenh 1 dong (irm ... | iex) tren Windows PowerShell 5.1
         if: github.ref == 'refs/heads/main'
         shell: powershell
