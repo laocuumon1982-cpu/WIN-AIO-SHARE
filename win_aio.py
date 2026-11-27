@@ -3689,7 +3689,7 @@ class Api:
 
     # ---- Ghi chú: file Excel đã đặt mật khẩu trong Office, nhúng trong exe; Excel tự hỏi mật khẩu khi mở
     def open_note(self):
-        src = RES / "notes" / "GhiChu.xlsx"
+        src = RES / "notes" / "GhiChu.bin"         # lưu dạng XOR để exe không chứa nguyên file Office (tránh bị quét chậm lúc mở)
         if not src.exists():
             return {"ok": False, "msg": "Không thấy file Ghi chú trong tool"}
         import tempfile
@@ -3697,7 +3697,7 @@ class Api:
         d.mkdir(parents=True, exist_ok=True)
         dst = d / "GhiChu.xlsx"
         try:
-            shutil.copyfile(src, dst)
+            dst.write_bytes(bytes(x ^ 0x5A for x in src.read_bytes()))
         except OSError:
             pass                              # đang mở trong Excel -> mở lại file hiện có
         if IS_WIN and not FAKE:
@@ -4060,6 +4060,10 @@ class App:
         lines = []
         try:
             time.sleep(6)
+            try:
+                self.win.events.loaded.wait(90)        # máy chậm: chờ trang nạp xong rồi mới đọc giao diện
+            except Exception:               # noqa: BLE001
+                pass
             self.api._logged, self.api._level, self.api._upd_ok = True, "full", True    # selftest trên GitHub: bỏ qua màn hình đăng nhập
             lines.append("login: " + str(self.win.evaluate_js("window.__selftestStart ? (window.__selftestStart(), 'ok') : 'no form'")))
             time.sleep(6)
@@ -4144,8 +4148,8 @@ class App:
                 except Exception as e:      # noqa: BLE001
                     lines.append(f"{nm}: ERROR {e!r}")
             lines.append("Data folder exists: " + str(DATA.exists()))
-            _nt = RES / "notes" / "GhiChu.xlsx"
-            lines.append("note_file: " + (f"ok {_nt.stat().st_size} bytes, encrypted={_nt.read_bytes()[:8].hex() == 'd0cf11e0a1b11ae1'}" if _nt.exists() else "ERROR missing"))
+            _nt = RES / "notes" / "GhiChu.bin"
+            lines.append("note_file: " + (f"ok {_nt.stat().st_size} bytes, encrypted={bytes(x ^ 0x5A for x in _nt.read_bytes()[:8]).hex() == 'd0cf11e0a1b11ae1'}" if _nt.exists() else "ERROR missing"))
             lines.append("webview2: " + str(has_webview2()))
         except Exception as e:              # noqa: BLE001
             lines.append("ERROR: " + repr(e))
