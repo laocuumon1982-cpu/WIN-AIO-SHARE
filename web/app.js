@@ -97,7 +97,6 @@ const PAGES = {
   mac: ["Kho bộ cài MAC", "Bộ cài macOS chính chủ Apple: Tahoe, Sequoia, Sonoma, Ventura... về tới Lion - tải thẳng từ máy chủ Apple · macUSB · Apple Configurator 2"],
   ios: ["Kho Firmware iOS", "3uTools · Firmware IPSW cho iPhone, iPad, iPod, Apple TV, Mac chip M - danh sách theo ipsw.me, tải từ máy chủ Apple"],
   iso: ["Kho bộ cài WIN", "Tải ISO gốc Microsoft · Rufus · AVL Win Master · USB boot Ventoy · Driver IRST · Kiểm tra SHA-256 file ISO"],
-  web: ["Web", "Trang web hay dùng - bấm để mở · Admin bấm ✎ để sửa, ＋ để thêm link"],
   history: ["Nhật ký", "Những gì tool đã cài / đã chạy"],
   settings: ["Cài đặt", "Thư mục tải, sao lưu danh sách nút"]};
 const KIND = {web: "WEB", winget: "WINGET", file: "FILE", cmd: "LỆNH", office: "OFFICE", open: "LINK", github: "GITHUB", none: "CHƯA CÓ NGUỒN"};
@@ -124,7 +123,6 @@ function showPage(p) {
   if (p === "mac") macShow();
   if (p === "macsoft") macSoftShow();
   if (p === "ios") iosShow();
-  if (p === "web") webShow();
   if (p === "testmac") testMacShow();
   if (p === "settings" && ADMIN) renderSettings();
 }
@@ -817,7 +815,12 @@ function renderHistory() {
   $("hCount").textContent = `${list.length} / ${HIST.length} dòng`;
 }
 $("hq").oninput = renderHistory; $("hShow").onchange = renderHistory; $("hRef").onclick = loadHistory;
-$("hClear").onclick = async () => { if (await confirmBox("Xóa nhật ký", "Xóa toàn bộ nhật ký?")) { await api("clear_history"); loadHistory(); } };
+$("hClear").onclick = async () => {                    // v5.15: xóa nhật ký cũ (giữ hôm nay) hoặc xóa sạch
+  const v = await dialog({title: "🧹 Xóa nhật ký", width: 460, body: `<div class="msg">Đang có <b>${HIST.length}</b> dòng nhật ký.</div>`,
+    buttons: [{text: "Hủy", value: false}, {text: "Xóa sạch tất cả", cls: "out", value: "all"}, {text: "🧹 Xóa cũ, giữ hôm nay", cls: "red", def: true, value: "old"}]});
+  if (!v) return;
+  const n = await api("clear_history", v); toast(`Đã xóa ${n} dòng nhật ký`); loadHistory();
+};
 $("hRows").ondblclick = e => { const tr = e.target.closest("tr[data-i]"); if (!tr) return; const h = HIST.find(x => x.id === +tr.dataset.i);
   dialog({title: h.name, width: 720, body: `<div class="msg">${esc(h.ts)} · ${esc(h.status)}\n${esc(h.src)}</div><div class="outbox" style="margin-top:8px">${esc(h.detail || "(không có chi tiết)")}</div>`,
     buttons: [{text: "OK", cls: "red", def: true}]}); };

@@ -1,5 +1,11 @@
-Win AIO by Duy Anh v5.14
+Win AIO by Duy Anh v5.15
 
+- Tiện ích cài Win dạo: mở tool xong tự tìm hộp nhập mật khẩu (kể cả cửa sổ con), điền mật khẩu rồi bấm nút OK để vào thẳng tool (không thấy nút OK thì nhấn Enter); kết quả ghi vào nhật ký.
+- Nhật ký: nút "🧹 Xóa nhật ký cũ" (không cần Admin) - chọn xóa cũ giữ lại hôm nay, hoặc xóa sạch tất cả.
+- Bỏ tab Web.
+- Nhóm UNINSTALLER TOOL: thêm nút Office Macro Cleaner (Yansuo, bản Portable mới nhất từ Codeberg, tự giải nén mật khẩu 123 rồi mở).
+
+v5.14:
 - Kho Firmware iOS: thêm thẻ "iTunes (64-bit)" - nút Tải & cài iTunes luôn lấy bản 64-bit mới nhất từ Apple (đã có đúng bản thì dùng lại) rồi mở bộ cài.
 - Nhóm UNINSTALLER TOOL: bỏ nút 360 Total Security Remover và WPS Office Utility & Cleaner; thêm nút Total Cleaner (Google Drive, tự giải nén mật khẩu 123 rồi mở).
 - File .zip có mật khẩu giờ giải nén bằng 7-Zip / WinRAR (máy chưa có thì tự cài 7-Zip).

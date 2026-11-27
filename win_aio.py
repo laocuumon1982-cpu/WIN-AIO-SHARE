@@ -35,7 +35,7 @@ import apple
 import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v5.14"
+APP_VERSION = "v5.15"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -81,6 +81,8 @@ VANPHONG = ("🧾", "Tiện ích văn phòng", r"github:minhhaibuitt/Caiwindao@v
             "Tiện ích văn phòng của Hải Đỗ - luôn tải bản mới nhất")
 # Nhóm gỡ phần mềm cứng đầu (v3.2). codeberg: giống github: (Forgejo có API phát hành giống GitHub)
 HIBIT = ("🧹", "HiBit Uninstaller", "winget:HiBitSoftware.HiBitUninstaller", "", "")
+MACRO_CLEANER = ("🧾", "Office Macro Cleaner", r"codeberg:yansuogaming/docm-remove|OfficeMacroCleaner.*portable.*\.(exe|zip|rar|7z)$", "pass=123",
+                 "Dọn macro độc trong file Office (Yansuo, bản Portable mới nhất từ Codeberg) - tự giải nén rồi mở")
 TOTAL_CLEANER = ("🧼", "Total Cleaner", "https://drive.usercontent.google.com/download?id=1zzY8_uw3DLb2UWc_6YOAPm9Xnw54hwFx&export=download&authuser=0", "pass=123", "Total Cleaner (Google Drive) - tự giải nén (mật khẩu 123) rồi mở")
 UNINSTALLER = ("UNINSTALLER TOOL", [
     HIBIT,
@@ -88,6 +90,7 @@ UNINSTALLER = ("UNINSTALLER TOOL", [
     ("🧹", "360 Security Uninstaller Tool", r"github:ThanhNguyenVN93/360-Security-Uninstaller-Tool|\.(exe|zip)$", "",
      "Gỡ 360 Security (ThanhNguyenVN93, bản mới nhất từ GitHub)"),
     TOTAL_CLEANER,
+    MACRO_CLEANER,
 ])
 TOOLS_3U = ("📱", "3uTools (64-bit)", r"page:https://www.3u.com/|https?://dl\.3u\.com/[^\"'\s<>]*3uTools_v[\d.]+_Setup_x64\.exe", "",
             "Quản lý iPhone / iPad, flash iOS - luôn lấy bản 64-bit mới nhất trên trang chủ 3u.com")
@@ -312,6 +315,7 @@ DEFAULT_GROUPS = [     # (tên nhóm, cột, [nút...]) - thứ tự trong cột
         ("🅰️", "Avast Clear", "https://files.avast.com/iavs9x/avastclear.exe", "", "Công cụ gỡ Avast chính hãng (trang chủ Avast)"),
         ("🧹", "360 Security Uninstaller Tool", r"github:ThanhNguyenVN93/360-Security-Uninstaller-Tool|\.(exe|zip)$", "", "Gỡ 360 Security (ThanhNguyenVN93, bản mới nhất từ GitHub)"),
         TOTAL_CLEANER,
+        MACRO_CLEANER,
     ]),
     ("GIẢ LẬP ANDROID", 4, [
         ("📱", "BlueStacks 5", "winget:BlueStack.BlueStacks", "", ""),
@@ -628,6 +632,25 @@ def _rar_selftest():
     return [f.name, r.headers.get("Content-Type"), f.stat().st_size, ok, [x.name for x in (d / "x").rglob("*.exe")] if ok else []]
 
 
+def _autopw_selftest():
+    """Selftest (v5.15): tải Tiện ích cài Win dạo, mở, tự nhập mật khẩu + bấm OK, rồi xem cửa sổ nào còn mở."""
+    import requests
+    import tempfile
+    url, ver = resolve_github(CAIWINDAO[2])
+    d = Path(tempfile.mkdtemp())
+    f = d / url.rsplit("/", 1)[-1]
+    f.write_bytes(requests.get(url, timeout=300).content)
+    logs = []
+    proc = subprocess.Popen([str(f)], cwd=str(d))
+    autotype_pw(proc.pid, "haido", wait=60, log=logs.append)
+    time.sleep(6)
+    _, wins = ps(f"""$ErrorActionPreference='Continue'
+$ids = @({proc.pid}) + @(Get-CimInstance Win32_Process -Filter "ParentProcessId={proc.pid}" | ForEach-Object {{ $_.ProcessId }})
+Get-Process -Id $ids -ErrorAction SilentlyContinue | ForEach-Object {{ "$($_.Id) $($_.ProcessName): $($_.MainWindowTitle)" }}""", timeout=60)
+    subprocess.run(["taskkill", "/T", "/F", "/PID", str(proc.pid)], capture_output=True)
+    return [ver, logs, wins.strip()[:600]]
+
+
 def _try(f):
     try:
         return f()
@@ -688,21 +711,53 @@ if not Path(_PS_EXE).exists():
     _PS_EXE = "powershell"                  # máy lạ: dùng theo PATH
 
 
-def autotype_pw(pid, pw, wait=40):
-    """v5.14: chờ cửa sổ của tiến trình hiện lên rồi gõ mật khẩu + Enter (VD Tiện ích cài Win dạo hỏi mật khẩu khi mở)."""
+def autotype_pw(pid, pw, wait=45, log=None):
+    """v5.15: chờ hộp nhập mật khẩu của tool vừa mở (kể cả cửa sổ con / tiến trình con), điền mật khẩu rồi bấm nút OK.
+    Dùng UI Automation: tìm ô nhập + nút OK / Đồng ý trong cửa sổ của đúng tiến trình đó; không thấy nút thì nhấn Enter."""
     if not IS_WIN or FAKE:
         return
-    q = pw.replace("'", "''")
-    for ch in "+^%~(){}[]":                       # ký tự đặc biệt của SendKeys
-        q = q.replace(ch, "{" + ch + "}")
-    ps(f"""$ws = New-Object -ComObject WScript.Shell
-$t = [DateTime]::Now.AddSeconds({int(wait)})
-while ([DateTime]::Now -lt $t) {{
-  $p = Get-Process -Id {int(pid)} -ErrorAction SilentlyContinue
-  if (-not $p) {{ break }}
-  if ($p.MainWindowHandle -ne 0) {{ Start-Sleep -Milliseconds 700; if ($ws.AppActivate({int(pid)})) {{ Start-Sleep -Milliseconds 250; $ws.SendKeys('{q}'); Start-Sleep -Milliseconds 150; $ws.SendKeys('{{ENTER}}'); break }} }}
+    pv = pw.replace("'", "''")
+    sk = "".join("{" + c + "}" if c in "+^%~(){}[]" else c for c in pw).replace("'", "''")
+    code, out = ps(f"""$ErrorActionPreference = 'Continue'
+Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes
+$A = [System.Windows.Automation.AutomationElement]; $TS = [System.Windows.Automation.TreeScope]
+$CT = [System.Windows.Automation.ControlType]; $PC = [System.Windows.Automation.PropertyCondition]
+$ws = New-Object -ComObject WScript.Shell
+$end = [DateTime]::Now.AddSeconds({int(wait)}); $root0 = {int(pid)}; $res = 'TIMEOUT'
+while ([DateTime]::Now -lt $end -and $res -eq 'TIMEOUT') {{
+  $ids = @($root0) + @(Get-CimInstance Win32_Process -Filter "ParentProcessId=$root0" -ErrorAction SilentlyContinue | ForEach-Object {{ $_.ProcessId }})
+  if (-not (Get-Process -Id $ids -ErrorAction SilentlyContinue)) {{ $res = 'EXITED'; break }}
+  foreach ($id in $ids) {{ try {{
+    $wins = $A::RootElement.FindAll($TS::Children, (New-Object $PC($A::ProcessIdProperty, [int]$id)))
+    foreach ($w in $wins) {{
+      $edit = $w.FindFirst($TS::Descendants, (New-Object $PC($A::ControlTypeProperty, $CT::Edit)))
+      if (-not $edit) {{ continue }}
+      Start-Sleep -Milliseconds 600
+      try {{ $w.SetFocus() }} catch {{}}; $ws.AppActivate([int]$id) | Out-Null
+      try {{ $edit.SetFocus() }} catch {{}}
+      $done = $false; $vp = $null
+      if ($edit.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern, [ref]$vp)) {{ try {{ $vp.SetValue('{pv}'); $done = $true }} catch {{}} }}
+      if (-not $done) {{ $ws.SendKeys('^a'); $ws.SendKeys('{sk}') }}
+      Start-Sleep -Milliseconds 350
+      $ok = $w.FindAll($TS::Descendants, (New-Object $PC($A::ControlTypeProperty, $CT::Button))) |
+        Where-Object {{ $_.Current.Name -match '^\\s*(&?OK|Ok|&?Đồng ý|Đăng nhập|Xác nhận|Mở|Vào|Login|Enter|Có)\\b' }} | Select-Object -First 1
+      $ip = $null
+      if ($ok -and $ok.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern, [ref]$ip)) {{ $ip.Invoke(); $res = 'OK:' + $ok.Current.Name }}
+      else {{ try {{ $edit.SetFocus() }} catch {{}}; $ws.SendKeys('{{ENTER}}'); $res = 'ENTER' }}
+      break
+    }}
+    }} catch {{}}
+    if ($res -ne 'TIMEOUT') {{ break }}
+  }}
   Start-Sleep -Milliseconds 400
-}}""", timeout=wait + 20)
+}}
+$res""", timeout=wait + 30)
+    res = (out or "").strip().splitlines()[-1:] or [""]
+    if log:
+        r = res[0]
+        log("Đã tự nhập mật khẩu và bấm " + r[3:] if r.startswith("OK:") else
+            "Đã tự nhập mật khẩu và nhấn Enter" if r == "ENTER" else
+            "Không thấy hộp nhập mật khẩu của tool - nhập tay giúp" if r in ("TIMEOUT", "EXITED") else f"Tự nhập mật khẩu: {r[:120]}")
 
 
 def ps(script, timeout=600):
@@ -1067,6 +1122,16 @@ class Store:
             db.execute("UPDATE apps SET args=?, note=? WHERE src=? AND COALESCE(args,'')=''", (CAIWINDAO[3], CAIWINDAO[4], CAIWINDAO[2]))
             self.commit(persist=False)
             done.add("v514")
+            self.cfg["migrated"] = sorted(done)
+            self.save_config(persist=False)
+        if "v515" not in done:
+            # v5.15: UNINSTALLER TOOL thêm Office Macro Cleaner
+            g = self.db.execute("SELECT id FROM groups WHERE UPPER(TRIM(name))=? ORDER BY id LIMIT 1", (UNINSTALLER[0],)).fetchone()
+            if g and not self.db.execute("SELECT 1 FROM apps WHERE src=?", (MACRO_CLEANER[2],)).fetchone():
+                n = self.db.execute("SELECT COALESCE(MAX(ord),-1)+1 FROM apps WHERE group_id=?", (g[0],)).fetchone()[0]
+                self.db.execute("INSERT INTO apps(group_id, icon, name, src, args, note, ord) VALUES(?,?,?,?,?,?,?)", (g[0],) + MACRO_CLEANER + (n,))
+                self.commit(persist=False)
+            done.add("v515")
             self.cfg["migrated"] = sorted(done)
             self.save_config(persist=False)
         if "layout510" not in done:
@@ -2070,7 +2135,7 @@ Remove-Item $d -Recurse -Force; 'OK'
             code = subprocess.call(["msiexec", "/i", str(p)] + a)
         elif ext == ".exe" and autopw:
             proc = subprocess.Popen([str(p)] + a, cwd=str(p.parent))
-            threading.Thread(target=autotype_pw, args=(proc.pid, autopw), daemon=True).start()
+            threading.Thread(target=autotype_pw, args=(proc.pid, autopw), kwargs={"log": self.log}, daemon=True).start()
             self.log(f"Đã mở {p.name} - đang tự nhập mật khẩu")
             return "ok", ""
         elif ext in (".exe", ".bat", ".cmd"):
@@ -3464,12 +3529,16 @@ class Api:
         self._s.load_defaults()
         return True
 
-    def clear_history(self):
-        self._need_admin()
+    def clear_history(self, mode="all"):
+        """v5.15: mode "old" = xóa nhật ký trước hôm nay (giữ hôm nay), "all" = xóa sạch."""
         with self._s.lock:
-            self._s.db.execute("DELETE FROM history")
+            if mode == "old":
+                n = self._s.db.execute("DELETE FROM history WHERE ts NOT LIKE ?", (now()[:10] + "%",)).rowcount
+            else:
+                n = self._s.db.execute("DELETE FROM history").rowcount
             self._s.commit()
-        return True
+            self._s.hist_ver = getattr(self._s, "hist_ver", 0) + 1
+        return n
 
     def test_source(self, src):
         """Kiểm tra nhanh link: là file tải được hay trang web."""
@@ -3991,6 +4060,7 @@ class App:
                                                              "--accept-source-agreements"], timeout=180)[1][-300:]),
                           ("page_3u", lambda: resolve_page(TOOLS_3U[2])),
                           ("total_cleaner", lambda: _try(_rar_selftest)),
+                          ("caiwindao_autopw", lambda: _try(_autopw_selftest)),
                           ("itunes64", lambda: _try(lambda: (lambda h: [h.status_code, h.url, h.headers.get("Content-Length")])(
                               __import__("requests").head(extra.ITUNES64, allow_redirects=True, timeout=30)))),
 
