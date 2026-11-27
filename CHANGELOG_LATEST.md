@@ -1,4 +1,4 @@
-# Win AIO by Duy Anh v5.18
+# Win AIO by Duy Anh v5.19
 
-- Cài phần mềm MAC: bỏ các tab Adobe Photoshop, Illustrator, Lightroom, Premiere, AutoCAD - chỉ còn tab MS Office for macOS.
+- Mục KHÁC: thêm nút 📝 Ghi chú (trên Nhật ký) - mở file Excel ghi chú nhúng sẵn trong tool bằng Excel trên máy; file đã khóa bằng mật khẩu Office, ai có mật khẩu mới xem được.
 

@@ -126,7 +126,8 @@ function showPage(p) {
   if (p === "testmac") testMacShow();
   if (p === "settings" && ADMIN) renderSettings();
 }
-document.querySelectorAll(".nav").forEach(n => n.onclick = () => n.dataset.p === "settings" ? openSettings() : showPage(n.dataset.p));
+document.querySelectorAll(".nav").forEach(n => n.onclick = () => n.dataset.p === "settings" ? openSettings() : n.dataset.p === "note" ? openNote() : showPage(n.dataset.p));
+async function openNote() { const r = await api("open_note"); toast(r && r.msg ? r.msg : "Không mở được Ghi chú"); }
 /* v5.7: vào tab Cài đặt luôn hỏi mật khẩu Admin (cùng mật khẩu lúc mở tool) */
 async function openSettings() {
   const ok = await dialog({title: "⚙ Cài đặt", width: 420,

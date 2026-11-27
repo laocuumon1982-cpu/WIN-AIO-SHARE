@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v5.19
+- Mục KHÁC: thêm nút 📝 Ghi chú (trên Nhật ký) - mở file Excel ghi chú nhúng sẵn trong tool bằng Excel trên máy; file đã khóa bằng mật khẩu Office, ai có mật khẩu mới xem được.
+
 ## v5.18
 - Cài phần mềm MAC: bỏ các tab Adobe Photoshop, Illustrator, Lightroom, Premiere, AutoCAD - chỉ còn tab MS Office for macOS.
 

@@ -35,7 +35,7 @@ import apple
 import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v5.18"
+APP_VERSION = "v5.19"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -3687,6 +3687,23 @@ class Api:
                 os.startfile(u)              # noqa: S606
         return True
 
+    # ---- Ghi chú: file Excel đã đặt mật khẩu trong Office, nhúng trong exe; Excel tự hỏi mật khẩu khi mở
+    def open_note(self):
+        src = RES / "notes" / "GhiChu.xlsx"
+        if not src.exists():
+            return {"ok": False, "msg": "Không thấy file Ghi chú trong tool"}
+        import tempfile
+        d = Path(tempfile.gettempdir()) / "WinAIO"
+        d.mkdir(parents=True, exist_ok=True)
+        dst = d / "GhiChu.xlsx"
+        try:
+            shutil.copyfile(src, dst)
+        except OSError:
+            pass                              # đang mở trong Excel -> mở lại file hiện có
+        if IS_WIN and not FAKE:
+            os.startfile(str(dst))            # noqa: S606
+        return {"ok": True, "msg": "Đang mở Ghi chú bằng Excel - nhập mật khẩu để xem"}
+
     # ---- MS Office
     def office_info(self):
         return {"status": self._e.office.status(), "apps": OFFICE_APPS, "langs": OFFICE_LANGS, "editions": OFFICE_EDITIONS,
@@ -4127,6 +4144,8 @@ class App:
                 except Exception as e:      # noqa: BLE001
                     lines.append(f"{nm}: ERROR {e!r}")
             lines.append("Data folder exists: " + str(DATA.exists()))
+            _nt = RES / "notes" / "GhiChu.xlsx"
+            lines.append("note_file: " + (f"ok {_nt.stat().st_size} bytes, encrypted={_nt.read_bytes()[:8].hex() == 'd0cf11e0a1b11ae1'}" if _nt.exists() else "ERROR missing"))
             lines.append("webview2: " + str(has_webview2()))
         except Exception as e:              # noqa: BLE001
             lines.append("ERROR: " + repr(e))
