@@ -49,6 +49,7 @@ jobs:
           path: |
             dist/Win AIO by Duy Anh.exe
             T/selftest.txt
+            T/caiwindao*.png
       - name: Phat hanh (khi so phien ban trong win_aio.py chua co Release)
         if: github.ref == 'refs/heads/main'
         shell: pwsh

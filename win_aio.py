@@ -642,8 +642,24 @@ def _autopw_selftest():
     f.write_bytes(requests.get(url, timeout=300).content)
     logs = []
     proc = subprocess.Popen([str(f)], cwd=str(d))
-    autotype_pw(proc.pid, "haido", wait=60, log=logs.append)
+    time.sleep(10)
+    shot = r"""Add-Type -AssemblyName System.Windows.Forms, System.Drawing
+$b = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds; $bmp = New-Object System.Drawing.Bitmap $b.Width, $b.Height
+$g = [System.Drawing.Graphics]::FromImage($bmp); $g.CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size); $bmp.Save('%s')"""
+    ps(shot % str(BASE / "caiwindao1.png").replace("'", "''"), timeout=60)
+    _, tree = ps(f"""$ErrorActionPreference='Continue'
+Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes
+$A = [System.Windows.Automation.AutomationElement]
+$ids = @({proc.pid}) + @(Get-CimInstance Win32_Process -Filter "ParentProcessId={proc.pid}" | ForEach-Object {{ $_.ProcessId }})
+foreach ($id in $ids) {{
+  $ws = $A::RootElement.FindAll([System.Windows.Automation.TreeScope]::Children, (New-Object System.Windows.Automation.PropertyCondition($A::ProcessIdProperty, [int]$id)))
+  foreach ($w in $ws) {{ "WIN pid=$id [$($w.Current.ClassName)] $($w.Current.Name)"
+    $w.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition) | Select-Object -First 60 | ForEach-Object {{
+      "  $($_.Current.ControlType.ProgrammaticName) [$($_.Current.ClassName)] '$($_.Current.Name)' id=$($_.Current.AutomationId)" }} }} }}""", timeout=90)
+    logs.append("TREE: " + tree.strip()[:3000])
+    autotype_pw(proc.pid, "haido", wait=40, log=logs.append)
     time.sleep(6)
+    ps(shot % str(BASE / "caiwindao2.png").replace("'", "''"), timeout=60)
     _, wins = ps(f"""$ErrorActionPreference='Continue'
 $ids = @({proc.pid}) + @(Get-CimInstance Win32_Process -Filter "ParentProcessId={proc.pid}" | ForEach-Object {{ $_.ProcessId }})
 Get-Process -Id $ids -ErrorAction SilentlyContinue | ForEach-Object {{ "$($_.Id) $($_.ProcessName): $($_.MainWindowTitle)" }}""", timeout=60)
