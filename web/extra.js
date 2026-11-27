@@ -371,11 +371,7 @@ async function smSave(dest) {
 
 
 /* =============================================================== KHO PHẦN MỀM MAC - MS Office for macOS (v5.12) */
-let MST = "office";
 async function macSoftShow() {
-  $("mstabs").onclick = e => { const d = e.target.closest("[data-t]"); if (!d) return; MST = d.dataset.t; macSoftShow(); };
-  $("mstabs").querySelectorAll("[data-t]").forEach(x => x.classList.toggle("on", x.dataset.t === MST));
-  if (MST !== "office") return macAppShow(MST);
   const W = $("macsoftwrap");
   W.innerHTML = '<div class="logl"><span class="spin"></span> Đang tải danh sách...</div>';
   let L; try { L = await m("macoffice_list"); } catch (e) { W.innerHTML = `<div class="warnbox">${esc(String(e))}</div>`; return; }
@@ -401,54 +397,5 @@ async function macSoftShow() {
     const b = e.target.closest("[data-mo]"); if (!b) return;
     const r = await runJob("macoffice_dl", "Tải " + b.dataset.lb, [b.dataset.mo, b.dataset.lb]);
     if (r.ok) { toast(r.result.text); macSoftShow(); }
-  };
-}
-
-
-/* =============================================================== Cài phần mềm MAC: Adobe / AutoCAD (v5.17)
-   Chỉ link chính chủ Adobe / Autodesk. Bảng macOS tương thích theo trang của Adobe (cập nhật 10/11/2026) và Autodesk. */
-const ADOBE_CC = "https://creativecloud.adobe.com/apps/download/creative-cloud";
-const MACAPPS = {
-  photoshop: {name: "ADOBE PHOTOSHOP", ic: "🟦", ac: "#31a8ff", sub: "Chỉnh sửa ảnh, thiết kế - cài qua ứng dụng Adobe Creative Cloud",
-    dl: "https://creativecloud.adobe.com/apps/download/photoshop", trial: "https://www.adobe.com/products/photoshop/free-trial-download.html",
-    req: "https://helpx.adobe.com/photoshop/desktop/get-started/technical-requirements-installation/adobe-photoshop-on-desktop-technical-requirements.html",
-    rows: [["macOS 27 Golden Gate", "Photoshop 27.x trở lên"], ["macOS 26 Tahoe", "Photoshop 27.0 trở lên"], ["macOS 15 Sequoia", "Photoshop 25.12 trở lên"]]},
-  illustrator: {name: "ADOBE ILLUSTRATOR", ic: "🟧", ac: "#ff9a00", sub: "Thiết kế đồ họa vector, logo, in ấn - cài qua ứng dụng Adobe Creative Cloud",
-    dl: "https://creativecloud.adobe.com/apps/download/illustrator", trial: "https://www.adobe.com/products/illustrator/free-trial-download.html",
-    req: "https://helpx.adobe.com/illustrator/system-requirements.html",
-    rows: [["macOS 27 Golden Gate", "Illustrator 31.x"], ["macOS 26 Tahoe", "Illustrator 30.0 trở lên"], ["macOS 15 Sequoia", "Illustrator 28.6 trở lên"]]},
-  lightroom: {name: "ADOBE LIGHTROOM / LIGHTROOM CLASSIC", ic: "🟦", ac: "#31a8ff", sub: "Quản lý và chỉnh màu ảnh RAW - cài qua ứng dụng Adobe Creative Cloud",
-    dl: "https://creativecloud.adobe.com/apps/download/lightroom-classic", dl2: ["Lightroom (bản mới)", "https://creativecloud.adobe.com/apps/download/lightroom"],
-    trial: "https://www.adobe.com/products/photoshop-lightroom-classic/free-trial-download.html",
-    req: "https://helpx.adobe.com/lightroom-classic/system-requirements.html",
-    rows: [["macOS 27 Golden Gate", "Lightroom 10.x · Lightroom Classic 16.x"], ["macOS 26 Tahoe", "Lightroom 9.0 trở lên · Lightroom Classic 15.0 trở lên"],
-           ["macOS 15 Sequoia", "Lightroom 8.0 trở lên · Lightroom Classic 14.0 trở lên"]]},
-  premiere: {name: "ADOBE PREMIERE", ic: "🟪", ac: "#9999ff", sub: "Dựng phim, biên tập video - cài qua ứng dụng Adobe Creative Cloud",
-    dl: "https://creativecloud.adobe.com/apps/download/premiere-pro", trial: "https://www.adobe.com/products/premiere/free-trial-download.html",
-    req: "https://helpx.adobe.com/premiere-pro/system-requirements.html",
-    rows: [["macOS 27 Golden Gate", "Premiere 26.5 trở lên"], ["macOS 26 Tahoe", "Premiere 25.6 trở lên"], ["macOS 15 Sequoia", "Premiere 24.0 trở lên"]]},
-  autocad: {name: "AUTOCAD FOR MAC", ic: "🟥", ac: "#e51050", sub: "Vẽ kỹ thuật 2D / 3D - tải từ tài khoản Autodesk (gói AutoCAD có cả bản Windows và Mac)",
-    dl: "https://manage.autodesk.com/products", dlname: "Tải từ tài khoản Autodesk", trial: "https://www.autodesk.com/products/autocad/free-trial",
-    req: "https://www.autodesk.com/support/technical/article/caas/sfdcarticles/sfdcarticles/System-requirements-for-AutoCAD-for-Mac.html",
-    key: "🔑 Cần tài khoản Autodesk có gói AutoCAD / AutoCAD LT (hoặc bản dùng thử) để tải và dùng.",
-    rows: [["AutoCAD for Mac 2027 (mới nhất)", "Chỉ dùng Metal (bỏ OpenGL) - xem yêu cầu hệ thống"], ["AutoCAD for Mac 2025", "macOS 12 Monterey → 15 Sequoia (Sequoia cần Update 2025.1)"],
-           ["AutoCAD for Mac 2023", "macOS 10.15 Catalina → 14 Sonoma"], ["AutoCAD for Mac 2022", "macOS 10.14 Mojave → 14 Sonoma"],
-           ["AutoCAD for Mac 2021", "macOS 10.13 High Sierra → 12 Monterey"], ["AutoCAD for Mac 2019", "macOS 10.12 Sierra → 11 Big Sur"]],
-    rowhd: ["Phiên bản", "Chạy trên macOS"], old: "Bản cũ hơn: vào tài khoản Autodesk › Sản phẩm › chọn phiên bản trước (tùy gói đăng ký)."},
-};
-function macAppShow(k) {
-  const a = MACAPPS[k], W = $("macsoftwrap");
-  const link = (u, lb, cls) => `<button class="btn ${cls || ""}" data-open="${esc(u)}">${lb}</button><button class="btn sm" data-cp="${esc(u)}" title="Chép link để mở bằng Safari trên Mac">📋</button>`;
-  const hd = a.rowhd || ["macOS", "Phiên bản tương thích (theo Adobe)"];
-  W.innerHTML = `<div class="tcard" style="--ac:${a.ac}"><div class="sh"><span class="si">${a.ic}</span><div><b>${esc(a.name)}</b><small>${esc(a.sub)} · chỉ link chính chủ, bấm 📋 để chép link mở trên máy Mac</small></div></div>
-    <div class="keynote">${esc(a.key || "🔑 Cần tài khoản Adobe có gói Creative Cloud (hoặc bản dùng thử) để tải và dùng.")}</div>
-    <div class="mobtns" style="margin:12px 0">${link(a.dl, "⬇ " + (a.dlname || "Tải " + a.name.split(" / ")[0].replace("ADOBE ", "").toLowerCase().replace(/^\w/, c => c.toUpperCase()) + " cho Mac"), "red shine")}
-      ${a.dl2 ? link(a.dl2[1], "⬇ " + a.dl2[0]) : ""}${k !== "autocad" ? link(ADOBE_CC, "⬇ Ứng dụng Creative Cloud") : ""}${link(a.trial, "🎁 Dùng thử miễn phí")}${link(a.req, "📋 Yêu cầu hệ thống")}</div>
-    <div class="motable"><div class="mohd mo2"><span>${hd[0]}</span><span>${hd[1]}</span></div>
-      ${a.rows.map(([x, y]) => `<div class="morow mo2"><div class="momac"><b>${esc(x)}</b></div><div class="mover2">${esc(y)}</div></div>`).join("")}</div>
-    <div class="logl">${esc(a.old || "Máy macOS cũ hơn: mở ứng dụng Creative Cloud › bấm ⋯ cạnh app › Phiên bản khác để cài bản trước (Adobe chỉ giữ bản hiện tại và bản trước đó).")}</div></div>`;
-  W.onclick = e => {
-    const c = e.target.closest("[data-cp]"); if (c) { copyLocal(c.dataset.cp); toast("Đã chép link - dán vào Safari trên Mac"); return; }
-    const o = e.target.closest("[data-open]"); if (o) api("open_url", o.dataset.open);
   };
 }

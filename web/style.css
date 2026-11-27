@@ -1434,4 +1434,3 @@ body.dark .keynote{color:#fbbf24;background:#1f1807;border-color:#5b4310}
 .mobtns{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .moapps{flex-basis:100%;display:flex;flex-wrap:wrap;gap:5px;align-items:center;font-size:12px;font-weight:700;color:var(--muted);margin-top:2px}
 .mo-have{font-size:11px;font-weight:800;color:#15803d;margin-right:4px}
-.mohd.mo2,.morow.mo2{grid-template-columns:260px 1fr}.mover2{font-weight:700;font-size:13.5px}

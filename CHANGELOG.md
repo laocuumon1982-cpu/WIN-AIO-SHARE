@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v5.18
+- Cài phần mềm MAC: bỏ các tab Adobe Photoshop, Illustrator, Lightroom, Premiere, AutoCAD - chỉ còn tab MS Office for macOS.
+
 ## v5.17
 - Cài phần mềm MAC: thêm tab Adobe Photoshop, Illustrator, Lightroom, Premiere, AutoCAD - link tải chính chủ Adobe/Autodesk, dùng thử, yêu cầu hệ thống + bảng phiên bản tương thích theo macOS.
 

@@ -1,4 +1,4 @@
-# Win AIO by Duy Anh v5.17
+# Win AIO by Duy Anh v5.18
 
-- Cài phần mềm MAC: thêm tab Adobe Photoshop, Illustrator, Lightroom, Premiere, AutoCAD - link tải chính chủ Adobe/Autodesk, dùng thử, yêu cầu hệ thống + bảng phiên bản tương thích theo macOS.
+- Cài phần mềm MAC: bỏ các tab Adobe Photoshop, Illustrator, Lightroom, Premiere, AutoCAD - chỉ còn tab MS Office for macOS.
 
