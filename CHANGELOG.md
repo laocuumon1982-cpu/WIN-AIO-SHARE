@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v5.17
+- Cài phần mềm MAC: thêm tab Adobe Photoshop, Illustrator, Lightroom, Premiere, AutoCAD - link tải chính chủ Adobe/Autodesk, dùng thử, yêu cầu hệ thống + bảng phiên bản tương thích theo macOS.
+
 ## v5.16
 - Tiện ích cài Win dạo: sửa tự nhập mật khẩu - điền thẳng mật khẩu vào ô nhập của tool rồi bấm nút "✅ OK" (tool dùng giao diện AutoIt, bản trước không nhận ra ô nhập và nút OK).
 
