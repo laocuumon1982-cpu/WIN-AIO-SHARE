@@ -35,7 +35,7 @@ import apple
 import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v5.15"
+APP_VERSION = "v5.16"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -736,8 +736,13 @@ def autotype_pw(pid, pw, wait=45, log=None):
     sk = "".join("{" + c + "}" if c in "+^%~(){}[]" else c for c in pw).replace("'", "''")
     code, out = ps(f"""$ErrorActionPreference = 'Continue'
 Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes
+Add-Type -Namespace WA -Name U -MemberDefinition @'
+[DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern IntPtr SendMessage(IntPtr h, int m, IntPtr w, string l);
+[DllImport("user32.dll")] public static extern bool PostMessage(IntPtr h, int m, IntPtr w, IntPtr l);
+[DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h);
+'@
 $A = [System.Windows.Automation.AutomationElement]; $TS = [System.Windows.Automation.TreeScope]
-$CT = [System.Windows.Automation.ControlType]; $PC = [System.Windows.Automation.PropertyCondition]
+$PC = [System.Windows.Automation.PropertyCondition]; $T = [System.Windows.Automation.Condition]::TrueCondition
 $ws = New-Object -ComObject WScript.Shell
 $end = [DateTime]::Now.AddSeconds({int(wait)}); $root0 = {int(pid)}; $res = 'TIMEOUT'
 while ([DateTime]::Now -lt $end -and $res -eq 'TIMEOUT') {{
@@ -746,20 +751,25 @@ while ([DateTime]::Now -lt $end -and $res -eq 'TIMEOUT') {{
   foreach ($id in $ids) {{ try {{
     $wins = $A::RootElement.FindAll($TS::Children, (New-Object $PC($A::ProcessIdProperty, [int]$id)))
     foreach ($w in $wins) {{
-      $edit = $w.FindFirst($TS::Descendants, (New-Object $PC($A::ControlTypeProperty, $CT::Edit)))
+      $all = @($w.FindAll($TS::Descendants, $T))
+      # ô nhập: lớp Edit (AutoIt / Win32) hoặc kiểu Edit (WinForms / WPF)
+      $edit = $all | Where-Object {{ $_.Current.ClassName -match '^(Edit|TEdit|WindowsForms10\\.EDIT)' -or $_.Current.ControlType.ProgrammaticName -eq 'ControlType.Edit' }} | Select-Object -First 1
       if (-not $edit) {{ continue }}
-      Start-Sleep -Milliseconds 600
-      try {{ $w.SetFocus() }} catch {{}}; $ws.AppActivate([int]$id) | Out-Null
-      try {{ $edit.SetFocus() }} catch {{}}
-      $done = $false; $vp = $null
-      if ($edit.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern, [ref]$vp)) {{ try {{ $vp.SetValue('{pv}'); $done = $true }} catch {{}} }}
-      if (-not $done) {{ $ws.SendKeys('^a'); $ws.SendKeys('{sk}') }}
-      Start-Sleep -Milliseconds 350
-      $ok = $w.FindAll($TS::Descendants, (New-Object $PC($A::ControlTypeProperty, $CT::Button))) |
-        Where-Object {{ $_.Current.Name -match '^\\s*(&?OK|Ok|&?Đồng ý|Đăng nhập|Xác nhận|Mở|Vào|Login|Enter|Có)\\b' }} | Select-Object -First 1
-      $ip = $null
-      if ($ok -and $ok.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern, [ref]$ip)) {{ $ip.Invoke(); $res = 'OK:' + $ok.Current.Name }}
-      else {{ try {{ $edit.SetFocus() }} catch {{}}; $ws.SendKeys('{{ENTER}}'); $res = 'ENTER' }}
+      $ok = $all | Where-Object {{ ($_.Current.ClassName -match 'Button' -or $_.Current.ControlType.ProgrammaticName -eq 'ControlType.Button') -and
+                                  $_.Current.Name -match '(OK|Ok|Đồng ý|Đăng nhập|Xác nhận|Mở|Vào|Login|Enter)' }} | Select-Object -First 1
+      Start-Sleep -Milliseconds 500
+      $hw = [IntPtr]$w.Current.NativeWindowHandle; if ($hw -ne [IntPtr]::Zero) {{ [WA.U]::SetForegroundWindow($hw) | Out-Null }}
+      $he = [IntPtr]$edit.Current.NativeWindowHandle
+      if ($he -ne [IntPtr]::Zero) {{ [WA.U]::SendMessage($he, 0x000C, [IntPtr]::Zero, '{pv}') | Out-Null }}      # WM_SETTEXT
+      else {{ try {{ $edit.SetFocus() }} catch {{}}; $ws.SendKeys('^a'); $ws.SendKeys('{sk}') }}
+      Start-Sleep -Milliseconds 300
+      $hb = if ($ok) {{ [IntPtr]$ok.Current.NativeWindowHandle }} else {{ [IntPtr]::Zero }}
+      if ($hb -ne [IntPtr]::Zero) {{ [WA.U]::PostMessage($hb, 0x00F5, [IntPtr]::Zero, [IntPtr]::Zero) | Out-Null; $res = 'OK:' + $ok.Current.Name }}   # BM_CLICK
+      else {{
+        $ip = $null
+        if ($ok -and $ok.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern, [ref]$ip)) {{ $ip.Invoke(); $res = 'OK:' + $ok.Current.Name }}
+        else {{ try {{ $edit.SetFocus() }} catch {{}}; $ws.SendKeys('{{ENTER}}'); $res = 'ENTER' }}
+      }}
       break
     }}
     }} catch {{}}
@@ -771,7 +781,7 @@ $res""", timeout=wait + 30)
     res = (out or "").strip().splitlines()[-1:] or [""]
     if log:
         r = res[0]
-        log("Đã tự nhập mật khẩu và bấm " + r[3:] if r.startswith("OK:") else
+        log("Đã tự nhập mật khẩu và bấm " + r[3:].strip() if r.startswith("OK:") else
             "Đã tự nhập mật khẩu và nhấn Enter" if r == "ENTER" else
             "Không thấy hộp nhập mật khẩu của tool - nhập tay giúp" if r in ("TIMEOUT", "EXITED") else f"Tự nhập mật khẩu: {r[:120]}")
 

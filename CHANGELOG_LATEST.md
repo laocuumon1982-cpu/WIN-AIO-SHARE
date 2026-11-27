@@ -1,5 +1,8 @@
-Win AIO by Duy Anh v5.15
+Win AIO by Duy Anh v5.16
 
+- Tiện ích cài Win dạo: sửa tự nhập mật khẩu - điền thẳng mật khẩu vào ô nhập của tool rồi bấm nút "✅ OK" (tool dùng giao diện AutoIt, bản trước không nhận ra ô nhập và nút OK).
+
+v5.15:
 - Tiện ích cài Win dạo: mở tool xong tự tìm hộp nhập mật khẩu (kể cả cửa sổ con), điền mật khẩu rồi bấm nút OK để vào thẳng tool (không thấy nút OK thì nhấn Enter); kết quả ghi vào nhật ký.
 - Nhật ký: nút "🧹 Xóa nhật ký cũ" (không cần Admin) - chọn xóa cũ giữ lại hôm nay, hoặc xóa sạch tất cả.
 - Bỏ tab Web.
