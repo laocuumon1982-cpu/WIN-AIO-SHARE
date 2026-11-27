@@ -1397,3 +1397,31 @@ def macoffice_dl(j, url, label="MS Office for macOS"):
     size = int(h.headers.get("Content-Length") or 0)
     apple.dl_files(j, [{"name": name, "url": real, "size": size}], d, label)
     return {"text": f"Đã tải {name} vào {d}", "dir": str(d), "path": str(d / name)}
+
+
+# ================================================================ iTunes 64-bit (Kho Firmware iOS) - v5.14
+ITUNES64 = "https://www.apple.com/itunes/download/win64"     # link chính chủ Apple, luôn trỏ tới bản mới nhất
+
+
+def itunes_run(j):
+    """Tải iTunes 64-bit mới nhất từ Apple (đã có đúng bản thì dùng lại) rồi mở bộ cài."""
+    j["pct"], j["text"] = -1, "Đang hỏi Apple bản iTunes 64-bit mới nhất..."
+    if fake():
+        time.sleep(0.8)
+        return {"text": "Đã mở bộ cài iTunes 64-bit (chạy thử)."}
+    import requests
+    import apple
+    h = requests.head(ITUNES64, allow_redirects=True, timeout=30, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
+    url = h.url
+    name = url.split("?", 1)[0].rsplit("/", 1)[-1] or "iTunes64Setup.exe"
+    if not name.lower().endswith(".exe"):
+        raise RuntimeError("Máy chủ Apple không trả về bộ cài iTunes - thử lại sau.")
+    size = int(h.headers.get("Content-Length") or 0)
+    d = data_dir("Soft", "iTunes")
+    exe = d / name
+    if exe.exists() and size and exe.stat().st_size != size:     # Apple ra bản mới cùng tên file -> tải lại
+        exe.unlink(missing_ok=True)
+    if not exe.exists():
+        apple.dl_files(j, [{"name": name, "url": url, "size": size}], d, "iTunes 64-bit")
+    subprocess.Popen([str(exe)], cwd=str(d))
+    return {"text": "Đã mở bộ cài iTunes 64-bit mới nhất - bấm Next để cài.", "path": str(exe)}

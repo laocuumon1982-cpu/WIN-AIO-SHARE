@@ -1,5 +1,11 @@
 # Nhật ký thay đổi
 
+## v5.14
+- Kho Firmware iOS: thêm thẻ "iTunes (64-bit)" - nút Tải & cài iTunes luôn lấy bản 64-bit mới nhất từ Apple (đã có đúng bản thì dùng lại) rồi mở bộ cài.
+- Nhóm UNINSTALLER TOOL: bỏ nút 360 Total Security Remover và WPS Office Utility & Cleaner; thêm nút Total Cleaner (Google Drive, tự giải nén mật khẩu 123 rồi mở).
+- File .zip có mật khẩu giờ giải nén bằng 7-Zip / WinRAR (máy chưa có thì tự cài 7-Zip).
+- Tiện ích cài Win dạo: tải bản mới nhất, mở tool xong tự nhập mật khẩu và bấm Enter.
+
 ## v5.13
 - Thanh bên: mục CÀI ĐẶT chia 3 nhóm:
   + WINDOWS: Cài phần mềm WIN (đổi tên từ Cài phần mềm) · Kho bộ cài WIN

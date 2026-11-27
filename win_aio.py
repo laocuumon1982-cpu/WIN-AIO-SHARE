@@ -35,7 +35,7 @@ import apple
 import officex
 
 APP_TITLE = "Win AIO by Duy Anh"
-APP_VERSION = "v5.13"
+APP_VERSION = "v5.14"
 REPO = "laocuumon1982-cpu/WIN-AIO-SHARE"                       # nơi phát hành bản mới (nút Cập nhật)
 EXE_NAME = "Win AIO by Duy Anh.exe"
 IS_WIN = os.name == "nt"
@@ -74,22 +74,20 @@ ARTCRAFT = ("ARTCRAFT OFFICE PORTABLE", [
 ONLYOFFICE = ("📝", "OnlyOffice", "winget:ONLYOFFICE.DesktopEditors", "", "Bộ văn phòng miễn phí, mở tốt file Word / Excel / PowerPoint")
 WHATSAPP = ("🟢", "WhatsApp", "winget:9NKSQGP7F2NH", "", "Cài từ Microsoft Store")
 # Tiện ích cài Win dạo (Hải Đỗ): file mới nhất trong bản phát hành "caiwindao" (tool đó tự đọc version.txt cùng chỗ)
-CAIWINDAO = ("🧰", "Tiện ích cài Win dạo", r"github:minhhaibuitt/Caiwindao@caiwindao|^Tien\.ich\.cai\.Win\.dao\.v[\d.]+\.exe$", "",
-             "Tool cài Win dạo của Hải Đỗ - luôn tải bản mới nhất (mật khẩu: haido)")
+CAIWINDAO = ("🧰", "Tiện ích cài Win dạo", r"github:minhhaibuitt/Caiwindao@caiwindao|^Tien\.ich\.cai\.Win\.dao\.v[\d.]+\.exe$", "autopw=haido",
+             "Tool cài Win dạo của Hải Đỗ - luôn tải bản mới nhất, mở xong tự nhập mật khẩu")
 # Tiện ích văn phòng (Hải Đỗ): file mới nhất trong bản phát hành "vanphong" (tool đó tự đọc version.txt cùng chỗ)
 VANPHONG = ("🧾", "Tiện ích văn phòng", r"github:minhhaibuitt/Caiwindao@vanphong|^Tien\.ich\.van\.phong\.v[\d.]+\.exe$", "",
             "Tiện ích văn phòng của Hải Đỗ - luôn tải bản mới nhất")
 # Nhóm gỡ phần mềm cứng đầu (v3.2). codeberg: giống github: (Forgejo có API phát hành giống GitHub)
 HIBIT = ("🧹", "HiBit Uninstaller", "winget:HiBitSoftware.HiBitUninstaller", "", "")
+TOTAL_CLEANER = ("🧼", "Total Cleaner", "https://drive.usercontent.google.com/download?id=1zzY8_uw3DLb2UWc_6YOAPm9Xnw54hwFx&export=download&authuser=0", "pass=123", "Total Cleaner (Google Drive) - tự giải nén (mật khẩu 123) rồi mở")
 UNINSTALLER = ("UNINSTALLER TOOL", [
     HIBIT,
     ("🅰️", "Avast Clear", "https://files.avast.com/iavs9x/avastclear.exe", "", "Công cụ gỡ Avast chính hãng (trang chủ Avast)"),
     ("🧹", "360 Security Uninstaller Tool", r"github:ThanhNguyenVN93/360-Security-Uninstaller-Tool|\.(exe|zip)$", "",
      "Gỡ 360 Security (ThanhNguyenVN93, bản mới nhất từ GitHub)"),
-    ("🛡️", "360 Total Security Remover", r"codeberg:yansuogaming/360totalremove|portable.*\.(exe|zip|rar|7z)$", "pass=123",
-     "Gỡ sạch 360 Total Security (Yansuo, bản Portable mới nhất từ Codeberg)"),
-    ("🧽", "WPS Office Utility & Cleaner", r"codeberg:yansuogaming/wps-utility|portable.*\.(exe|zip|rar|7z)$", "pass=123",
-     "Gỡ sạch / chặn WPS Office (Yansuo, bản Portable mới nhất từ Codeberg)"),
+    TOTAL_CLEANER,
 ])
 TOOLS_3U = ("📱", "3uTools (64-bit)", r"page:https://www.3u.com/|https?://dl\.3u\.com/[^\"'\s<>]*3uTools_v[\d.]+_Setup_x64\.exe", "",
             "Quản lý iPhone / iPad, flash iOS - luôn lấy bản 64-bit mới nhất trên trang chủ 3u.com")
@@ -272,7 +270,7 @@ DEFAULT_GROUPS = [     # (tên nhóm, cột, [nút...]) - thứ tự trong cột
         ("📸", "ShareX", "winget:ShareX.ShareX", "", "Chụp màn hình"),
         ("🛠️", "Snappy Driver Installer", "winget:GlennDelahoy.SnappyDriverInstallerOrigin", "", ""),
         ("🎞️", "YouTube Downloader", r"github:duckmartians/YouTube_Downloader|windows\.zip$", "", ""),
-        ("🧰", "Tiện ích cài Win dạo", r"github:minhhaibuitt/Caiwindao@caiwindao|^Tien\.ich\.cai\.Win\.dao\.v[\d.]+\.exe$", "", "Tool cài Win dạo của Hải Đỗ - luôn tải bản mới nhất (mật khẩu: haido)"),
+        CAIWINDAO,
     ]),
     ("MICROSOFT OFFICE", 2, [
         ("🏢", "MS Office", "office:", "", "Cài Office 2016 / 2019 / 2021 / 2024 / 365 chính chủ từ Microsoft (Online hoặc Offline)"),
@@ -313,8 +311,7 @@ DEFAULT_GROUPS = [     # (tên nhóm, cột, [nút...]) - thứ tự trong cột
         ("🧹", "HiBit Uninstaller", "winget:HiBitSoftware.HiBitUninstaller", "", ""),
         ("🅰️", "Avast Clear", "https://files.avast.com/iavs9x/avastclear.exe", "", "Công cụ gỡ Avast chính hãng (trang chủ Avast)"),
         ("🧹", "360 Security Uninstaller Tool", r"github:ThanhNguyenVN93/360-Security-Uninstaller-Tool|\.(exe|zip)$", "", "Gỡ 360 Security (ThanhNguyenVN93, bản mới nhất từ GitHub)"),
-        ("🛡️", "360 Total Security Remover", r"codeberg:yansuogaming/360totalremove|portable.*\.(exe|zip|rar|7z)$", "pass=123", "Gỡ sạch 360 Total Security (Yansuo, bản Portable mới nhất từ Codeberg)"),
-        ("🧽", "WPS Office Utility & Cleaner", r"codeberg:yansuogaming/wps-utility|portable.*\.(exe|zip|rar|7z)$", "pass=123", "Gỡ sạch / chặn WPS Office (Yansuo, bản Portable mới nhất từ Codeberg)"),
+        TOTAL_CLEANER,
     ]),
     ("GIẢ LẬP ANDROID", 4, [
         ("📱", "BlueStacks 5", "winget:BlueStack.BlueStacks", "", ""),
@@ -618,19 +615,17 @@ def _forge_tree_file(api, repo, pat, hdr):
 
 
 def _rar_selftest():
-    """Selftest: tải file .rar của Codeberg, giải nén thử (tar.exe / 7-Zip), liệt kê exe bên trong."""
+    """Selftest (v5.14): tải Total Cleaner từ Google Drive, giải nén thử bằng mật khẩu 123, liệt kê exe bên trong."""
     import requests
     import tempfile
-    out = []
-    for a in UNINSTALLER[1][:2]:
-        url, ver = resolve_github(a[2])
-        d = Path(tempfile.mkdtemp())
-        f = d / url.rsplit("/", 1)[-1]
-        f.write_bytes(requests.get(url, timeout=120).content)
-        ok = Engine._unarchive(f, d / "x", "123")
-        tc, to = run_hidden(["tar", "-xf", str(f), "-C", str(d)], timeout=300)
-        out.append([a[1], url, f.stat().st_size, ok, [x.name for x in (d / "x").rglob("*.exe")] if ok else [], "tar", tc, to[-120:]])
-    return out
+    d = Path(tempfile.mkdtemp())
+    r = requests.get(TOTAL_CLEANER[2] + "&confirm=t", timeout=300, headers={"User-Agent": "Mozilla/5.0"})
+    cd = r.headers.get("Content-Disposition", "")
+    m = re.search(r'filename="?([^";]+)', cd)
+    f = d / (m.group(1) if m else "TotalCleaner.bin")
+    f.write_bytes(r.content)
+    ok = Engine._unarchive(f, d / "x", "123")
+    return [f.name, r.headers.get("Content-Type"), f.stat().st_size, ok, [x.name for x in (d / "x").rglob("*.exe")] if ok else []]
 
 
 def _try(f):
@@ -691,6 +686,23 @@ def run_hidden(cmd, shell=False, timeout=None):
 _PS_EXE = str(Path(os.environ.get("SystemRoot", r"C:\Windows")) / "System32" / "WindowsPowerShell" / "v1.0" / "powershell.exe")
 if not Path(_PS_EXE).exists():
     _PS_EXE = "powershell"                  # máy lạ: dùng theo PATH
+
+
+def autotype_pw(pid, pw, wait=40):
+    """v5.14: chờ cửa sổ của tiến trình hiện lên rồi gõ mật khẩu + Enter (VD Tiện ích cài Win dạo hỏi mật khẩu khi mở)."""
+    if not IS_WIN or FAKE:
+        return
+    q = pw.replace("'", "''")
+    for ch in "+^%~(){}[]":                       # ký tự đặc biệt của SendKeys
+        q = q.replace(ch, "{" + ch + "}")
+    ps(f"""$ws = New-Object -ComObject WScript.Shell
+$t = [DateTime]::Now.AddSeconds({int(wait)})
+while ([DateTime]::Now -lt $t) {{
+  $p = Get-Process -Id {int(pid)} -ErrorAction SilentlyContinue
+  if (-not $p) {{ break }}
+  if ($p.MainWindowHandle -ne 0) {{ Start-Sleep -Milliseconds 700; if ($ws.AppActivate({int(pid)})) {{ Start-Sleep -Milliseconds 250; $ws.SendKeys('{q}'); Start-Sleep -Milliseconds 150; $ws.SendKeys('{{ENTER}}'); break }} }}
+  Start-Sleep -Milliseconds 400
+}}""", timeout=wait + 20)
 
 
 def ps(script, timeout=600):
@@ -1041,6 +1053,20 @@ class Store:
                                 (g[0], "🔑", "MS Office MacOS", "", "", "Admin bấm ✎ để thêm link", n))
                 self.commit(persist=False)
             done.add("active512")
+            self.cfg["migrated"] = sorted(done)
+            self.save_config(persist=False)
+        if "v514" not in done:
+            # v5.14: UNINSTALLER bỏ 360 Total Security Remover + WPS Office Utility & Cleaner, thêm Total Cleaner;
+            #        Tiện ích cài Win dạo mở xong tự nhập mật khẩu
+            db = self.db
+            db.execute("DELETE FROM apps WHERE src LIKE 'codeberg:yansuogaming/360totalremove%' OR src LIKE 'codeberg:yansuogaming/wps-utility%'")
+            g = db.execute("SELECT id FROM groups WHERE UPPER(TRIM(name))=? ORDER BY id LIMIT 1", (UNINSTALLER[0],)).fetchone()
+            if g and not db.execute("SELECT 1 FROM apps WHERE src=?", (TOTAL_CLEANER[2],)).fetchone():
+                n = db.execute("SELECT COALESCE(MAX(ord),-1)+1 FROM apps WHERE group_id=?", (g[0],)).fetchone()[0]
+                db.execute("INSERT INTO apps(group_id, icon, name, src, args, note, ord) VALUES(?,?,?,?,?,?,?)", (g[0],) + TOTAL_CLEANER + (n,))
+            db.execute("UPDATE apps SET args=?, note=? WHERE src=? AND COALESCE(args,'')=''", (CAIWINDAO[3], CAIWINDAO[4], CAIWINDAO[2]))
+            self.commit(persist=False)
+            done.add("v514")
             self.cfg["migrated"] = sorted(done)
             self.save_config(persist=False)
         if "layout510" not in done:
@@ -1996,6 +2022,10 @@ Remove-Item $d -Recurse -Force; 'OK'
             stop.set()
             return "ok", ""
         a = shlex.split(args, posix=False) if args else []
+        autopw = next((x.split("=", 1)[1] for x in a if x.lower().startswith("autopw=")), "")   # v5.14: tự nhập mật khẩu khi tool mở
+        a = [x for x in a if not x.lower().startswith("autopw=")]
+        if ext == ".zip" and any(x.lower().startswith("pass=") for x in a):
+            ext = ".7z"                                       # zip có mật khẩu: giải nén bằng 7-Zip / WinRAR (đọc được cả AES)
         if ext == ".zip":
             dest = self.dl_dir() / p.stem
             self.cur.update(phase="Đang giải nén", inst=0, est=False)
@@ -2011,7 +2041,7 @@ Remove-Item $d -Recurse -Force; 'OK'
             else:
                 os.startfile(dest)            # noqa: S606
             return "ok", ""
-        if ext in (".rar", ".7z"):
+        if ext in (".rar", ".7z", ".zip"):
             pw = next((x.split("=", 1)[1] for x in a if x.lower().startswith("pass=")), "")
             a = [x for x in a if not x.lower().startswith("pass=")]
             dest = self.dl_dir() / p.stem
@@ -2038,6 +2068,11 @@ Remove-Item $d -Recurse -Force; 'OK'
         if ext == ".msi":
             stop = self._est_start(self._tau_for(p))
             code = subprocess.call(["msiexec", "/i", str(p)] + a)
+        elif ext == ".exe" and autopw:
+            proc = subprocess.Popen([str(p)] + a, cwd=str(p.parent))
+            threading.Thread(target=autotype_pw, args=(proc.pid, autopw), daemon=True).start()
+            self.log(f"Đã mở {p.name} - đang tự nhập mật khẩu")
+            return "ok", ""
         elif ext in (".exe", ".bat", ".cmd"):
             stop = self._est_start(self._tau_for(p))
             code = subprocess.call([str(p)] + a, cwd=str(p.parent), shell=ext != ".exe")
@@ -3650,7 +3685,7 @@ class Api:
              "restore_user", "zalo_backup", "zalo_restore", "browser_backup", "browser_restore", "sha256_file", "iso_download", "wg_upgrades", "wg_upgrade",
              "fix_sfc", "fix_dism", "fix_wu", "fix_store", "fix_printer", "fix_all", "win11_tidy", "font_install", "apps_export",
              "apps_import", "drv_wu_scan", "drv_wu_install", "bench_disk", "bench_cpu", "ventoy_install", "ventoy_copy", "preset_run",
-             "mac_list", "mac_download", "ios_download", "irst_get", "rufus_run", "tools3u_run", "avl_run", "anhdv_run", "macoffice_dl", "macusb_get",
+             "mac_list", "mac_download", "ios_download", "irst_get", "rufus_run", "tools3u_run", "itunes_run", "avl_run", "anhdv_run", "macoffice_dl", "macusb_get",
              "lic_key", "lic_cid", "crack_clear", "win_clear_key", "to_volume", "off_remove", "off_tune"}
 
     def set_upg_n(self, n):
@@ -3955,6 +3990,9 @@ class App:
                           ("wg_picview", lambda: run_hidden(["winget", "show", "--id", "Ruben2776.PicView", "-e", "--source", "winget",
                                                              "--accept-source-agreements"], timeout=180)[1][-300:]),
                           ("page_3u", lambda: resolve_page(TOOLS_3U[2])),
+                          ("total_cleaner", lambda: _try(_rar_selftest)),
+                          ("itunes64", lambda: _try(lambda: (lambda h: [h.status_code, h.url, h.headers.get("Content-Length")])(
+                              __import__("requests").head(extra.ITUNES64, allow_redirects=True, timeout=30)))),
 
                           ("off_scan", officex.off_scan), ("crack_check", officex.crack_check), ("lic_oem", officex.lic_oem),
                           ("lic_win", lambda: officex.lic_status("windows")["out"][:400]), ("odt_latest", odt_latest_url), ("irst_info", extra.irst_info),
